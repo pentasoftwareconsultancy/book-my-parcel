@@ -1,0 +1,9 @@
+{
+  "_comment": "This project is deployed to Hostinger VPS KVM 4, not Vercel. SPA routing is handled by Nginx (try_files $uri $uri/ /index.html). This file is kept as a reference only and has no effect on the VPS deployment.",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

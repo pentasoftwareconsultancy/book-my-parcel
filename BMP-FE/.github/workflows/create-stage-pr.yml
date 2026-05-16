@@ -1,0 +1,40 @@
+name: 04 Create Stage PR — Frontend
+
+on:
+  push:
+    branches: [testing]
+    paths:
+      - 'BMP-FE/**'
+
+jobs:
+  create-pr:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR already exists
+        id: check-pr
+        run: |
+          EXISTING=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls?state=open&head=pentasoftwareconsultancy:testing&base=stage" \
+            | jq 'length')
+          echo "pr_count=$EXISTING" >> $GITHUB_OUTPUT
+
+      - name: Create PR testing → stage
+        if: steps.check-pr.outputs.pr_count == '0'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls \
+            -d '{
+              "title": "Frontend: Testing → Stage",
+              "body": "## Staging Promotion\n\nPromotes frontend changes from `testing` to `stage`.\n\n### Checklist\n- [ ] Testing environment verified\n- [ ] No regressions\n- [ ] Ready for staging review\n\n**Requires manual review before merging.**",
+              "head": "testing",
+              "base": "stage"
+            }'

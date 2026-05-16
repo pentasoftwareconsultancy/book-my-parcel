@@ -1,0 +1,30 @@
+# =============================================================================
+# DISABLED — Auto-merge to production has been replaced with a manual approval
+# gate using GitHub Environment protection rules.
+#
+# HOW TO SET UP THE MANUAL GATE:
+#   1. Go to: GitHub → Settings → Environments → production
+#   2. Enable "Required reviewers" and add at least one reviewer
+#   3. The deploy-production.yml workflow uses `environment: production`
+#      which will pause and wait for reviewer approval before deploying.
+#
+# This file is kept as documentation. The job below is intentionally disabled
+# via the `if: false` condition so it never runs.
+# =============================================================================
+
+name: 08 [DISABLED] Auto Merge to Production
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+jobs:
+  disabled:
+    # This workflow is permanently disabled.
+    # Production deployments require manual approval via GitHub Environments.
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow is disabled. See comments above."

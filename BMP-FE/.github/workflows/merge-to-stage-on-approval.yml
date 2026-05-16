@@ -1,0 +1,27 @@
+# =============================================================================
+# DISABLED — Auto-merge to stage has been replaced with a manual approval gate.
+#
+# HOW TO SET UP THE MANUAL GATE:
+#   1. Go to: GitHub → Settings → Environments → stage
+#   2. Enable "Required reviewers" and add at least one reviewer
+#   3. The deploy-stage.yml workflow uses `environment: stage`
+#      which will pause and wait for reviewer approval before deploying.
+#
+# This file is kept as documentation. The job below is intentionally disabled
+# via the `if: false` condition so it never runs.
+# =============================================================================
+
+name: 05 [DISABLED] Auto Merge to Stage
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - stage
+
+jobs:
+  disabled:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "This workflow is disabled. See comments above."

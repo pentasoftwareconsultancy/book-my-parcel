@@ -1,0 +1,59 @@
+name: 07 Create Production PR — Frontend
+
+on:
+  push:
+    branches: [stage]
+    paths:
+      - 'BMP-FE/**'
+
+jobs:
+  validate-and-create-pr:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BMP-FE
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: BMP-FE/package-lock.json
+
+      - run: npm ci
+
+      - name: Build check before creating PR
+        env:
+          VITE_API_URL:      ${{ secrets.VITE_API_URL_STAGE }}
+          VITE_WS_URL:       ${{ secrets.VITE_WS_URL_STAGE }}
+          VITE_BASE_URL:     ${{ secrets.VITE_BASE_URL_STAGE }}
+          VITE_GEOAPIFY_KEY: ${{ secrets.VITE_GEOAPIFY_KEY }}
+        run: npm run build
+
+      - name: Check if PR already exists
+        id: check-pr
+        run: |
+          EXISTING=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls?state=open&head=pentasoftwareconsultancy:stage&base=main" \
+            | jq 'length')
+          echo "pr_count=$EXISTING" >> $GITHUB_OUTPUT
+
+      - name: Create PR stage → main
+        if: steps.check-pr.outputs.pr_count == '0'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls \
+            -d '{
+              "title": "Frontend: Stage → Main (Production Release)",
+              "body": "## Frontend Production Release\n\nChanges from `stage` ready for production.\n\n### Checklist\n- [ ] Build passes (validated by CI)\n- [ ] Reviewed by at least 1 team member\n- [ ] Tested on staging\n\n**⚠️ Requires manual approval — will NOT auto-merge.**",
+              "head": "stage",
+              "base": "main"
+            }'

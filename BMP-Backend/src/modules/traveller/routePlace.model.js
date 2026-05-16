@@ -1,0 +1,61 @@
+import { DataTypes } from "sequelize";
+import sequelize from "../../config/database.config.js";
+import TravellerRoute from "./travellerRoute.model.js";
+
+const RoutePlace = sequelize.define(
+  "route_places",
+  {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
+    route_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: TravellerRoute,
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    },
+    place_id: {
+      type: DataTypes.STRING(500),
+      allowNull: false,
+    },
+    place_type: {
+      type: DataTypes.ENUM("locality", "city", "taluka", "pincode", "landmark"),
+      allowNull: false,
+    },
+    place_name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    latitude: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: true,
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(11, 8),
+      allowNull: true,
+    },
+    sequence_order: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "Order of this place in the route (0 = origin, higher = later in route)",
+    },
+  },
+  {
+    timestamps: true,
+    underscored: true,
+    createdAt: "created_at",
+    updatedAt: false,
+    indexes: [
+      { name: "idx_route_places_route_id", fields: ["route_id"] },
+      { name: "idx_route_places_place_type_place_id", fields: ["place_type", "place_id"] },
+      { name: "idx_route_places_route_sequence", fields: ["route_id", "sequence_order"] },
+    ],
+  }
+);
+
+export default RoutePlace;

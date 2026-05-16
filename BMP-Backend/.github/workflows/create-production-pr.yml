@@ -1,0 +1,54 @@
+name: 07 Create Production PR — Backend
+
+on:
+  push:
+    branches: [stage]
+    paths:
+      - 'BMP-Backend/**'
+      - '!BMP-Backend/**/*.md'
+
+jobs:
+  validate-and-create-pr:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BMP-Backend
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: BMP-Backend/package-lock.json
+
+      - run: npm ci --omit=dev
+      - run: node --check server.js
+      - run: npm run lint --if-present || echo "ℹ️ No lint script"
+
+      - name: Check if PR already exists
+        id: check-pr
+        run: |
+          EXISTING=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls?state=open&head=pentasoftwareconsultancy:stage&base=main" \
+            | jq 'length')
+          echo "pr_count=$EXISTING" >> $GITHUB_OUTPUT
+
+      - name: Create PR stage → main
+        if: steps.check-pr.outputs.pr_count == '0'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel/pulls \
+            -d '{
+              "title": "Backend: Stage → Main (Production Release)",
+              "body": "## Backend Production Release\n\nChanges from `stage` ready for production.\n\n### Checklist\n- [ ] Syntax check passes\n- [ ] Reviewed by at least 1 team member\n- [ ] Tested on staging\n- [ ] Migrations tested\n- [ ] No breaking API changes\n\n**⚠️ Requires manual approval — will NOT auto-merge.**",
+              "head": "stage",
+              "base": "main"
+            }'

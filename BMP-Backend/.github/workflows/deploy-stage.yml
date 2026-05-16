@@ -1,0 +1,54 @@
+name: 06 Deploy Stage — Backend
+
+on:
+  push:
+    branches: [stage]
+    paths:
+      - 'BMP-Backend/**'
+      - '!BMP-Backend/**/*.md'
+
+jobs:
+  deploy:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    environment: stage
+    defaults:
+      run:
+        working-directory: BMP-Backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: BMP-Backend/package-lock.json
+
+      - run: npm ci --omit=dev
+      - run: node --check server.js
+
+      - name: Deploy stage backend to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            export NVM_DIR="/home/bmp/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            bash /var/www/bmp/BMP-Backend/scripts/deploy.sh stage
+
+      - name: Health check
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          script: |
+            curl -sf http://127.0.0.1:3000/api/health \
+              && echo "✅ Stage health check passed" \
+              || (echo "❌ Health check failed" && exit 1)

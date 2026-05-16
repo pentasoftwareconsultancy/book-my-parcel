@@ -1,0 +1,39 @@
+name: 02 Sync Feature to Testing — Backend
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - feature/bmp
+    paths:
+      - 'BMP-Backend/**'
+
+jobs:
+  sync:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "CI Sync Bot"
+          git config --global user.email "ci-bot@noreply.github.com"
+
+      - name: Push BMP-Backend changes to testing branch
+        run: |
+          # Merge feature branch changes into testing
+          git fetch origin testing || true
+          git checkout -B testing origin/testing 2>/dev/null || git checkout -B testing
+
+          # Cherry-pick or merge the feature changes
+          git merge --no-ff ${{ github.ref_name }} \
+            -m "Auto-sync: ${{ github.ref_name }} → testing [backend]" \
+            || echo "Merge conflict — manual resolution needed"
+
+          git push origin testing
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

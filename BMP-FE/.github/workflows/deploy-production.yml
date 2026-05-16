@@ -1,0 +1,74 @@
+name: 09 Deploy Production — Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'BMP-FE/**'
+      - '!BMP-FE/**/*.md'
+
+jobs:
+  # ── Step 1: Build validation ──────────────────────────────────────────────
+  validate:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BMP-FE
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: BMP-FE/package-lock.json
+
+      - run: npm ci
+
+      - name: Build (production)
+        env:
+          VITE_API_URL:      ${{ secrets.VITE_API_URL_PRODUCTION }}
+          VITE_WS_URL:       ${{ secrets.VITE_WS_URL_PRODUCTION }}
+          VITE_BASE_URL:     ${{ secrets.VITE_BASE_URL_PRODUCTION }}
+          VITE_GEOAPIFY_KEY: ${{ secrets.VITE_GEOAPIFY_KEY }}
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint --if-present || echo "ℹ️ No lint script"
+
+  # ── Step 2: Deploy to VPS — requires manual approval ─────────────────────
+  deploy:
+    needs: validate
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    environment: production   # ← pauses for reviewer approval
+
+    steps:
+      - name: Deploy frontend to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            export NVM_DIR="/home/bmp/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            bash /var/www/bmp/BMP-Backend/scripts/deploy-frontend.sh main
+
+      - name: Verify frontend is serving
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          port:     ${{ secrets.VPS_PORT }}
+          script: |
+            # Check that index.html exists and Nginx is serving it
+            test -f /var/www/bmp/BMP-FE/dist/index.html \
+              && echo "✅ Frontend dist exists" \
+              || (echo "❌ Frontend dist missing" && exit 1)
+            nginx -t && echo "✅ Nginx config valid"

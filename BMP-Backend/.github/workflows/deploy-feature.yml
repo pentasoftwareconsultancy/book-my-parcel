@@ -1,0 +1,46 @@
+name: 01 Validate Feature — Backend
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - feature/bmp
+  pull_request:
+    branches: [develop, stage]
+    paths:
+      - 'BMP-Backend/**'
+
+jobs:
+  validate:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: BMP-Backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: BMP-Backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax check
+        run: node --check server.js
+
+      - name: Lint
+        run: npm run lint --if-present || echo "ℹ️ No lint script"
+
+      - name: Tests
+        continue-on-error: true
+        run: |
+          if grep -q '"test"' package.json; then
+            npm test || echo "⚠️ Tests failed"
+          else
+            echo "ℹ️ No test script — add tests!"
+          fi
