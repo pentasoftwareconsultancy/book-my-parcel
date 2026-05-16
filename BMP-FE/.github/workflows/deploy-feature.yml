@@ -1,0 +1,33 @@
+name: 01 Deploy Feature
+
+on:
+  push:
+    branches:
+      - feature/bmp
+
+jobs:
+  deploy:
+    if: github.repository == 'Priti6542/BMP-FE'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: npm install -g vercel
+
+      - name: Deploy feature
+        env:
+          VERCEL_PROJECT_ID: prj_nqCAbam8kqccFHOt5bpAmnksPnyn
+          VERCEL_ORG_ID: team_QZ1RGg8EvWLIIngDVQjT38bG
+        run: |
+          npx vercel pull --yes \
+            --environment=production \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+          npx vercel build \
+            --prod \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+          npx vercel deploy \
+            --prod \
+            --token=${{ secrets.VERCEL_TOKEN }}

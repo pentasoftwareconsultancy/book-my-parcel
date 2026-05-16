@@ -1,0 +1,38 @@
+name: 07 Create Production PR
+
+on:
+  push:
+    branches:
+      - stage
+
+jobs:
+  create-pr:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel-frontend'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if PR already exists
+        id: check-pr
+        run: |
+          EXISTING_PR=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel-frontend/pulls?state=open&head=pentasoftwareconsultancy:stage&base=main" \
+            | jq 'length')
+          echo "pr_count=$EXISTING_PR" >> $GITHUB_OUTPUT
+
+      - name: Create PR stage → main
+        if: steps.check-pr.outputs.pr_count == '0'
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/pentasoftwareconsultancy/book-my-parcel-frontend/pulls \
+            -d '{
+              "title": "Stage → Main: Auto-merge to Production",
+              "body": "This PR contains changes from the stage branch for production deployment.\n\n**Status:** Auto-merge enabled - will merge automatically after 10 seconds.\n\n**Workflow:**\n1. Review changes if needed\n2. PR will auto-merge to main\n3. deploy-production.yml will deploy to production automatically",
+              "head": "stage",
+              "base": "main"
+            }'

@@ -1,0 +1,43 @@
+name: 03 Deploy Testing
+
+on:
+  push:
+    branches:
+      - testing
+
+jobs:
+  deploy:
+    if: github.repository == 'pentasoftwareconsultancy/book-my-parcel-frontend'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: npm install -g vercel
+
+      - name: Create Vercel project config
+        run: |
+          mkdir -p .vercel
+          cat > .vercel/project.json << 'EOF'
+          {
+            "projectId": "prj_gB1k71wp4yDTmWkW9N1IIaXkQXAc",
+            "orgId": "team_QZ1RGg8EvWLIIngDVQjT38bG"
+          }
+          EOF
+
+      - name: Deploy testing
+        env:
+          VERCEL_PROJECT_ID: prj_gB1k71wp4yDTmWkW9N1IIaXkQXAc
+          VERCEL_ORG_ID: team_QZ1RGg8EvWLIIngDVQjT38bG
+        run: |
+          npx vercel pull --yes \
+            --environment=production \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+          npx vercel build \
+            --prod \
+            --token=${{ secrets.VERCEL_TOKEN }}
+
+          npx vercel deploy \
+            --prod \
+            --token=${{ secrets.VERCEL_TOKEN }}

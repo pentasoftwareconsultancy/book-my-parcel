@@ -1,0 +1,226 @@
+import { expireOldRequests } from "../services/matchingEngine.service.js";
+import ChatMessage from "../modules/booking/chatMessage.model.js";
+import redis from "../redis/redis.config.js";
+import { acquireRedisLock, releaseRedisLock } from "../redis/utils/redisLock.util.js";
+
+export function setupSocketHandlers(io) {
+  console.log("✅ Socket.IO server initialized");
+  
+  io.on("connection", (socket) => {
+    console.log(`[Socket] Client connected: ${socket.id}`);
+    
+    // Log ALL events for debugging
+    socket.onAny((eventName, ...args) => {
+      console.log(`[Socket] Event received: ${eventName}`, args);
+    });
+
+    // ─── Heartbeat/Keepalive ──────────────────────────────────────────────
+    socket.on("ping", () => {
+      socket.emit("pong");
+    });
+
+    // ─── Join user room (for OTP / general notifications) ────────────────
+    // Frontend emits either "join_user" or "join_user_room" — handle both
+    const joinUserRoom = (userId) => {
+      const room = `user_${userId}`;
+      socket.join(room);
+      console.log(`[Socket] User ${socket.id} joined room ${room}`);
+
+      // Log all members in the room for debugging
+      const clients = io.sockets.adapter.rooms.get(room);
+      console.log(`[Socket] Room ${room} now has ${clients?.size || 0} member(s)`);
+    };
+
+    socket.on("join_user",      joinUserRoom);
+    socket.on("join_user_room", joinUserRoom);
+
+    // ─── Leave user room ──────────────────────────────────────────────────
+    socket.on("leave_user", (userId) => {
+      const room = `user_${userId}`;
+      socket.leave(room);
+      console.log(`[Socket] User ${socket.id} left room ${room}`);
+    });
+
+    // ─── Join parcel room ─────────────────────────────────────────────────
+    socket.on("join_parcel", (parcelId) => {
+      const room = `parcel_${parcelId}`;
+      socket.join(room);
+      console.log(`[Socket] User ${socket.id} joined room ${room}`);
+    });
+
+    // ─── Leave parcel room ────────────────────────────────────────────────
+    socket.on("leave_parcel", (parcelId) => {
+      const room = `parcel_${parcelId}`;
+      socket.leave(room);
+      console.log(`[Socket] User ${socket.id} left room ${room}`);
+    });
+
+    // ─── Join traveller requests room ─────────────────────────────────────
+    socket.on("join_traveller_requests", (travellerId) => {
+      const room = `traveller_requests_${travellerId}`;
+      socket.join(room);
+      console.log(`[Socket] Traveller ${socket.id} joined room ${room}`);
+    });
+
+    // ─── Leave traveller requests room ────────────────────────────────────
+    socket.on("leave_traveller_requests", (travellerId) => {
+      const room = `traveller_requests_${travellerId}`;
+      socket.leave(room);
+      console.log(`[Socket] Traveller ${socket.id} left room ${room}`);
+    });
+
+    // ─── Join live tracking room (both user and traveller join this) ──────
+    socket.on("join-booking", (bookingId) => {
+      const room = `booking_${bookingId}`;
+      socket.join(room);
+      console.log(`[Socket] ${socket.id} joined booking room ${room}`);
+    });
+
+    // ─── Traveller sends live location → forwarded to user ────────────────
+    socket.on("traveller-location", ({ bookingId, lat, lng }) => {
+      if (!bookingId || lat == null || lng == null) {
+        console.warn(`[Socket] Invalid traveller-location payload:`, { bookingId, lat, lng });
+        return;
+      }
+      const room = `booking_${bookingId}`;
+      socket.to(room).emit("location-update", {
+        lat,
+        lng,
+        timestamp: Date.now(),
+      });
+      console.log(`[Socket] Location → room ${room}: ${lat}, ${lng}`);
+    });
+
+    // ─── In-app chat ──────────────────────────────────────────────────────
+    // Both sender and traveller join the booking room (already handled by join-booking)
+    // Client emits: { bookingId, senderId, senderRole, message }
+    socket.on("chat_message", async ({ bookingId, senderId, senderRole, message }) => {
+      if (!bookingId || !senderId || !senderRole || !message?.trim()) {
+        console.warn("[Socket] Invalid chat_message payload");
+        return;
+      }
+
+      try {
+        // Persist to DB
+        const saved = await ChatMessage.create({
+          booking_id:  bookingId,
+          sender_id:   senderId,
+          sender_role: senderRole,
+          message:     message.trim(),
+        });
+
+        const payload = {
+          id:          saved.id,
+          booking_id:  bookingId,
+          sender_id:   senderId,
+          sender_role: senderRole,
+          message:     saved.message,
+          is_read:     false,
+          createdAt:   saved.createdAt,
+        };
+
+        // Broadcast to everyone in the booking room (including sender for confirmation)
+        io.to(`booking_${bookingId}`).emit("chat_message", payload);
+        console.log(`[Socket] Chat → booking_${bookingId}: "${saved.message.substring(0, 40)}"`);
+      } catch (err) {
+        console.error("[Socket] Failed to save chat message:", err.message);
+        socket.emit("chat_error", { message: "Failed to send message. Please try again." });
+      }
+    });
+
+    // ─── Mark chat messages as read ───────────────────────────────────────
+    socket.on("chat_read", async ({ bookingId, readerId }) => {
+      if (!bookingId || !readerId) return;
+      try {
+        await ChatMessage.update(
+          { is_read: true },
+          { where: { booking_id: bookingId, is_read: false } }
+        );
+        // Notify the other party their messages were read
+        socket.to(`booking_${bookingId}`).emit("chat_read_ack", { bookingId, readerId });
+      } catch (err) {
+        console.error("[Socket] Failed to mark messages read:", err.message);
+      }
+    });
+
+    // ─── Disconnect ───────────────────────────────────────────────────────
+    socket.on("disconnect", () => {
+      console.log(`[Socket] Client disconnected: ${socket.id}`);
+    });
+  });
+
+  // ─── Periodic task: Expire old requests every 5 minutes ──────────────
+  setInterval(async () => {
+    const lockKey = "lock:jobs:expire-old-requests";
+    let lockToken = null;
+
+    if (redis) {
+      try {
+        lockToken = await acquireRedisLock(lockKey, 4 * 60 * 1000);
+        if (!lockToken) return;
+      } catch (lockErr) {
+        console.warn("[Socket] Redis lock acquire failed:", lockErr.message);
+        return;
+      }
+    }
+
+    try {
+      const expiredCount = await expireOldRequests();
+      if (expiredCount > 0) {
+        console.log(`[Socket] Expired ${expiredCount} old requests`);
+      }
+    } catch (error) {
+      console.error("[Socket] Error expiring requests:", error.message);
+    } finally {
+      if (lockToken) {
+        try {
+          await releaseRedisLock(lockKey, lockToken);
+        } catch (unlockErr) {
+          console.warn("[Socket] Redis lock release failed:", unlockErr.message);
+        }
+      }
+    }
+  }, 5 * 60 * 1000);
+}
+
+// ─── Helpers — call these from controllers via req.app.get("io") ──────────────
+
+export function emitNewAcceptance(io, parcelId, data) {
+  io.to(`parcel_${parcelId}`).emit("new_acceptance", data);
+  console.log(`[Socket] Emitted new_acceptance to parcel_${parcelId}`);
+}
+
+export function emitParcelSelected(io, parcelId, data) {
+  io.to(`parcel_${parcelId}`).emit("parcel_selected", data);
+  console.log(`[Socket] Emitted parcel_selected to parcel_${parcelId}`);
+}
+
+export function emitTravellerSelected(io, travellerId, data) {
+  io.to(`traveller_requests_${travellerId}`).emit("traveller_selected", data);
+  console.log(`[Socket] Emitted traveller_selected to traveller_requests_${travellerId}`);
+}
+
+export function emitNewRequest(io, travellerId, data) {
+  io.to(`traveller_requests_${travellerId}`).emit("new_request", data);
+  console.log(`[Socket] Emitted new_request to traveller_requests_${travellerId}`);
+}
+
+export function emitRequestExpired(io, travellerId, requestId) {
+  io.to(`traveller_requests_${travellerId}`).emit("request_expired", { request_id: requestId });
+  console.log(`[Socket] Emitted request_expired to traveller_requests_${travellerId}`);
+}
+
+export function emitOtpEvent(io, userId, event, data) {
+  io.to(`user_${userId}`).emit(event, data);
+  console.log(`[Socket] Emitted ${event} to user_${userId}`);
+}
+
+export function emitBookingEvent(io, bookingId, event, data) {
+  io.to(`booking_${bookingId}`).emit(event, data);
+  console.log(`[Socket] Emitted ${event} to booking_${bookingId}`);
+}
+
+export function emitNotification(io, userId, notification) {
+  io.to(`user_${userId}`).emit("new_notification", notification);
+  console.log(`[Socket] Emitted new_notification to user_${userId}`);
+}
