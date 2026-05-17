@@ -3,24 +3,24 @@ import Withdrawal from "./withdrawal.model.js";
 import TravellerKYC from "../traveller/travellerKYC.model.js";
 import { debitWalletService, getWalletBalanceService } from "./wallet.service.js";
 
-// Minimum withdrawal amount — loaded from platform_settings at runtime if available,
-// falls back to this default. Update via admin panel → Platform Settings.
+import { getSetting } from "../../redis/cache/platformSettingsCache.service.js";
+
+// Minimum withdrawal amount — loaded from platform_settings via cache service.
+// Default: ₹100 (overridden by DB value at runtime).
+// Update via admin panel → Platform Settings → minimum_withdrawal_amount.
 let MINIMUM_WITHDRAWAL = 100;
 
-// Load from DB at startup (non-blocking — falls back to default if table not ready)
+// Load from platform_settings at startup (non-blocking — falls back to default)
 async function loadWithdrawalSettings() {
   try {
-    const { default: PlatformSetting } = await import("../admin/platformSetting.model.js");
-    const setting = await PlatformSetting.findOne({ where: { key: "minimum_withdrawal_amount" } });
-    if (setting?.value) {
-      const parsed = Number(setting.value);
-      if (Number.isFinite(parsed) && parsed > 0) {
-        MINIMUM_WITHDRAWAL = parsed;
-        console.log(`[Withdrawal] Minimum withdrawal loaded from DB: ₹${MINIMUM_WITHDRAWAL}`);
-      }
+    const value = await getSetting("minimum_withdrawal_amount", "100");
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      MINIMUM_WITHDRAWAL = parsed;
+      console.log(`[Withdrawal] Minimum withdrawal loaded: ₹${MINIMUM_WITHDRAWAL}`);
     }
   } catch {
-    // Table may not exist yet or model not available — use default silently
+    // Redis/DB not ready yet — use default silently
   }
 }
 loadWithdrawalSettings();
