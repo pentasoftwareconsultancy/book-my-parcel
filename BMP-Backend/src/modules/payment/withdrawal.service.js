@@ -3,8 +3,27 @@ import Withdrawal from "./withdrawal.model.js";
 import TravellerKYC from "../traveller/travellerKYC.model.js";
 import { debitWalletService, getWalletBalanceService } from "./wallet.service.js";
 
-// Constants - TODO: Load from platform_settings table
-const MINIMUM_WITHDRAWAL = 100; // Platform default is 1000, but using 100 for testing
+// Minimum withdrawal amount — loaded from platform_settings at runtime if available,
+// falls back to this default. Update via admin panel → Platform Settings.
+let MINIMUM_WITHDRAWAL = 100;
+
+// Load from DB at startup (non-blocking — falls back to default if table not ready)
+async function loadWithdrawalSettings() {
+  try {
+    const { default: PlatformSetting } = await import("../admin/platformSetting.model.js");
+    const setting = await PlatformSetting.findOne({ where: { key: "minimum_withdrawal_amount" } });
+    if (setting?.value) {
+      const parsed = Number(setting.value);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        MINIMUM_WITHDRAWAL = parsed;
+        console.log(`[Withdrawal] Minimum withdrawal loaded from DB: ₹${MINIMUM_WITHDRAWAL}`);
+      }
+    }
+  } catch {
+    // Table may not exist yet or model not available — use default silently
+  }
+}
+loadWithdrawalSettings();
 
 
 

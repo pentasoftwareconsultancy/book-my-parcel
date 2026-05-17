@@ -15,7 +15,7 @@ are set once at the repository level and shared by both backend and frontend wor
 | `VPS_USER` | `bmp` | The app user created by vps-setup.sh |
 | `VPS_SSH_KEY` | `<private key content>` | Full content of `~/.ssh/id_rsa` (private key) |
 | `VPS_PORT` | `22` | SSH port (change if you moved SSH to a custom port) |
-| `VPS_HEALTH_URL` | `https://api.yourdomain.com/api/health` | Used by production health check |
+| `VPS_HEALTH_URL` | `https://api.bookmyparcel.co.in/api/health` | Used by production health check |
 
 **Generate SSH key pair:**
 ```bash
@@ -39,14 +39,14 @@ Set them manually on the VPS after running `vps-setup.sh`.
 
 | Secret | Production Value | Stage Value | Testing Value |
 |--------|-----------------|-------------|---------------|
-| `VITE_API_URL_PRODUCTION` | `https://api.yourdomain.com/api` | — | — |
-| `VITE_API_URL_STAGE` | — | `https://api.yourdomain.com/api` | — |
+| `VITE_API_URL_PRODUCTION` | `https://api.bookmyparcel.co.in/api` | — | — |
+| `VITE_API_URL_STAGE` | — | `https://api.bookmyparcel.co.in/api` | — |
 | `VITE_API_URL_TESTING` | — | — | `http://<VPS_IP>:3000/api` |
-| `VITE_WS_URL_PRODUCTION` | `https://api.yourdomain.com` | — | — |
-| `VITE_WS_URL_STAGE` | — | `https://api.yourdomain.com` | — |
+| `VITE_WS_URL_PRODUCTION` | `https://api.bookmyparcel.co.in` | — | — |
+| `VITE_WS_URL_STAGE` | — | `https://api.bookmyparcel.co.in` | — |
 | `VITE_WS_URL_TESTING` | — | — | `http://<VPS_IP>:3000` |
-| `VITE_BASE_URL_PRODUCTION` | `https://api.yourdomain.com` | — | — |
-| `VITE_BASE_URL_STAGE` | — | `https://api.yourdomain.com` | — |
+| `VITE_BASE_URL_PRODUCTION` | `https://api.bookmyparcel.co.in` | — | — |
+| `VITE_BASE_URL_STAGE` | — | `https://api.bookmyparcel.co.in` | — |
 | `VITE_BASE_URL_TESTING` | — | — | `http://<VPS_IP>:3000` |
 | `VITE_GEOAPIFY_KEY` | `<your geoapify key>` | same | same |
 

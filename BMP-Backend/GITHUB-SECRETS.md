@@ -19,7 +19,7 @@ or `book-my-parcel-frontend`.
 | `VPS_USER` | `bmp` | App user created by vps-setup.sh |
 | `VPS_SSH_KEY` | `<private key content>` | See "Generate SSH Key" below |
 | `VPS_PORT` | `22` | Change if you moved SSH port |
-| `VPS_HEALTH_URL` | `https://api.yourdomain.com/api/health` | Production health check URL |
+| `VPS_HEALTH_URL` | `https://api.bookmyparcel.co.in/api/health` | Production health check URL |
 | `VITE_GEOAPIFY_KEY` | `<your geoapify key>` | Same across all environments |
 
 ---
@@ -32,9 +32,9 @@ Also enable: **Required reviewers** (add at least 1 team member)
 
 | Secret | Value |
 |--------|-------|
-| `VITE_API_URL_PRODUCTION` | `https://api.yourdomain.com/api` |
-| `VITE_WS_URL_PRODUCTION` | `https://api.yourdomain.com` |
-| `VITE_BASE_URL_PRODUCTION` | `https://api.yourdomain.com` |
+| `VITE_API_URL_PRODUCTION` | `https://api.bookmyparcel.co.in/api` |
+| `VITE_WS_URL_PRODUCTION` | `https://api.bookmyparcel.co.in` |
+| `VITE_BASE_URL_PRODUCTION` | `https://api.bookmyparcel.co.in` |
 
 ---
 
@@ -42,9 +42,9 @@ Also enable: **Required reviewers** (add at least 1 team member)
 
 | Secret | Value |
 |--------|-------|
-| `VITE_API_URL_STAGE` | `https://api.yourdomain.com/api` |
-| `VITE_WS_URL_STAGE` | `https://api.yourdomain.com` |
-| `VITE_BASE_URL_STAGE` | `https://api.yourdomain.com` |
+| `VITE_API_URL_STAGE` | `https://api.bookmyparcel.co.in/api` |
+| `VITE_WS_URL_STAGE` | `https://api.bookmyparcel.co.in` |
+| `VITE_BASE_URL_STAGE` | `https://api.bookmyparcel.co.in` |
 
 ---
 
