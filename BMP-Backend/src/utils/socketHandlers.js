@@ -171,6 +171,11 @@ export function setupSocketHandlers(io) {
       }
     });
 
+    // ─── Leave live tracking / booking room ───────────────────────────────
+    socket.on("leave-booking", (bookingId) => {
+      if (bookingId) socket.leave(`booking_${bookingId}`);
+    });
+
     // ─── Traveller sends live location → forwarded to booking room ────────
     socket.on("traveller-location", ({ bookingId, lat, lng }) => {
       // Validate payload
