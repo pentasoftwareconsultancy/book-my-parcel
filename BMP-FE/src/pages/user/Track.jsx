@@ -39,7 +39,7 @@ const Track = () => {
   const lastRouteUpdateRef = useRef(0);
   const mapReadyRef = useRef(false);
 
-  const socket = getSocket();
+  const socketRef = useRef(getSocket());
 
   // ---------------- FETCH IN-TRANSIT PARCELS (for dropdown) ----------------
   useEffect(() => {
@@ -223,9 +223,13 @@ const Track = () => {
   // ---------------- SOCKET ----------------
   useEffect(() => {
     if (!trackingKey) return;
-    const joinRoom = () => socket.emit("join-booking", trackingKey);
-    if (socket.connected) joinRoom();
-    else socket.once("connect", joinRoom);
+    // trackingKey must always be the booking UUID — never a tracking_ref string
+    const joinRoom = () => {
+      socketRef.current.emit("join-booking", trackingKey);
+      console.log("🏠 [Track] Joined booking room:", trackingKey);
+    };
+    if (socketRef.current.connected) joinRoom();
+    else socketRef.current.once("connect", joinRoom);
 
     const handleLocation = (data) => {
       const lat = Number(data.lat ?? data.traveller_lat);
@@ -259,10 +263,10 @@ const Track = () => {
       tryMove();
     };
 
-    socket.on("location-update", handleLocation);
+    socketRef.current.on("location-update", handleLocation);
     return () => {
-      socket.off("location-update", handleLocation);
-      socket.off("connect", joinRoom);
+      socketRef.current.off("location-update", handleLocation);
+      socketRef.current.off("connect", joinRoom);
     };
   }, [trackingKey]);
 
@@ -277,7 +281,15 @@ const Track = () => {
     currentPositionRef.current = null;
     mapReadyRef.current = false;
     setEta(null);
-    setTrackingKey(inputId.trim());
+
+    const trimmed = inputId.trim();
+    // If the user typed a tracking_ref (e.g. UBG-001), resolve to the booking UUID
+    const matched = inTransitParcels.find(
+      (p) => p.trackingRef === trimmed || p.bookingId === trimmed
+    );
+    const bookingUUID = matched ? matched.bookingId : trimmed;
+
+    setTrackingKey(bookingUUID);
     setIsTracking(true);
   };
 

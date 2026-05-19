@@ -30,59 +30,39 @@ export default function ActiveDeliveries() {
     [DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.PICKUP].includes(d.status)
   )?.id ?? null;
 
-  // Live location sending — runs whenever activeBookingId changes
+  // Join booking socket room + send live location whenever activeBookingId changes
   useEffect(() => {
-    console.log("🔍 [Deliveries Location Effect] activeDeliveries statuses:", activeDeliveries.map(d => d.status));
-    console.log("🔍 [Deliveries Location Effect] activeBookingId:", activeBookingId);
-
-    if (!activeBookingId) {
-      console.warn("⛔ [Deliveries Location] No active booking with PICKUP/IN_TRANSIT status");
-      return;
-    }
-
+    if (!activeBookingId) return;
     if (!navigator.geolocation) {
       console.warn("⛔ [Deliveries Location] Geolocation not supported");
       return;
     }
 
-    console.log("✅ [Deliveries Location] Starting watchPosition for booking:", activeBookingId);
+    // Join the booking room so the traveller's own socket is in the room
+    const joinRoom = () => {
+      socket.emit("join-booking", activeBookingId);
+      console.log("🏠 [Socket] Joined booking room:", activeBookingId);
+    };
+    if (socket.connected) joinRoom();
+    else socket.once("connect", joinRoom);
 
     const watchId = navigator.geolocation.watchPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        console.log("📍 [Traveller Location] lat:", lat, "lng:", lng, "bookingId:", activeBookingId);
 
         const now = Date.now();
-        if (now - lastSentRef.current > 800) {
+        // Throttle: REST every 5s (DB write), socket every update (~1s)
+        socket.emit("traveller-location", { bookingId: activeBookingId, lat, lng });
+
+        if (now - lastSentRef.current > 5000) {
           lastSentRef.current = now;
           try {
-            // ✅ Existing API call (DO NOT REMOVE)
-            await ApiService.updateLocation({
-              booking_id: activeBookingId,
-              lat,
-              lng
-            });
-
-            console.log("📤 [Location Sent - API] lat:", lat, "lng:", lng, "→ booking:", activeBookingId);
-
-            // ✅ ADD THIS (real-time socket emit)
-            socket.emit("traveller-location", {
-              bookingId: activeBookingId,
-              lat,
-              lng
-            });
-
-            console.log("🚀 [Socket Emit] Location sent via socket:", {
-              bookingId: activeBookingId,
-              lat,
-              lng
-            });
+            await ApiService.updateLocation({ booking_id: activeBookingId, lat, lng });
+            console.log("📤 [Location Sent - API]", { lat, lng, booking: activeBookingId });
           } catch (err) {
             console.error("❌ [Location Send Failed]", err?.response?.data?.message || err.message);
           }
-        } else {
-          console.log("⏳ [Location Throttled] skipped, too soon");
         }
       },
       (err) => console.error("❌ [Geolocation Error]", err.message),
@@ -90,8 +70,8 @@ export default function ActiveDeliveries() {
     );
 
     return () => {
-      console.log("🛑 [Deliveries Location] Clearing watchPosition");
       navigator.geolocation.clearWatch(watchId);
+      socket.off("connect", joinRoom);
     };
   }, [activeBookingId]);
 
