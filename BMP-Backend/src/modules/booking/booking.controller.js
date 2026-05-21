@@ -7,6 +7,7 @@ export const startPickup = async (req, res) => {
     const { bookingId } = req.params;
     const travellerId = req.user.id;
 
+    console.log(`[startPickup] bookingId=${bookingId} travellerId=${travellerId}`);
     const result = await bookingService.startPickup(bookingId, travellerId);
 
     return responseSuccess(res, result, "OTP sent to sender successfully");

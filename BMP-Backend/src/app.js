@@ -89,9 +89,17 @@ app.use(sanitizeBody);
 // KYC documents are intentionally NOT served here — they require authentication.
 // See /api/kyc/document/:filename for the authenticated route.
 // Only non-sensitive uploads (profile photos, parcel images) are served publicly.
-app.use("/uploads/profiles", express.static("uploads/profiles"));
-app.use("/uploads/parcels",  express.static("uploads/parcels"));
-app.use("/uploads/proofs",   express.static("uploads/proofs"));
+// Cross-Origin-Resource-Policy is set to "cross-origin" so the React frontend
+// (running on a different port in dev) can load these images without being
+// blocked by the browser's CORP enforcement from helmet.
+const staticOptions = {
+  setHeaders: (res) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  },
+};
+app.use("/uploads/profiles", express.static("uploads/profiles", staticOptions));
+app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
+app.use("/uploads/proofs",   express.static("uploads/proofs",   staticOptions));
 // NOTE: /uploads/kyc is NOT exposed — served via authenticated API route only.
 
 // ── API routes ────────────────────────────────────────────────────────────────

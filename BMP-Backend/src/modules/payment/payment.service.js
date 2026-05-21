@@ -54,7 +54,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
   }
 
   // SECURITY: Verify the requesting user owns this parcel
-  if (parcel.user_id !== requestingUserId) {
+  if (String(parcel.user_id) !== String(requestingUserId)) {
     const err = new Error("Forbidden: you do not own this parcel");
     err.statusCode = 403;
     throw err;
@@ -70,32 +70,38 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
   const existingPayment = await Payment.findOne({
     where: {
       parcel_id: parcel_id,
-      status:    PAYMENT_STATUS.PENDING,
+      status: PAYMENT_STATUS.PENDING,
     },
   });
 
   if (existingPayment) {
     return {
-      id:       existingPayment.razorpay_order_id,
-      amount:   existingPayment.amount * 100,
+      id: existingPayment.razorpay_order_id,
+      amount: existingPayment.amount * 100,
       currency: "INR",
     };
   }
 
   const shortReceipt = `p_${parcel_id.replace(/-/g, "").substring(0, 30)}`;
 
+  console.log("PARCEL:", parcel.toJSON());
+  console.log("AMOUNT:", amount);
+  console.log("TYPE:", typeof amount);
+  console.log("RECEIPT:", shortReceipt);
+  console.log("KEY:", process.env.RAZORPAY_KEY_ID);
+
   const order = await getRazorpay().orders.create({
-    amount:   Math.round(amount * 100), // Razorpay uses paise
+    amount: Math.round(amount * 100), // Razorpay uses paise
     currency: "INR",
-    receipt:  shortReceipt,
+    receipt: shortReceipt,
   });
 
   await Payment.create({
-    parcel_id:         parcel_id,
+    parcel_id: parcel_id,
     amount,
-    currency:          "INR",
+    currency: "INR",
     razorpay_order_id: order.id,
-    status:            PAYMENT_STATUS.PENDING,
+    status: PAYMENT_STATUS.PENDING,
   });
 
   return order;
@@ -286,12 +292,12 @@ export const verifyPaymentService = async (data, req = null) => {
   }
 
   auditLog({
-    action:       "PAYMENT_VERIFIED",
-    actorId:      parcel.user_id,
-    actorRole:    "user",
+    action: "PAYMENT_VERIFIED",
+    actorId: parcel.user_id,
+    actorRole: "user",
     resourceType: "payment",
-    resourceId:   razorpay_order_id,
-    meta:         { parcel_id, booking_id: booking.id, amount: parcel.price_quote },
+    resourceId: razorpay_order_id,
+    meta: { parcel_id, booking_id: booking.id, amount: parcel.price_quote },
     req,
   });
 

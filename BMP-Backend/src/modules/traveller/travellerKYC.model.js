@@ -64,7 +64,7 @@
 //   if (instance.aadhar_number && instance.aadhar_number.length === 12 && !instance.aadhar_number.includes('X')) {
 //     instance.aadhar_number = 'X'.repeat(8) + instance.aadhar_number.slice(-4);
 //   }
-  
+
 //   // Mask PAN (show only last 4 characters)
 //   if (instance.pan_number && instance.pan_number.length === 10 && !instance.pan_number.includes('X')) {
 //     instance.pan_number = 'X'.repeat(6) + instance.pan_number.slice(-4);
@@ -76,7 +76,7 @@
 //   if (instance.aadhar_number && instance.aadhar_number.length === 12 && !instance.aadhar_number.includes('X')) {
 //     instance.aadhar_number = 'X'.repeat(8) + instance.aadhar_number.slice(-4);
 //   }
-  
+
 //   // Mask PAN (show only last 4 characters)
 //   if (instance.pan_number && instance.pan_number.length === 10 && !instance.pan_number.includes('X')) {
 //     instance.pan_number = 'X'.repeat(6) + instance.pan_number.slice(-4);
@@ -95,7 +95,13 @@ import { KYC_STATUS } from "../../utils/constants.js";
 const TravellerKYC = sequelize.define(
   "traveller_kyc",
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    // id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
 
     user_id: {
       type: DataTypes.UUID,
@@ -135,18 +141,20 @@ const TravellerKYC = sequelize.define(
     //   defaultValue: "PENDING"
     // }
 
- status: {
-  type: DataTypes.ENUM(...Object.values(KYC_STATUS)),
-  defaultValue: KYC_STATUS.NOT_STARTED
-}
+    status: {
+      type: DataTypes.ENUM(...Object.values(KYC_STATUS)),
+      defaultValue: KYC_STATUS.NOT_STARTED
+    }
 
 
   },
-  { timestamps: true, underscored: true, indexes: [
-    { name: "idx_traveller_kyc_user_id",    fields: ["user_id"] },
-    { name: "idx_traveller_kyc_status",     fields: ["status"] },
-    { name: "idx_traveller_kyc_created_at", fields: ["created_at"] },
-  ]}
+  {
+    timestamps: true, underscored: true, indexes: [
+      { name: "idx_traveller_kyc_user_id", fields: ["user_id"] },
+      { name: "idx_traveller_kyc_status", fields: ["status"] },
+      { name: "idx_traveller_kyc_created_at", fields: ["created_at"] },
+    ]
+  }
 );
 
 TravellerKYC.addHook('beforeCreate', (instance) => {
@@ -154,7 +162,7 @@ TravellerKYC.addHook('beforeCreate', (instance) => {
   if (instance.aadhar_number && instance.aadhar_number.length === 12 && !instance.aadhar_number.includes('X')) {
     instance.aadhar_number = 'X'.repeat(8) + instance.aadhar_number.slice(-4);
   }
-  
+
   // Mask PAN (show only last 4 characters)
   if (instance.pan_number && instance.pan_number.length === 10 && !instance.pan_number.includes('X')) {
     instance.pan_number = 'X'.repeat(6) + instance.pan_number.slice(-4);
@@ -166,7 +174,7 @@ TravellerKYC.addHook('beforeUpdate', (instance) => {
   if (instance.aadhar_number && instance.aadhar_number.length === 12 && !instance.aadhar_number.includes('X')) {
     instance.aadhar_number = 'X'.repeat(8) + instance.aadhar_number.slice(-4);
   }
-  
+
   // Mask PAN (show only last 4 characters)
   if (instance.pan_number && instance.pan_number.length === 10 && !instance.pan_number.includes('X')) {
     instance.pan_number = 'X'.repeat(6) + instance.pan_number.slice(-4);

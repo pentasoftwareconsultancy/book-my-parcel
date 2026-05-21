@@ -9,7 +9,9 @@
     "seed": "node scripts/seedTestData.js",
     "check-migrations": "node scripts/checkMigrationStatus.js",
     "generate-migration": "node scripts/generateMigration.js",
-    "recover-migrations": "node scripts/recoverMigrations.js"
+    "recover-migrations": "node scripts/recoverMigrations.js",
+    "migration:generate": "sequelize-cli migration:generate",
+    "migrate": "sequelize-cli db:migrate"
   },
   "keywords": [],
   "author": "",
@@ -46,6 +48,7 @@
   },
   "devDependencies": {
     "jest": "^30.4.2",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "sequelize-cli": "^6.6.5"
   }
 }

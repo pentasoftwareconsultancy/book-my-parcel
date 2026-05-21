@@ -53,16 +53,18 @@ class BookingService {
         {
           model: TravellerTrip,
           as: "traveller_trip",
+          required: false, // trip_id is nullable — don't fail if not set
           include: [
             {
               model: TravellerProfile,
-              foreignKey: "traveller_id",   // TravellerTrip.traveller_id → TravellerProfile.user_id
+              foreignKey: "traveller_id",
+              required: false,
               include: [
                 {
                   model: TravellerRoute,
                   as: "routes",
                   where: { status: "ACTIVE" },
-                  required: false,          // don't fail if no active route
+                  required: false,
                   limit: 1,
                 },
               ],
