@@ -4,61 +4,88 @@
  * Run: node BMP-Backend/scripts/runMigrations.js
  */
 
+/**
+ * Check whether a table exists in the public schema.
+ * Returns true/false so callers can skip indexes on tables not yet created.
+ */
+async function tableExists(queryInterface, tableName) {
+  const [rows] = await queryInterface.sequelize.query(
+    `SELECT 1 FROM information_schema.tables
+     WHERE table_schema = 'public' AND table_name = :name
+     LIMIT 1`,
+    { replacements: { name: tableName }, type: queryInterface.sequelize.QueryTypes.SELECT }
+  );
+  return !!rows;
+}
+
+/**
+ * Add an index only when the target table already exists.
+ * Silently skips if the table is absent (it will be created later by model sync,
+ * and the model definition already declares the same indexes).
+ */
+async function safeAddIndex(queryInterface, table, fields, options) {
+  if (!(await tableExists(queryInterface, table))) {
+    console.warn(`⚠️  Skipping index "${options.name}": table "${table}" does not exist yet`);
+    return;
+  }
+  await queryInterface.addIndex(table, fields, options);
+}
+
 export const up = async (queryInterface) => {
 
   // ── bookings ──────────────────────────────────────────────────────────────
   // traveller dashboard: WHERE traveller_id = ? ORDER BY createdAt DESC
-  await queryInterface.addIndex("booking", ["traveller_id"], {
+  await safeAddIndex(queryInterface, "booking", ["traveller_id"], {
     name: "idx_bookings_traveller_id",
     ifNotExists: true,
   });
 
   // join from parcel side: WHERE parcel_id = ?
-  await queryInterface.addIndex("booking", ["parcel_id"], {
+  await safeAddIndex(queryInterface, "booking", ["parcel_id"], {
     name: "idx_bookings_parcel_id",
     ifNotExists: true,
   });
 
   // status filter on booking list queries
-  await queryInterface.addIndex("booking", ["status"], {
+  await safeAddIndex(queryInterface, "booking", ["status"], {
     name: "idx_bookings_status",
     ifNotExists: true,
   });
 
   // sort column used on every paginated booking query
-  await queryInterface.addIndex("booking", ["createdAt"], {
+  await safeAddIndex(queryInterface, "booking", ["createdAt"], {
     name: "idx_bookings_created_at",
     ifNotExists: true,
   });
 
   // composite: covers fetchTravellerDeliveries fully in one index
   // WHERE traveller_id = ? AND status IN (...) ORDER BY createdAt DESC
-  await queryInterface.addIndex("booking", ["traveller_id", "status", "createdAt"], {
+  await safeAddIndex(queryInterface, "booking", ["traveller_id", "status", "createdAt"], {
     name: "idx_bookings_traveller_status_created",
     ifNotExists: true,
   });
 
   // ── parcel ────────────────────────────────────────────────────────────────
   // getUserParcelRequests: WHERE user_id = ?
-  await queryInterface.addIndex("parcel", ["user_id"], {
+  await safeAddIndex(queryInterface, "parcel", ["user_id"], {
     name: "idx_parcels_user_id",
     ifNotExists: true,
   });
 
   // composite: covers WHERE user_id = ? ORDER BY createdAt DESC together
-  await queryInterface.addIndex("parcel", ["user_id", "createdAt"], {
+  await safeAddIndex(queryInterface, "parcel", ["user_id", "createdAt"], {
     name: "idx_parcels_user_id_created",
     ifNotExists: true,
   });
 
   // matching engine filters: WHERE status = 'CREATED' or 'MATCHING'
-  await queryInterface.addIndex("parcel", ["status"], {
+  await safeAddIndex(queryInterface, "parcel", ["status"], {
     name: "idx_parcels_status",
     ifNotExists: true,
   });
 
   // booking creation lookup
-  await queryInterface.addIndex("parcel", ["selected_partner_id"], {
+  await safeAddIndex(queryInterface, "parcel", ["selected_partner_id"], {
     name: "idx_parcels_selected_partner_id",
     ifNotExists: true,
   });
@@ -66,52 +93,52 @@ export const up = async (queryInterface) => {
   // ── parcel_requests ───────────────────────────────────────────────────────
   // composite: fetchTravellerParcelRequests
   // WHERE traveller_id = ? AND status IN (...) ORDER BY created_at DESC
-  await queryInterface.addIndex("parcel_requests", ["traveller_id", "status", "created_at"], {
+  await safeAddIndex(queryInterface, "parcel_requests", ["traveller_id", "status", "created_at"], {
     name: "idx_parcel_requests_traveller_status_created",
     ifNotExists: true,
   });
 
   // ── users ─────────────────────────────────────────────────────────────────
   // admin list: ORDER BY createdAt DESC
-  await queryInterface.addIndex("users", ["createdAt"], {
+  await safeAddIndex(queryInterface, "users", ["createdAt"], {
     name: "idx_users_created_at",
     ifNotExists: true,
   });
 
   // OTP lookup + duplicate check
-  await queryInterface.addIndex("users", ["phone_number"], {
+  await safeAddIndex(queryInterface, "users", ["phone_number"], {
     name: "idx_users_phone_number",
     ifNotExists: true,
   });
 
   // ── user_roles ────────────────────────────────────────────────────────────
   // admin getAllUsers EXISTS subquery: WHERE user_id = u.id
-  await queryInterface.addIndex("user_roles", ["user_id"], {
+  await safeAddIndex(queryInterface, "user_roles", ["user_id"], {
     name: "idx_user_roles_user_id",
     ifNotExists: true,
   });
 
   // JOIN roles ON role_id
-  await queryInterface.addIndex("user_roles", ["role_id"], {
+  await safeAddIndex(queryInterface, "user_roles", ["role_id"], {
     name: "idx_user_roles_role_id",
     ifNotExists: true,
   });
 
   // ── traveller_kyc ─────────────────────────────────────────────────────────
   // getTravelersForKYC: WHERE status = ?
-  await queryInterface.addIndex("traveller_kyc", ["status"], {
+  await safeAddIndex(queryInterface, "traveller_kyc", ["status"], {
     name: "idx_traveller_kyc_status",
     ifNotExists: true,
   });
 
   // JOIN users ON user_id
-  await queryInterface.addIndex("traveller_kyc", ["user_id"], {
+  await safeAddIndex(queryInterface, "traveller_kyc", ["user_id"], {
     name: "idx_traveller_kyc_user_id",
     ifNotExists: true,
   });
 
   // ORDER BY created_at DESC
-  await queryInterface.addIndex("traveller_kyc", ["created_at"], {
+  await safeAddIndex(queryInterface, "traveller_kyc", ["created_at"], {
     name: "idx_traveller_kyc_created_at",
     ifNotExists: true,
   });
