@@ -15,10 +15,9 @@ export const up = async (queryInterface, Sequelize) => {
 
     booking_id: {
       type: Sequelize.UUID,
-      allowNull: false,               // every feedback MUST belong to a booking
-      unique: true,                   // ONE feedback per booking — prevents duplicate submissions
-      references: { model: 'booking', key: 'id' }, // FK constraint — booking must exist
-      onDelete: 'CASCADE',            // if booking is deleted, feedback is also deleted
+      allowNull: false,
+      unique: true,
+      // FK to booking — enforced at app level; booking table created by model sync
     },
 
     parcel_id: {
