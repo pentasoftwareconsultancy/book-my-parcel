@@ -1,5 +1,9 @@
 export const up = async (queryInterface, Sequelize) => {
-  // Add new enum values to parcel_requests status
+  const [r1] = await queryInterface.sequelize.query(
+    `SELECT 1 FROM pg_type WHERE typname = 'enum_parcel_requests_status'`
+  );
+  if (r1.length === 0) return;
+
   await queryInterface.sequelize.query(`
     ALTER TYPE "enum_parcel_requests_status" 
     ADD VALUE IF NOT EXISTS 'SELECTED';

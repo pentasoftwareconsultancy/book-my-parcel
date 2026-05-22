@@ -1,5 +1,9 @@
 export async function up(queryInterface, Sequelize) {
-  // Add INTERESTED status to parcel_requests status enum
+  const [r] = await queryInterface.sequelize.query(
+    `SELECT 1 FROM pg_type WHERE typname = 'enum_parcel_requests_status'`
+  );
+  if (r.length === 0) return;
+
   await queryInterface.sequelize.query(`
     ALTER TYPE "enum_parcel_requests_status" 
     ADD VALUE IF NOT EXISTS 'INTERESTED' AFTER 'SENT';
