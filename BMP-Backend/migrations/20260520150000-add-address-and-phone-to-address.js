@@ -4,6 +4,8 @@
  */
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('address')) return;
   const tableDesc = await queryInterface.describeTable("address");
 
   if (!tableDesc.address) {

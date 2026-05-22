@@ -7,6 +7,8 @@
  */
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('traveller_kyc')) return;
   const tableDesc = await queryInterface.describeTable("traveller_kyc");
 
   if (tableDesc.traveller_profile_id) {

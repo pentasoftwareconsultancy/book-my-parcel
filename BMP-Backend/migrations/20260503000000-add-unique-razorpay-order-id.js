@@ -16,6 +16,8 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('payments')) return;
   const tableDesc = await queryInterface.describeTable("payments");
 
   // ── 1. Add missing columns (only if they don't already exist) ─────────────

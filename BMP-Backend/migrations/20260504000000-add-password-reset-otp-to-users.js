@@ -1,5 +1,7 @@
 /** @type {import('sequelize').QueryInterface} */
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('users')) return;
   const tableDesc = await queryInterface.describeTable("users");
 
   if (!tableDesc.password_reset_otp) {

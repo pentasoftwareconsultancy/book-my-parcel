@@ -85,14 +85,16 @@ export async function up(queryInterface, Sequelize) {
   console.log("✅ Created referrals table");
 
   // ── 4. user_profiles.referral_code column ─────────────────────────────────
-  const tableDesc = await queryInterface.describeTable("user_profiles");
-  if (!tableDesc.referral_code) {
-    await queryInterface.addColumn("user_profiles", "referral_code", {
-      type: Sequelize.STRING(12),
-      allowNull: true,
-      unique: true,
-    });
-    console.log("✅ Added referral_code to user_profiles");
+  const tables = await queryInterface.showAllTables();
+  if (tables.includes('user_profiles')) {
+    const tableDesc = await queryInterface.describeTable("user_profiles");
+    if (!tableDesc.referral_code) {
+      await queryInterface.addColumn("user_profiles", "referral_code", {
+        type: Sequelize.STRING(12),
+        allowNull: true,
+        unique: true,
+      });
+    }
   }
 }
 

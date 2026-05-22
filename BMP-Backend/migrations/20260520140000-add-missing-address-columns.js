@@ -6,9 +6,9 @@
  */
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('address')) return;
   const tableDesc = await queryInterface.describeTable("address");
-
-  // type — NOT NULL ENUM (most critical, causes the query failure)
   if (!tableDesc.type) {
     // Create the ENUM type first if it doesn't exist
     await queryInterface.sequelize.query(`

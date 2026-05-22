@@ -6,6 +6,8 @@
  */
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('user_roles')) return;
   const tableDesc = await queryInterface.describeTable("user_roles");
 
   if (!tableDesc.assigned_at) {

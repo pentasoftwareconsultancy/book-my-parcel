@@ -13,6 +13,8 @@
 "use strict";
 
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('disputes')) return;
   const tableDesc = await queryInterface.describeTable("disputes");
 
   if (!tableDesc.resolution) {

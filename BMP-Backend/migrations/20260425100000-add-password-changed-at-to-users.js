@@ -1,4 +1,6 @@
 export async function up(queryInterface, Sequelize) {
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('users')) return;
   const tableDesc = await queryInterface.describeTable("users");
   if (!tableDesc.password_changed_at) {
     await queryInterface.addColumn("users", "password_changed_at", {
@@ -6,7 +8,6 @@ export async function up(queryInterface, Sequelize) {
       allowNull: true,
       defaultValue: Sequelize.literal("NOW()"),
     });
-    console.log("✅ Added password_changed_at to users table");
   }
 }
 
