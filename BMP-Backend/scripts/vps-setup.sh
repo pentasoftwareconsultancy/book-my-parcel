@@ -15,15 +15,15 @@ set -euo pipefail
 
 # ── Config — EDIT THESE before running ───────────────────────────────────────
 APP_USER="bmp"
-MONOREPO_DIR="/var/www/bmp"          # monorepo root on VPS
+MONOREPO_DIR="/var/www/bmp"
 BACKEND_DIR="$MONOREPO_DIR/BMP-Backend"
 FRONTEND_DIR="$MONOREPO_DIR/BMP-FE"
 FRONTEND_DIST="$MONOREPO_DIR/BMP-FE/dist"
-API_DOMAIN="api.yourdomain.com"      # ← your actual API subdomain
-APP_DOMAIN="yourdomain.com"          # ← your actual frontend domain
-DB_NAME="bmp_production"
-DB_USER="bmp_db_user"
-DB_PASSWORD="$(openssl rand -hex 24)"  # auto-generated — SAVE THIS
+API_DOMAIN="api.bookmyparcel.co.in"
+APP_DOMAIN="bookmyparcel.co.in"
+DB_NAME="book_my_parcel"
+DB_USER="postgres"
+DB_PASSWORD="$(openssl rand -hex 24)"
 NODE_VERSION="20"
 # ─────────────────────────────────────────────────────────────────────────────
 
