@@ -15,7 +15,7 @@ export const up = async (queryInterface, Sequelize) => {
       booking_id: {
         type: Sequelize.UUID,
         allowNull: false,
-        references: { model: "booking", key: "id" },
+        // FK to booking table — enforced at app level; table created by model sync
         onDelete: "CASCADE",
       },
       raised_by: {

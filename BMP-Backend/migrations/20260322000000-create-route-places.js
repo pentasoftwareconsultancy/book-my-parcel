@@ -8,10 +8,7 @@ export const up = async (queryInterface, Sequelize) => {
     route_id: {
       type: Sequelize.UUID,
       allowNull: false,
-      references: {
-        model: "traveller_routes",
-        key: "id",
-      },
+      // FK to traveller_routes — enforced at app level; table created by model sync
       onDelete: "CASCADE",
     },
     place_id: {

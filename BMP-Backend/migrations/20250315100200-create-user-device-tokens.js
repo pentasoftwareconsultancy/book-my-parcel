@@ -8,11 +8,7 @@ export const up = async (queryInterface, Sequelize) => {
     user_id: {
       type: Sequelize.UUID,
       allowNull: false,
-      references: {
-        model: "users",
-        key: "id",
-      },
-      onDelete: "CASCADE",
+      // FK to users table — enforced at app level; users table created by model sync
     },
     token: {
       type: Sequelize.TEXT,
