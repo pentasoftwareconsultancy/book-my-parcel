@@ -29,6 +29,14 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ Connected to database");
 
+    // On fresh DB, sync models to create base tables that migrations depend on.
+    // Uses force:false, alter:false — safe, only creates missing tables.
+    if (process.env.RUN_SYNC_ONCE === "true") {
+      console.log("🔄 RUN_SYNC_ONCE=true — syncing base tables...");
+      await sequelize.sync({ force: false, alter: false });
+      console.log("✅ Base tables synced");
+    }
+
     // Run all pending database migrations
     await runMigrations();
 
