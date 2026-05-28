@@ -69,35 +69,127 @@ async function findCandidateTravellers(parcelData) {
     // Build unified CTE query that combines all 5 matching methods
     const unifiedQuery = `
       WITH 
-      -- Method A: Place-ID matching (highest priority)
+      -- Method A: Endpoint matching (highest priority)
+      endpoint_matches AS (
+        SELECT tr.id, 0 as priority, 'endpoint' as match_type
+        FROM traveller_routes tr
+        JOIN address oa ON oa.id = tr.origin_address_id
+        JOIN address da ON da.id = tr.dest_address_id
+        WHERE tr.status = 'ACTIVE'
+          AND (
+            (:pickupPlaceId IS NOT NULL AND oa.place_id = :pickupPlaceId)
+            OR (:pickupLocalityName IS NOT NULL AND oa.locality = :pickupLocalityName)
+            OR (:pickupCityName IS NOT NULL AND oa.city = :pickupCityName)
+          )
+          AND (
+            (:deliveryPlaceId IS NOT NULL AND da.place_id = :deliveryPlaceId)
+            OR (:deliveryLocalityName IS NOT NULL AND da.locality = :deliveryLocalityName)
+            OR (:deliveryCityName IS NOT NULL AND da.city = :deliveryCityName)
+          )
+      ),
       place_matches AS (
         SELECT DISTINCT rp1.route_id as id, 1 as priority, 'place_id' as match_type
         FROM route_places rp1
+        JOIN route_places rp2 ON rp1.route_id = rp2.route_id
         WHERE rp1.place_id = :pickupPlaceId
-          AND rp1.route_id IN (
-            SELECT rp2.route_id
-            FROM route_places rp2
-            WHERE rp2.place_id = :deliveryPlaceId
+          AND rp2.place_id = :deliveryPlaceId
+          AND (
+            rp1.sequence_order IS NULL
+            OR rp2.sequence_order IS NULL
+            OR rp1.sequence_order < rp2.sequence_order
           )
       ),
       -- Method B: Locality JSONB array matching
       locality_matches AS (
-        SELECT id, 2 as priority, 'locality' as match_type
-        FROM traveller_routes
-        WHERE status = 'ACTIVE'
-          AND localities_passed @> :pickupLocality
-          AND localities_passed @> :deliveryLocality
+        SELECT tr.id, 2 as priority, 'locality' as match_type
+        FROM traveller_routes tr
+        WHERE tr.status = 'ACTIVE'
+          AND tr.localities_passed @> :pickupLocality
+          AND tr.localities_passed @> :deliveryLocality
+          AND (
+            EXISTS (
+              SELECT 1
+              FROM route_places rp1
+              JOIN route_places rp2 ON rp1.route_id = rp2.route_id
+              WHERE rp1.route_id = tr.id
+                AND rp1.place_type = 'locality'
+                AND rp1.place_name = :pickupLocalityName
+                AND rp2.place_type = 'locality'
+                AND rp2.place_name = :deliveryLocalityName
+                AND rp1.sequence_order IS NOT NULL
+                AND rp2.sequence_order IS NOT NULL
+                AND rp1.sequence_order < rp2.sequence_order
+            )
+            OR (
+              :includeSpatial = true
+              AND tr.route_geom IS NOT NULL
+              AND ST_DWithin(
+                tr.route_geom::geography,
+                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
+                :geometryThresholdMeters
+              )
+              AND ST_DWithin(
+                tr.route_geom::geography,
+                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
+                :geometryThresholdMeters
+              )
+              AND ST_LineLocatePoint(
+                tr.route_geom,
+                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+              ) < ST_LineLocatePoint(
+                tr.route_geom,
+                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+              )
+            )
+          )
       ),
       -- Method C: City-level JSONB matching
       -- For same-city parcels: check if route passes through that city
       -- For different-city parcels: check if route passes through both cities
       city_matches AS (
-        SELECT id, 3 as priority, 'city' as match_type
-        FROM traveller_routes
-        WHERE status = 'ACTIVE'
+        SELECT tr.id, 3 as priority, 'city' as match_type
+        FROM traveller_routes tr
+        WHERE tr.status = 'ACTIVE'
           AND :includeCityMatch = true
-          AND cities_passed @> :pickupCity
-          AND (:isSameCity = false OR cities_passed @> :deliveryCity)
+          AND tr.cities_passed @> :pickupCity
+          AND (:isSameCity = false OR tr.cities_passed @> :deliveryCity)
+          AND (
+            :isSameCity = true
+            OR EXISTS (
+              SELECT 1
+              FROM route_places rp1
+              JOIN route_places rp2 ON rp1.route_id = rp2.route_id
+              WHERE rp1.route_id = tr.id
+                AND rp1.place_type = 'city'
+                AND rp1.place_name = :pickupCityName
+                AND rp2.place_type = 'city'
+                AND rp2.place_name = :deliveryCityName
+                AND rp1.sequence_order IS NOT NULL
+                AND rp2.sequence_order IS NOT NULL
+                AND rp1.sequence_order < rp2.sequence_order
+            )
+            OR (
+              :includeSpatial = true
+              AND tr.route_geom IS NOT NULL
+              AND ST_DWithin(
+                tr.route_geom::geography,
+                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
+                :geometryThresholdMeters
+              )
+              AND ST_DWithin(
+                tr.route_geom::geography,
+                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
+                :geometryThresholdMeters
+              )
+              AND ST_LineLocatePoint(
+                tr.route_geom,
+                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+              ) < ST_LineLocatePoint(
+                tr.route_geom,
+                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+              )
+            )
+          )
       ),
       -- Method D: Spatial matching (PostGIS - routes passing between points)
       spatial_matches AS (
@@ -105,14 +197,23 @@ async function findCandidateTravellers(parcelData) {
         FROM traveller_routes
         WHERE status = 'ACTIVE'
           AND :includeSpatial = true
-          AND route_geometry IS NOT NULL
+          AND route_geom IS NOT NULL
           AND ST_DWithin(
-            route_geometry::geography,
-            ST_MakeLine(
-              ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geometry,
-              ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geometry
-            )::geography,
-            :spatialThresholdMeters
+            route_geom::geography,
+            ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
+            :spatialPointThresholdMeters
+          )
+          AND ST_DWithin(
+            route_geom::geography,
+            ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
+            :spatialPointThresholdMeters
+          )
+          AND ST_LineLocatePoint(
+            route_geom,
+            ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+          ) < ST_LineLocatePoint(
+            route_geom,
+            ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
           )
       ),
       -- Method E: Buffer-based spatial matching (routes near pickup point)
@@ -121,15 +222,22 @@ async function findCandidateTravellers(parcelData) {
         FROM traveller_routes
         WHERE status = 'ACTIVE'
           AND :includeBuffer = true
-          AND route_geometry IS NOT NULL
+          AND route_geom IS NOT NULL
           AND ST_DWithin(
-            route_geometry::geography,
+            route_geom::geography,
             ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
+            :bufferMeters
+          )
+          AND ST_DWithin(
+            route_geom::geography,
+            ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
             :bufferMeters
           )
       ),
       -- Combine all matches with UNION ALL (faster than UNION)
       all_matches AS (
+        SELECT * FROM endpoint_matches
+        UNION ALL
         SELECT * FROM place_matches
         UNION ALL
         SELECT * FROM locality_matches
@@ -158,16 +266,22 @@ async function findCandidateTravellers(parcelData) {
       deliveryLocality: parcelData.delivery.locality ? JSON.stringify([parcelData.delivery.locality]) : '[]',
       pickupCity:   parcelData.pickup.city   ? JSON.stringify([parcelData.pickup.city])   : '[]',
       deliveryCity: parcelData.delivery.city ? JSON.stringify([parcelData.delivery.city]) : '[]',
+      pickupLocalityName: parcelData.pickup.locality || null,
+      deliveryLocalityName: parcelData.delivery.locality || null,
+      pickupCityName: parcelData.pickup.city || null,
+      deliveryCityName: parcelData.delivery.city || null,
       isSameCity,
       includeCityMatch: !!parcelData.pickup.city,
       includeSpatial:   !!(parcelData.pickup.lat && parcelData.pickup.lng && parcelData.delivery.lat && parcelData.delivery.lng),
-      includeBuffer:    !!(parcelData.pickup.lat && parcelData.pickup.lng),
       pickupLat:  parcelData.pickup.lat   || 0,
       pickupLng:  parcelData.pickup.lng   || 0,
       deliveryLat: parcelData.delivery.lat || 0,
       deliveryLng: parcelData.delivery.lng || 0,
       spatialThresholdMeters: 15000,
+      geometryThresholdMeters: 15000,
+      spatialPointThresholdMeters: 15000,
       bufferMeters: DEFAULT_BUFFER_KM * 1000,
+      includeBuffer:   !!(parcelData.pickup.lat && parcelData.pickup.lng && parcelData.delivery.lat && parcelData.delivery.lng),
     };
 
     const results = await sequelize.query(unifiedQuery, {
@@ -175,7 +289,22 @@ async function findCandidateTravellers(parcelData) {
       type: sequelize.QueryTypes.SELECT,
     });
 
-    const candidateIds = results.map(r => r.id);
+    const hasExactEndpoint = results.some((r) => r.best_priority === 0);
+    const hasPlaceMatch = results.some((r) => r.best_priority === 1);
+    const candidateResults = hasExactEndpoint
+      ? results.filter((r) => r.best_priority === 0)
+      : hasPlaceMatch
+        ? results.filter((r) => r.best_priority <= 1)
+        : results;
+
+    const candidateIds = candidateResults.map((r) => r.id);
+
+    // Cache full candidate metadata so callers can show which match type matched
+    try {
+      await cacheActiveRoutesFull(candidateResults);
+    } catch (err) {
+      console.warn('[Matching] Failed to cache full candidate metadata:', err.message);
+    }
 
     // FIX: Cache the result so subsequent calls within the same matching cycle
     // can skip the expensive CTE query. Previously the cache was written but
@@ -199,17 +328,61 @@ async function findCandidateTravellersLegacy(parcelData) {
   try {
     const isSameCity = parcelData.pickup.city === parcelData.delivery.city;
 
-    // Method A: Place-ID matching
+    // Method A: Explicit endpoint matching (origin/destination addresses)
+    if (parcelData.pickup.place_id || parcelData.pickup.locality || parcelData.pickup.city) {
+      const endpointMatches = await sequelize.query(
+        `
+        SELECT tr.id
+        FROM traveller_routes tr
+        JOIN address oa ON oa.id = tr.origin_address_id
+        JOIN address da ON da.id = tr.dest_address_id
+        WHERE tr.status = 'ACTIVE'
+          AND (
+            (:pickupPlaceId IS NOT NULL AND oa.place_id = :pickupPlaceId)
+            OR (:pickupLocalityName IS NOT NULL AND oa.locality = :pickupLocalityName)
+            OR (:pickupCityName IS NOT NULL AND oa.city = :pickupCityName)
+          )
+          AND (
+            (:deliveryPlaceId IS NOT NULL AND da.place_id = :deliveryPlaceId)
+            OR (:deliveryLocalityName IS NOT NULL AND da.locality = :deliveryLocalityName)
+            OR (:deliveryCityName IS NOT NULL AND da.city = :deliveryCityName)
+          )
+        `,
+        {
+          replacements: {
+            pickupPlaceId: parcelData.pickup.place_id,
+            deliveryPlaceId: parcelData.delivery.place_id,
+            pickupLocalityName: parcelData.pickup.locality,
+            deliveryLocalityName: parcelData.delivery.locality,
+            pickupCityName: parcelData.pickup.city,
+            deliveryCityName: parcelData.delivery.city,
+          },
+          type: sequelize.QueryTypes.SELECT,
+        }
+      );
+
+      if (endpointMatches.length > 0) {
+        endpointMatches.forEach((match) => candidates.add(match.id));
+        console.log(`[Matching] Endpoint matches: ${endpointMatches.length}`);
+        return Array.from(candidates);
+      }
+
+      console.log(`[Matching] Endpoint matches: ${endpointMatches.length}`);
+    }
+
+    // Method B: Place-ID matching
     if (parcelData.pickup.place_id && parcelData.delivery.place_id) {
       const placeMatches = await sequelize.query(
         `
         SELECT DISTINCT rp1.route_id
         FROM route_places rp1
+        JOIN route_places rp2 ON rp1.route_id = rp2.route_id
         WHERE rp1.place_id = :pickupPlaceId
-          AND rp1.route_id IN (
-            SELECT rp2.route_id
-            FROM route_places rp2
-            WHERE rp2.place_id = :deliveryPlaceId
+          AND rp2.place_id = :deliveryPlaceId
+          AND (
+            rp1.sequence_order IS NULL
+            OR rp2.sequence_order IS NULL
+            OR rp1.sequence_order < rp2.sequence_order
           )
         `,
         {
@@ -221,11 +394,16 @@ async function findCandidateTravellersLegacy(parcelData) {
         }
       );
 
-      placeMatches.forEach((match) => candidates.add(match.route_id));
+      if (placeMatches.length > 0) {
+        placeMatches.forEach((match) => candidates.add(match.route_id));
+        console.log(`[Matching] Place-ID matches: ${placeMatches.length}`);
+        return Array.from(candidates);
+      }
+
       console.log(`[Matching] Place-ID matches: ${placeMatches.length}`);
     }
 
-    // Method B: JSONB array containment
+    // Method C: JSONB array containment
     if (candidates.size < 5 && parcelData.pickup.locality && parcelData.delivery.locality) {
       const arrayMatches = await sequelize.query(
         `
@@ -449,7 +627,7 @@ function applyCapacityAndPreferenceFilters(routes, parcelData) {
 async function selectTopCandidates(routes, parcelData) {
   const routesWithEstimates = await Promise.all(
     routes.map(async (route) => {
-      const transportMode = route.transport_mode || 'private';
+      const transportMode = (route.transport_mode || route.transportMode) || 'private';
       let estimatedDetour;
 
       if (transportMode === 'private') {
@@ -474,8 +652,9 @@ async function selectTopCandidates(routes, parcelData) {
         estimatedDetour = Infinity;
       }
 
+      const base = route.toJSON ? route.toJSON() : route;
       return {
-        ...route.toJSON(),
+        ...base,
         estimatedDetour,
         transportMode,
       };
@@ -706,6 +885,14 @@ export async function matchParcelWithTravellers(parcelId) {
       return { success: true, requestsSent: 0, message: "No matching travellers found" };
     }
 
+    // Try to fetch cached candidate metadata (match types / priority)
+    let cachedCandidates = null;
+    try {
+      cachedCandidates = await getCachedActiveRoutesFull();
+    } catch (err) {
+      console.warn('[Matching] Could not read cached full routes metadata:', err.message);
+    }
+
     // Fetch full route data
     let routes = await TravellerRoute.findAll({
       where: { id: candidateRouteIds },
@@ -720,8 +907,19 @@ export async function matchParcelWithTravellers(parcelId) {
       ],
     });
 
-    console.log(`[Matching] Fetched ${routes.length} full route records`);
-
+    // Merge cached match metadata into route objects for visibility
+    if (cachedCandidates && Array.isArray(cachedCandidates) && cachedCandidates.length > 0) {
+      const metaMap = new Map(cachedCandidates.map((c) => [c.id, c]));
+      routes = routes.map((r) => {
+        const meta = metaMap.get(r.id) || null;
+        const obj = r.toJSON ? r.toJSON() : r;
+        if (meta) obj.match_metadata = meta;
+        return obj;
+      });
+      console.log(`[Matching] Candidate metadata attached: ${routes.map(r => `${r.id}:${r.match_metadata?.match_types||'unknown'}`).join(', ')}`);
+    } else {
+      routes = routes.map((r) => (r.toJSON ? r.toJSON() : r));
+    }
     // Step 3: Apply temporal filters
     routes = applyTemporalFilters(routes, parcelData);
     console.log(`[Matching] After temporal filters: ${routes.length} routes`);

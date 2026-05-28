@@ -11,13 +11,14 @@ export async function extractAndStorePlaces(routeId, intermediateData, transacti
 
     // Extract localities
     if (intermediateData.localities && Array.isArray(intermediateData.localities)) {
-      intermediateData.localities.forEach((locality) => {
+      intermediateData.localities.forEach((locality, index) => {
         if (locality && locality.trim()) {
           placesToInsert.push({
             route_id: routeId,
             place_type: "locality",
             place_name: locality,
             place_id: generatePlaceId("locality", locality),
+            sequence_order: index,
           });
         }
       });
@@ -25,13 +26,14 @@ export async function extractAndStorePlaces(routeId, intermediateData, transacti
 
     // Extract cities
     if (intermediateData.cities && Array.isArray(intermediateData.cities)) {
-      intermediateData.cities.forEach((city) => {
+      intermediateData.cities.forEach((city, index) => {
         if (city && city.trim()) {
           placesToInsert.push({
             route_id: routeId,
             place_type: "city",
             place_name: city,
             place_id: generatePlaceId("city", city),
+            sequence_order: index,
           });
         }
       });
@@ -39,13 +41,14 @@ export async function extractAndStorePlaces(routeId, intermediateData, transacti
 
     // Extract talukas
     if (intermediateData.talukas && Array.isArray(intermediateData.talukas)) {
-      intermediateData.talukas.forEach((taluka) => {
+      intermediateData.talukas.forEach((taluka, index) => {
         if (taluka && taluka.trim()) {
           placesToInsert.push({
             route_id: routeId,
             place_type: "taluka",
             place_name: taluka,
             place_id: generatePlaceId("taluka", taluka),
+            sequence_order: index,
           });
         }
       });
@@ -53,13 +56,14 @@ export async function extractAndStorePlaces(routeId, intermediateData, transacti
 
     // Extract pincodes
     if (intermediateData.pincodes && Array.isArray(intermediateData.pincodes)) {
-      intermediateData.pincodes.forEach((pincode) => {
+      intermediateData.pincodes.forEach((pincode, index) => {
         if (pincode && pincode.trim()) {
           placesToInsert.push({
             route_id: routeId,
             place_type: "pincode",
             place_name: pincode,
             place_id: generatePlaceId("pincode", pincode),
+            sequence_order: index,
           });
         }
       });
@@ -67,13 +71,14 @@ export async function extractAndStorePlaces(routeId, intermediateData, transacti
 
     // Extract landmarks
     if (intermediateData.landmarks && Array.isArray(intermediateData.landmarks)) {
-      intermediateData.landmarks.forEach((landmark) => {
+      intermediateData.landmarks.forEach((landmark, index) => {
         if (landmark && landmark.trim()) {
           placesToInsert.push({
             route_id: routeId,
             place_type: "landmark",
             place_name: landmark,
             place_id: generatePlaceId("landmark", landmark),
+            sequence_order: index,
           });
         }
       });

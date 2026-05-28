@@ -43,8 +43,7 @@ export async function findRoutesWithinBuffer(longitude, latitude, bufferKm = 5) 
     }
 
     // Convert km to degrees (approximate: 1 degree ≈ 111.32 km)
-    const bufferDegrees = bufferKm / 111.32;
-
+const bufferMeters = bufferKm * 1000;
     console.log(
       `[SpatialMatching] Searching for routes within ${bufferKm}km of (${latitude}, ${longitude})`
     );
@@ -125,7 +124,7 @@ export async function findRoutesBetweenPoints(
       return cached;
     }
 
-    const bufferDegrees = bufferKm / 111.32;
+    const bufferMeters = bufferKm * 1000;
 
     console.log(
       `[SpatialMatching] Searching for routes between (${pickupLat}, ${pickupLon}) and (${dropLat}, ${dropLon})`
@@ -160,6 +159,13 @@ export async function findRoutesBetweenPoints(
           route_geom,
           ST_SetSRID(ST_MakePoint(:dropLon, :dropLat), 4326),
           :bufferDegrees
+        )
+        AND ST_LineLocatePoint(
+          route_geom,
+          ST_SetSRID(ST_MakePoint(:pickupLon, :pickupLat), 4326)
+        ) < ST_LineLocatePoint(
+          route_geom,
+          ST_SetSRID(ST_MakePoint(:dropLon, :dropLat), 4326)
         )
       ORDER BY (
         ST_Distance(route_geom, ST_SetSRID(ST_MakePoint(:pickupLon, :pickupLat), 4326)) +
@@ -318,8 +324,7 @@ export async function findRoutesByPlaceAndBuffer(parcelData, bufferKm = 5) {
       return [];
     }
 
-    const bufferDegrees = bufferKm / 111.32;
-
+const bufferMeters = bufferKm * 1000;
     console.log(
       `[SpatialMatching] Searching by Place-ID and spatial buffer (${bufferKm}km)`
     );
@@ -444,8 +449,7 @@ export async function isPointNearRoute(routeId, longitude, latitude, bufferKm = 
       return false;
     }
 
-    const bufferDegrees = bufferKm / 111.32;
-
+const bufferMeters = bufferKm * 1000;
     const result = await sequelize.query(
       `
       SELECT 
