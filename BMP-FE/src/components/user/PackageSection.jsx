@@ -4,6 +4,8 @@ import { SIZE_OPTIONS } from "../../core/hooks/useStepPickup";
 
 const PARCEL_TYPES = ["Documents", "Electronics", "Clothing", "Food", "Medicine", "Fragile", "Books", "Gifts", "Other"];
 
+const VEHICLE_TYPES = ["bike", "car", "suv", "van", "tempo", "truck", "bus", "train", "plane"];
+
 const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) => (
   <div className="px-6 py-6 bg-white border shadow-2xl rounded-3xl border-primary/20">
     <h3 className="mb-4 text-xl font-semibold text-primary">Package Details</h3>
@@ -62,20 +64,32 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
 
     {/* Photos + Value + Type */}
     <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos</p>
-    <div className="grid gap-3 mb-4 md:grid-cols-4">
-      {[1, 2, 3].map((i) => (
-        <UploadImage key={i} label={`Parcel photo ${i}`} value={data[`parcelPhoto${i}`]}
+    <div>
+      <div className="grid gap-3 md:grid-cols-3 col-span-2">
+        {[1, 2, 3].map((i) => (
+          <UploadImage key={i} label={`Parcel photo ${i}`} value={data[`parcelPhoto${i}`]}
           onChange={(file) => updateFields({ [`parcelPhoto${i}`]: file })} />
-      ))}
-      <div className="space-y-3">
-        <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" value={data.parcelValue}
-          onChange={(e) => updateFields({ parcelValue: e.target.value })} />
+        ))}
+      </div>
+      <div className="space-y-3 grid gap-3 md:grid-cols-3">
+        <div className="my-2">
+          <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" value={data.parcelValue}
+            onChange={(e) => updateFields({ parcelValue: e.target.value })} />
+        </div>
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Parcel Type</label>
           <select name="parcelType" value={data.parcelType} onChange={(e) => updateFields({ parcelType: e.target.value })}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
             <option value="">Select type</option>
             {PARCEL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Preferred Vehicle</label>
+          <select name="vehicleType" value={data.vehicleType} onChange={(e) => updateFields({ vehicleType: e.target.value || 1 })}
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option value="">No preference</option>
+            {VEHICLE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
       </div>

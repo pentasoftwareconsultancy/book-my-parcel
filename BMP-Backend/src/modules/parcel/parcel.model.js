@@ -25,6 +25,7 @@ const Parcel = sequelize.define(
     // Values: 'SHORT_DISTANCE' | 'LONG_DISTANCE' (set by route calculation, enforced at app level)
     parcel_type: { type: DataTypes.STRING, allowNull: true },
     value: { type: DataTypes.FLOAT },
+    vehicle_type: { type: DataTypes.STRING, allowNull: true },
     notes: { type: DataTypes.TEXT },
     photos: { type: DataTypes.JSON },
     pickup_address_id: { type: DataTypes.UUID, allowNull: false },

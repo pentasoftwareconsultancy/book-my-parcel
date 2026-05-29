@@ -50,14 +50,25 @@ export async function up(queryInterface) {
   `);
 
   await queryInterface.sequelize.query(`
-    UPDATE payments SET status = 'SUCCESS' WHERE status = 'COMPLETED';
+    UPDATE payments
+    SET status = 'SUCCESS'
+    WHERE status::text = 'COMPLETED';
   `);
 }
 
 export async function down(queryInterface) {
-  // Revert SUCCESS rows back to COMPLETED (best-effort)
   await queryInterface.sequelize.query(`
-    UPDATE payments SET status = 'COMPLETED' WHERE status = 'SUCCESS';
+    DO $$
+    BEGIN
+      IF EXISTS (
+        SELECT 1
+        FROM pg_enum
+        WHERE enumlabel = 'COMPLETED'
+      ) THEN
+        UPDATE payments
+        SET status = 'COMPLETED'
+        WHERE status::text = 'SUCCESS';
+      END IF;
+    END$$;
   `);
-  // Note: cannot remove enum values in PostgreSQL without recreating the type.
 }

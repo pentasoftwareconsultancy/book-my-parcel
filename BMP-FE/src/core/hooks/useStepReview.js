@@ -51,6 +51,7 @@ export function useStepReview({ data, readOnly }) {
       length: data.parcelLength || "",
       width:  data.parcelWidth  || "",
       height: data.parcelHeight || "",
+      vehicle_type: data.vehicleType || "",
       description: data.parcelContents || "",
       parcel_type: data.parcelType || "",
       value: data.parcelValue || "",

@@ -257,7 +257,8 @@ export async function createParcelRequest(data, files) {
             data.weight || 1,
             data.length,
             data.width,
-            data.height
+            data.height,
+            data.vehicle_type
           );
           suggestedPrice = priceResult.price;
           // Attach surge info to data so it can be returned to the FE
@@ -300,6 +301,7 @@ export async function createParcelRequest(data, files) {
           description:           data.description || null,
           parcel_type:           data.parcel_type  || null, // user's content type e.g. "Documents"
           value:                 data.value      || null,
+          vehicle_type:          data.vehicle_type, // user's preferred vehicle type
           notes:                 data.notes      || null,
           photos:                photoPaths,
           pickup_address_id:     pickupAddress.id,

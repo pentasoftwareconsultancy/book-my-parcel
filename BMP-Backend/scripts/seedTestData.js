@@ -508,7 +508,7 @@ async function seedTravellerProfiles(users) {
         travellerProfilesTable,
         {
           user_id: user.id,
-          vehicle_type: pick(["bike", "car", "truck"]),
+          vehicle_type: pick(["bike", "car", "suv", "van", "tempo", "truck", "bus", "train", "plane"]),
           vehicle_number: `MH${randomInt(10, 99)}${String(randomInt(1000, 9999))}`,
           vehicle_model: pick(["Honda Activa", "Tata Ace", "Maruti Swift", "Mahindra Bolero"]),
           capacity_kg: pick([10, 15, 25, 50]),

@@ -31,6 +31,21 @@ const PRICING_CONFIG = {
   // High-demand thresholds
   DEMAND_PARCEL_THRESHOLD:    20,  // Active parcels in MATCHING state
   DEMAND_TRAVELLER_THRESHOLD: 5,   // Available travellers
+
+    VEHICLE_MULTIPLIERS: {
+    // Private Vehicles
+    bike: 0.9,
+    car: 1.0,
+    suv: 1.15,
+    van: 1.25,
+    tempo: 1.4,
+    truck: 1.8,
+
+    // Public Transport
+    bus: 0.85,
+    train: 0.75,
+    plane: 3.5,
+  },
 };
 
 // Indian public holidays (MM-DD format, year-agnostic)
@@ -137,7 +152,7 @@ export async function calculateSurgeMultiplier(options = {}) {
  * @param {object} [surgeOptions] - Passed to calculateSurgeMultiplier
  * @returns {Promise<{ price: number, basePrice: number, surgeMultiplier: number, surgeReasons: string[] }>}
  */
-export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, widthCm, heightCm, surgeOptions = {}) {
+export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, widthCm, heightCm, vehicleType = "car", surgeOptions = {}) {
   if (typeof distanceKm !== "number" || distanceKm < 0)
     throw new Error("Invalid distance: must be a non-negative number");
   if (typeof weightKg !== "number" || weightKg < 0)
@@ -152,7 +167,9 @@ export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, wi
   );
 
   const { multiplier, reasons } = await calculateSurgeMultiplier(surgeOptions);
-  const finalPrice = Math.round(basePrice * multiplier);
+  const vehicleMultiplier = PRICING_CONFIG.VEHICLE_MULTIPLIERS[vehicleType?.toLowerCase()] || 1;
+  const vehicleAdjustedPrice = basePrice * vehicleMultiplier;
+  const finalPrice = Math.round(vehicleAdjustedPrice * multiplier);
 
   const platformFeePercent = await getPlatformFeePercent();
   const platformFee   = Math.round(finalPrice * (platformFeePercent / 100));
@@ -161,6 +178,8 @@ export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, wi
   return {
     price:           finalPrice,
     basePrice,
+    vehicleMultiplier,
+    vehicleType,
     platformFee,
     partnerAmount,
     surgeMultiplier: multiplier,

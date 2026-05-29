@@ -24,6 +24,7 @@ const REQUIRED_FIELDS = [
   { key: "parcelHeight",    label: "Parcel Height" },
   { key: "parcelValue",     label: "Parcel Value" },
   { key: "parcelType",      label: "Parcel Type" },
+  { key: "vehicleType",     label: "Vehicle Type" },
   { key: "receiverName",    label: "Receiver Name" },
   { key: "deliveryAddress", label: "Delivery Address" },
   { key: "deliveryCity",    label: "Delivery City" },
@@ -52,6 +53,7 @@ const buildFormData = (data) => {
     parcel_type:    data.parcelType,
     value:          data.parcelValue   || 0,
     notes:          data.parcelNotes   || "",
+    vehicle_type:   data.vehicleType || null,
   };
   Object.entries(pkg).forEach(([k, v]) => {
     if (v !== undefined && v !== null) fd.append(k, v);

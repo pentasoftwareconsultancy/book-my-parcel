@@ -62,6 +62,7 @@ const RequestForm = () => {
     parcelHeight: "",
     parcelContents: "",
     parcelValue: "",
+    vehicleType: null,
     parcelType: "",
     parcelNotes: "",
     parcelPhoto1: null,
@@ -168,6 +169,7 @@ const RequestForm = () => {
             parcelHeight: parcel.height || "",
             parcelContents: parcel.description || "",
             parcelValue: parcel.value || "",
+            vehicleType: parcel.vehicle_type || "",
             parcelType: parcel.parcel_type || "",
             parcelNotes: parcel.notes || "",
 
@@ -251,6 +253,7 @@ const RequestForm = () => {
             parcelHeight: parcelData.height || "",
             parcelContents: parcelData.description || "",
             parcelValue: parcelData.value || "",
+            vehicleType: parcelData.vehicle_type || "",
             parcelType: parcelData.parcel_type || "",
             parcelNotes: parcelData.notes || "",
 
@@ -305,7 +308,7 @@ const RequestForm = () => {
         <div className="flex overflow-x-auto pb-2 mb-6 ml-3 md:ml-5 scrollbar-hide">
           {[1, 2, 3].map((num) => {
             const labels = [
-              "Pickup & Package &Delivery Details",
+              "Pickup Package & Delivery Details",
               "Select Traveler",
               "Review",
             ];

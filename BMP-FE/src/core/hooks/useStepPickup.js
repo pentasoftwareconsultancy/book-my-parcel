@@ -10,6 +10,11 @@ import {
   validatePincode,
 } from "../utils/validation.js";
 
+const VEHICLE_MULTIPLIERS = {
+  bike: 0.9, car: 1.0, suv: 1.15, van: 1.25, tempo: 1.4, truck: 1.8,
+  bus: 0.85, train: 0.75, plane: 3.5,
+};
+
 export const SIZE_OPTIONS = [
   { id: "small",       title: "Small",       desc: "Documents, letters",  min: 0,  max: 1  },
   { id: "medium",      title: "Medium",      desc: "Books, clothes",      min: 1,  max: 5  },
@@ -84,7 +89,7 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
 
   // Recalculate estimated price whenever relevant fields change
   useEffect(() => {
-    if (!data.pickupLat || !data.pickupLng || !data.deliveryLat || !data.deliveryLng || !data.parcelWeight) {
+    if (!data.pickupLat || !data.pickupLng || !data.deliveryLat || !data.deliveryLng || !data.parcelWeight || !data.vehicleType) {
       setEstimatedPrice(null);
       return;
     }
@@ -95,13 +100,14 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
       const h = Number(data.parcelHeight) || 0;
       const volumetric = l > 0 && w > 0 && h > 0 ? (l * w * h) / 6000 : 0;
       const billable = Math.max(Number(data.parcelWeight) || 0, volumetric);
-      const price = Math.round(50 + distance * 0.5 + billable * 10);
+      const multiplier = VEHICLE_MULTIPLIERS[data.vehicleType] || 1.0;
+      const price = Math.round(50 + distance * 0.5 + billable * 10) * multiplier;
       setEstimatedPrice(price);
       updateFields({ priceQuote: price });
     } catch {
       setEstimatedPrice(null);
     }
-  }, [data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng, data.parcelWeight, data.parcelLength, data.parcelWidth, data.parcelHeight]);
+  }, [data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng, data.parcelWeight, data.parcelLength, data.parcelWidth, data.parcelHeight, data.vehicleType]);
 
   const geocodeAddress = async (address, type, selectedPlaceId = "") => {
     if (!address?.trim()) return;
@@ -164,6 +170,7 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
       fd.append("description",  data.parcelContents || "");
       fd.append("parcel_type",  data.parcelType || "");
       fd.append("value",        data.parcelValue || 0);
+      fd.append("vehicle_type", data.vehicleType || "");
       fd.append("notes",        data.parcelNotes || "");
 
       // Pickup address
