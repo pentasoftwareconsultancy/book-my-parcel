@@ -11,6 +11,7 @@ class ServerUrl {
   static API_CHECK_USER_EXISTS = ServerUrl.API_MODULE_AUTH + "/check-user-exists";
   static API_VERIFY_OTP = ServerUrl.API_MODULE_AUTH + "/verify-otp";
   static API_LOGIN = ServerUrl.API_MODULE_AUTH + "/login";
+  static API_FIREBASE_LOGIN = ServerUrl.API_MODULE_AUTH + "/firebase-login";
   static API_SIGNUP = ServerUrl.API_MODULE_AUTH + "/signup";
   static API_LOGOUT = ServerUrl.API_MODULE_AUTH + "/logout";
   static API_FORGOT_PASSWORD = ServerUrl.API_MODULE_AUTH + "/forgot-password";

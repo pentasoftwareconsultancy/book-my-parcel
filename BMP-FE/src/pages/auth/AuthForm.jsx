@@ -2,7 +2,7 @@ import { useState } from "react";
 import TextInput from "../../core/common/CommonUi";
 import Button from "../../core/common/Button";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaApple,FaEye, FaEyeSlash ,FaChalkboardTeacher} from "react-icons/fa";
+import { FaFacebookF, FaApple, FaEye, FaEyeSlash, FaChalkboardTeacher } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
 import { USER_ROLES } from "../../core/constants/app.constant";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -18,12 +18,21 @@ import RoutePath from "../../core/constants/routes.constant";
 
 const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 
-const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
+const AuthForm = ({
+  fields,
+  submitText,
+  onSubmit,
+  initialRole,
+  disabled,
+  onGoogleLogin,
+  onFacebookLogin,
+  onAppleLogin,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const isSignupPage = location.pathname === RoutePath.AUTH_REGISTER; // ✅ used to hide role
-  const isLoginPage  = location.pathname === RoutePath.AUTH_LOGIN;    // ✅ show role only on login
+  const isLoginPage = location.pathname === RoutePath.AUTH_LOGIN;    // ✅ show role only on login
 
   const [formData, setFormData] = useState(
     fields.reduce((acc, field) => {
@@ -42,11 +51,11 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
   const password = formData.password || "";
 
   const passwordChecks = {
-    length:    password.length >= 8,
+    length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
-    number:    /[0-9]/.test(password),
-    special:   SPECIAL_CHAR_REGEX.test(password),
+    number: /[0-9]/.test(password),
+    special: SPECIAL_CHAR_REGEX.test(password),
   };
 
   // ── VALIDATION ───────────────────────────────
@@ -82,7 +91,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
         if (error) newErrors[key] = error;
         return;
       }
-      
+
       // ✅ Only validate as required if the field is marked as required
       if (field?.required) {
         const error = validateRequired(value, key);
@@ -130,37 +139,37 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
 
-     
- 
 
-{/* ✅ Login — show role selection */}
-{isLoginPage && (
-  <div className="flex gap-4 mb-6 justify-center md:justify-start rounded-md">
-    <div
-      onClick={() => handleRoleClick(USER_ROLES.INDIVIDUAL)}
-      className={`flex-1 flex flex-col items-center p-4 border rounded-md cursor-pointer transition
+
+
+      {/* ✅ Login — show role selection */}
+      {isLoginPage && (
+        <div className="flex gap-4 mb-6 justify-center md:justify-start rounded-md">
+          <div
+            onClick={() => handleRoleClick(USER_ROLES.INDIVIDUAL)}
+            className={`flex-1 flex flex-col items-center p-4 border rounded-md cursor-pointer transition
         ${role === USER_ROLES.INDIVIDUAL
-          ? "border-blue-600 bg-blue-50"
-          : "border-gray-300 hover:bg-gray-50"
-        }`}
-    >
-      <FiUser className={`text-2xl mb-2 p-1 rounded-[5px] h-10 w-10 text-white ${role === USER_ROLES.INDIVIDUAL ? "bg-blue-600" : "bg-gray-400"}`} />
-      <span className="font-semibold text-[13px]">Individual</span>
-    </div>
+                ? "border-blue-600 bg-blue-50"
+                : "border-gray-300 hover:bg-gray-50"
+              }`}
+          >
+            <FiUser className={`text-2xl mb-2 p-1 rounded-[5px] h-10 w-10 text-white ${role === USER_ROLES.INDIVIDUAL ? "bg-blue-600" : "bg-gray-400"}`} />
+            <span className="font-semibold text-[13px]">Individual</span>
+          </div>
 
-    <div
-      onClick={() => handleRoleClick(USER_ROLES.TRAVELLER)}
-      className={`flex-1 flex flex-col items-center p-4 border rounded-md cursor-pointer transition
+          <div
+            onClick={() => handleRoleClick(USER_ROLES.TRAVELLER)}
+            className={`flex-1 flex flex-col items-center p-4 border rounded-md cursor-pointer transition
         ${role === USER_ROLES.TRAVELLER
-          ? "border-blue-600 bg-blue-50"
-          : "border-gray-300 hover:bg-gray-50"
-        }`}
-    >
-      <FaChalkboardTeacher className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
-      <span className="font-semibold text-[13px]">Traveler</span>
-    </div>
-  </div>
-)}
+                ? "border-blue-600 bg-blue-50"
+                : "border-gray-300 hover:bg-gray-50"
+              }`}
+          >
+            <FaChalkboardTeacher className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
+            <span className="font-semibold text-[13px]">Traveler</span>
+          </div>
+        </div>
+      )}
 
       {/* Dynamic Fields */}
       <div className="space-y-2">
@@ -184,9 +193,8 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                     onChange={handleChange}
                     maxLength={10}
                     placeholder={field.placeholder || "Enter mobile number"}
-                    className={`w-full border rounded-r-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${
-                      errors.phone_number ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full border rounded-r-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${errors.phone_number ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                 </div>
                 {errors.phone_number && (
@@ -206,7 +214,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                   )}
                   <input
                     type={
-                      field.name === "password" 
+                      field.name === "password"
                         ? (showPassword ? "text" : "password")
                         : (showConfirmPassword ? "text" : "password")
                     }
@@ -217,11 +225,9 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                     onBlur={() => field.name === "password" && setShowPasswordHint(false)}
                     placeholder={field.placeholder}
                     autoComplete={field.name === "password" ? "new-password" : "new-password"}
-                    className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${
-                      field.icon ? "pl-10" : "px-3"
-                    } ${
-                      errors[field.name] ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${field.icon ? "pl-10" : "px-3"
+                      } ${errors[field.name] ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   <div
                     onClick={() => {
@@ -233,7 +239,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                     }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
                   >
-                    {field.name === "password" 
+                    {field.name === "password"
                       ? (showPassword ? <FaEye /> : <FaEyeSlash />)
                       : (showConfirmPassword ? <FaEye /> : <FaEyeSlash />)
                     }
@@ -249,20 +255,20 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
               />
             )}
 
-                {/* Password strength — signup only */}
-                {field.name === "password" && isSignupPage && showPasswordHint && (
-                  <div className="text-xs mt-2 space-y-1">
-                    <p className={passwordChecks.length    ? "text-green-600" : "text-gray-400"}>• At least 8 characters</p>
-                    <p className={passwordChecks.uppercase ? "text-green-600" : "text-gray-400"}>• One uppercase letter</p>
-                    <p className={passwordChecks.lowercase ? "text-green-600" : "text-gray-400"}>• One lowercase letter</p>
-                    <p className={passwordChecks.number    ? "text-green-600" : "text-gray-400"}>• One number</p>
-                    <p className={passwordChecks.special   ? "text-green-600" : "text-gray-400"}>• One special character</p>
-                  </div>
-                )}
+            {/* Password strength — signup only */}
+            {field.name === "password" && isSignupPage && showPasswordHint && (
+              <div className="text-xs mt-2 space-y-1">
+                <p className={passwordChecks.length ? "text-green-600" : "text-gray-400"}>• At least 8 characters</p>
+                <p className={passwordChecks.uppercase ? "text-green-600" : "text-gray-400"}>• One uppercase letter</p>
+                <p className={passwordChecks.lowercase ? "text-green-600" : "text-gray-400"}>• One lowercase letter</p>
+                <p className={passwordChecks.number ? "text-green-600" : "text-gray-400"}>• One number</p>
+                <p className={passwordChecks.special ? "text-green-600" : "text-gray-400"}>• One special character</p>
+              </div>
+            )}
 
-                {errors[field.name] && (
-                  <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>
-                )}
+            {errors[field.name] && (
+              <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>
+            )}
           </div>
         ))}
       </div>
@@ -270,39 +276,39 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
       {/* Terms */}
       {isSignupPage && (
         <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
-        <input
-          type="checkbox"
-          required
-          className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
-        />
-        <span>
-          I agree to the{" "}
-          <Link to={RoutePath.PUBLIC_TERMSANDCONDITION} className="text-blue-600 hover:underline">
-            Terms & Conditions
-          </Link> 
-          {"  "}and{"  "}
-          <Link to={RoutePath.PUBLIC_POLICY} className="text-blue-600 hover:underline">
-            Privacy Policy
-          </Link> 
+          <input
+            type="checkbox"
+            required
+            className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
+          />
+          <span>
+            I agree to the{" "}
+            <Link to={RoutePath.PUBLIC_TERMSANDCONDITION} className="text-blue-600 hover:underline">
+              Terms & Conditions
+            </Link>
+            {"  "}and{"  "}
+            <Link to={RoutePath.PUBLIC_POLICY} className="text-blue-600 hover:underline">
+              Privacy Policy
+            </Link>
 
-        </span>
-      </label>
+          </span>
+        </label>
       )}
 
-      {isLoginPage &&(
+      {isLoginPage && (
         <div className="flex justify-between">
           <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={rememberMe}
-          onChange={(e) => setRememberMe(e.target.checked)}
-          className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
-        />
-        <span>Remember me</span>
-      </label>
-      <Link to={RoutePath.AUTH_FORGOT_PASSWORD} className="text-blue-600 hover:underline text-xs items-center mt-2">
-        Forgot Password?
-      </Link>
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
+            />
+            <span>Remember me</span>
+          </label>
+          <Link to={RoutePath.AUTH_FORGOT_PASSWORD} className="text-blue-600 hover:underline text-xs items-center mt-2">
+            Forgot Password?
+          </Link>
         </div>
 
       )}
@@ -317,9 +323,34 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
 
       {/* Social */}
       <div className="space-x-4 flex flex-row mt-2">
-        <Button variant="outline" fullWidth><FcGoogle /></Button>
-        <Button variant="outline" fullWidth><FaFacebookF /></Button>
-        <Button variant="outline" fullWidth><FaApple /></Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          fullWidth
+          onClick={onGoogleLogin}
+        >
+          <FcGoogle />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          fullWidth
+          onClick={onFacebookLogin}
+        >
+          <FaFacebookF />
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          fullWidth
+          onClick={onAppleLogin}
+        >
+          <FaApple />
+        </Button>
+
       </div>
     </form>
   );
