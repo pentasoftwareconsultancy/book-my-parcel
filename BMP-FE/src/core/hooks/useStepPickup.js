@@ -112,20 +112,29 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
   const geocodeAddress = async (address, type, selectedPlaceId = "") => {
     if (!address?.trim()) return;
     try {
-      const res = await ApiService.geocodeAddress(address);
+      const placeId = selectedPlaceId || data[`${type}PlaceId`] || "";
+      const res = await ApiService.geocodeAddress(address, placeId);
       const d = res?.data;
       const result = Array.isArray(d?.results) ? d.results[0] : null;
       if (d?.status === "OK" && result?.geometry?.location) {
         const { lat, lng } = result.geometry.location;
-        const placeId = selectedPlaceId || result.place_id || "";
+        const resolvedPlaceId = selectedPlaceId || result.place_id || "";
         const get = (t) => result.address_components?.find((c) => c.types.includes(t))?.long_name || "";
+        
+        let pincode = get("postal_code");
+        if (!pincode) {
+          const formattedAddress = result.formatted_address || "";
+          const match = formattedAddress.match(/\b\d{6}\b/) || address.match(/\b\d{6}\b/);
+          if (match) pincode = match[0];
+        }
+
         updateFields({
           [`${type}Lat`]:     lat,
           [`${type}Lng`]:     lng,
-          [`${type}PlaceId`]: placeId,
-          [`${type}City`]:    get("locality") || get("sublocality"),
+          [`${type}PlaceId`]: resolvedPlaceId,
+          [`${type}City`]:    get("locality") || get("sublocality") || get("administrative_area_level_2"),
           [`${type}State`]:   get("administrative_area_level_1"),
-          [`${type}Pincode`]: get("postal_code"),
+          [`${type}Pincode`]: pincode || "",
           [`${type}Country`]: get("country"),
         });
       }
@@ -148,6 +157,18 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
     if (!data.parcelPhoto1 && !data.parcelPhoto2 && !data.parcelPhoto3) {
       showError("Please upload at least one parcel photo.");
       return false;
+    }
+    const MAX_PHOTO_SIZE = 6 * 1024 * 1024; // 6 MB
+    const photos = [
+      { file: data.parcelPhoto1, label: "Parcel photo 1" },
+      { file: data.parcelPhoto2, label: "Parcel photo 2" },
+      { file: data.parcelPhoto3, label: "Parcel photo 3" },
+    ];
+    for (const { file, label } of photos) {
+      if (file instanceof File && file.size > MAX_PHOTO_SIZE) {
+        showError(`${label} exceeds 6 MB. Please upload a smaller image.`);
+        return false;
+      }
     }
     return true;
   };

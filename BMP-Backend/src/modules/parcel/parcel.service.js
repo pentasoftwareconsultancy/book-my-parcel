@@ -37,6 +37,22 @@ import { auditLog } from "../../utils/auditLog.util.js";
 
 const weightMap = { small: 1, medium: 5, large: 10, extra_large: 20 };
 
+/**
+ * Haversine formula — great-circle distance in km between two lat/lng points.
+ * Used as a fallback when Google Maps API is unavailable.
+ */
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // ─── Helper: Enrich address data via Google APIs ──────────────────────────────
 // Performs geocoding, place details, and address descriptors calls.
 // Returns enriched fields to be merged into the Address record.
@@ -274,6 +290,30 @@ export async function createParcelRequest(data, files) {
       }
     } catch (error) {
       console.warn("[Parcel] Route computation failed (non-fatal):", error.message);
+    }
+  }
+
+  // Haversine fallback — calculate distance when Google API is unavailable
+  if (!routeDistance &&
+    pickupEnriched.latitude && pickupEnriched.longitude &&
+    deliveryEnriched.latitude && deliveryEnriched.longitude
+  ) {
+    const straight = haversineKm(
+      Number(pickupEnriched.latitude),  Number(pickupEnriched.longitude),
+      Number(deliveryEnriched.latitude), Number(deliveryEnriched.longitude)
+    );
+    routeDistance = Math.round(straight * 1.3 * 10) / 10;
+    routeDuration = Math.round((routeDistance / 50) * 60);
+    console.log(`[Parcel] Haversine fallback distance: ${routeDistance} km`);
+    // Calculate price using fallback distance
+    try {
+      const priceResult = await calculatePriceWithSurge(routeDistance, data.weight || 1, data.length, data.width, data.height);
+      suggestedPrice = priceResult.price;
+      data._surgeMultiplier = priceResult.surgeMultiplier;
+      data._surgeReasons    = priceResult.surgeReasons;
+      data._basePrice       = priceResult.basePrice;
+    } catch (priceErr) {
+      try { suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.length, data.width, data.height); } catch (_) { /* non-fatal */ }
     }
   }
 

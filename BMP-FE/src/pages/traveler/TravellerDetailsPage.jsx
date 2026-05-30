@@ -94,7 +94,7 @@ const TravellerDetailsPage = () => {
               totalDeliveries: data.booking.traveller.travellerProfile?.total_deliveries || 0,
               estimatedDelivery: "Today",
               route: `${data.pickupAddress?.city} → ${data.deliveryAddress?.city}`,
-              price: data.price_quote ? Math.round(data.price_quote * 0.8) : "—",
+              price: data.price_quote || "—",
               avatar: data.booking.traveller.profile?.avatar || null,
             } : null,
             
@@ -102,10 +102,10 @@ const TravellerDetailsPage = () => {
             price: {
               actualPrice: data.price_quote || "—",  // Full parcel price
               basePrice: data.price_quote || "—",    // Full parcel price for display
-              travellersEarnings: data.price_quote ? Math.round(data.price_quote * 0.8) : "—",  // 80% earnings
+              travellersEarnings: data.price_quote || "—",  // Traveller full earnings
               deliverySpeedCharge: 0,
               gst: 0,
-              total: data.price_quote ? Math.round(data.price_quote * 0.8) : "—",  // Traveller earnings
+              total: data.price_quote || "—",  // Total amount (matches agreed price)
             },
             
             // Additional traveller info

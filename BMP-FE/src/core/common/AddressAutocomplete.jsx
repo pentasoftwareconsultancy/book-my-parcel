@@ -15,6 +15,7 @@ const AddressAutocomplete = ({
   placeholder = "Enter address",
   label,
   className = "",
+  required = false,
 }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -87,7 +88,9 @@ const AddressAutocomplete = ({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="block mb-1 text-sm font-medium">{label}</label>
+        <label className="block mb-1 text-[11px] text-gray-600 font-medium">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
       )}
 
       {/* Input row */}
