@@ -40,7 +40,7 @@ const PRICING_CONFIG = {
     van: 1.25,
     tempo: 1.4,
     truck: 1.8,
-
+ 
     // Public Transport
     bus: 0.85,
     train: 0.75,
