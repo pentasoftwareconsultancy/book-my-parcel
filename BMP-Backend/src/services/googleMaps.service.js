@@ -28,8 +28,7 @@ export async function validateAddress(addressLine) {
   return response.data;
 }
 
-// ─── Geocoding API ────────────────────────────────────────────────────────────
-export async function geocodeAddress(addressString) {
+export async function geocodeAddress(addressString, placeId = null) {
   if (!GOOGLE_API_KEY || GOOGLE_API_KEY === "your_google_api_key_here") {
     return {
       status: "REQUEST_DENIED",
@@ -38,16 +37,17 @@ export async function geocodeAddress(addressString) {
     };
   }
 
-  // Normalise the key so minor whitespace differences don't cause cache misses
-  const cacheKey = `geocode:${addressString.trim().toLowerCase().replace(/\s+/g, " ")}`;
+  const cacheKey = placeId 
+    ? `geocode:place:${placeId}`
+    : `geocode:${(addressString || "").trim().toLowerCase().replace(/\s+/g, " ")}`;
 
   return getOrCache(cacheKey, async () => {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      addressString
-    )}&region=IN&key=${GOOGLE_API_KEY}`;
+    const url = placeId
+      ? `https://maps.googleapis.com/maps/api/geocode/json?place_id=${placeId}&region=IN&key=${GOOGLE_API_KEY}`
+      : `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addressString)}&region=IN&key=${GOOGLE_API_KEY}`;
     const response = await axios.get(url);
     if (response.data.status !== "OK" && response.data.status !== "ZERO_RESULTS") {
-      console.warn(`[Geocoding] API returned status: ${response.data.status} for "${addressString}"`);
+      console.warn(`[Geocoding] API returned status: ${response.data.status} for "${addressString || placeId}"`);
       return {
         status: response.data.status,
         results: [],

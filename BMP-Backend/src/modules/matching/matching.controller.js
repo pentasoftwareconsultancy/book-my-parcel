@@ -703,7 +703,7 @@ export async function selectTraveller(req, res) {
         include: [{
           model: ParcelRequest,
           as: "request",
-          where: { status: "INTERESTED" },
+          where: { status: { [Op.in]: ["INTERESTED", "ACCEPTED", "SELECTED"] } },
           include: [{
             model: TravellerRoute,
             as: "route",

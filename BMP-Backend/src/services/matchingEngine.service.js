@@ -152,7 +152,7 @@ async function findCandidateTravellers(parcelData) {
         WHERE tr.status = 'ACTIVE'
           AND :includeCityMatch = true
           AND tr.cities_passed @> :pickupCity
-          AND (:isSameCity = false OR tr.cities_passed @> :deliveryCity)
+          AND (:isSameCity = true OR tr.cities_passed @> :deliveryCity)
           AND (
             :isSameCity = true
             OR EXISTS (

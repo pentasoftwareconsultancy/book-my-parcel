@@ -2,7 +2,7 @@ import { useState } from "react";
 import TextInput from "../../core/common/CommonUi";
 import Button from "../../core/common/Button";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaApple,FaEye, FaEyeSlash ,FaChalkboardTeacher} from "react-icons/fa";
+import { FaFacebookF, FaApple,FaEye, FaEyeSlash, FaRoute } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
 import { USER_ROLES } from "../../core/constants/app.constant";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -156,7 +156,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
           : "border-gray-300 hover:bg-gray-50"
         }`}
     >
-      <FaChalkboardTeacher className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
+      <FaRoute className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
       <span className="font-semibold text-[13px]">Traveler</span>
     </div>
   </div>
@@ -216,7 +216,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                     onFocus={() => field.name === "password" && setShowPasswordHint(true)}
                     onBlur={() => field.name === "password" && setShowPasswordHint(false)}
                     placeholder={field.placeholder}
-                    autoComplete={field.name === "password" ? "new-password" : "new-password"}
+                    autoComplete={isLoginPage ? (field.name === "password" ? "current-password" : "off") : "new-password"}
                     className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${
                       field.icon ? "pl-10" : "px-3"
                     } ${
@@ -246,6 +246,7 @@ const AuthForm = ({ fields, submitText, onSubmit, initialRole, disabled }) => {
                 value={formData[field.name]}
                 onChange={handleChange}
                 className={errors[field.name] ? "border-red-500" : ""}
+                autoComplete={isSignupPage ? "new-password" : "on"}
               />
             )}
 

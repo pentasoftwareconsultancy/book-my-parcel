@@ -105,12 +105,31 @@ const RouteDetails = () => {
   const saveEditing = async () => {
     setSaving(true);
     try {
+      // Normalize time to HH:MM 24-hour format before saving
+      const normalizeTime = (t) => {
+        if (!t) return undefined;
+        // If already HH:MM or HH:MM:SS 24-hour format, strip seconds
+        const m24 = String(t).match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+        if (m24) return `${m24[1].padStart(2, "0")}:${m24[2]}`;
+        // If 12-hour format e.g. "09:30 AM"
+        const m12 = String(t).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (m12) {
+          let h = parseInt(m12[1], 10);
+          const mins = m12[2];
+          const p = m12[3].toUpperCase();
+          if (p === "AM" && h === 12) h = 0;
+          if (p === "PM" && h !== 12) h += 12;
+          return `${String(h).padStart(2, "0")}:${mins}`;
+        }
+        return undefined;
+      };
+
       const payload = {
         // Only send departure_date if it has a value — never send null to avoid clearing it
         ...(editDraft.departureDate ? { departure_date: editDraft.departureDate } : {}),
-        ...(editDraft.departureTime ? { departure_time: editDraft.departureTime } : {}),
+        ...(normalizeTime(editDraft.departureTime) ? { departure_time: normalizeTime(editDraft.departureTime) } : {}),
         ...(editDraft.arrivalDate   ? { arrival_date:   editDraft.arrivalDate   } : {}),
-        ...(editDraft.arrivalTime   ? { arrival_time:   editDraft.arrivalTime   } : {}),
+        ...(normalizeTime(editDraft.arrivalTime) ? { arrival_time: normalizeTime(editDraft.arrivalTime) } : {}),
         vehicle_type: editDraft.vehicleDetails?.vehicleType?.toLowerCase() ?? editDraft.vehicle,
         vehicle_number: editDraft.vehicleDetails?.vehicleNumber ?? null,
         max_weight_kg: parseInt(editDraft.vehicleDetails?.maxWeightCapacity) || undefined,

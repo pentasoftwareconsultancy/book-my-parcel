@@ -21,6 +21,13 @@ const STATUS_CONFIG = {
 
 const getStatusConfig = (status) => STATUS_CONFIG[status] || { bg: "bg-blue-50", text: "text-blue-700", label: "UNKNOWN" };
 
+/** Safely prefix ₹ without doubling — strips existing ₹ prefix first */
+const formatRupee = (val) => {
+  if (val === undefined || val === null || val === "") return "—";
+  const str = String(val).replace(/^₹/, "").trim();
+  return `₹${str}`;
+};
+
 /* ── Button config per booking status ── */
 const BUTTON_CONFIG = {
   [DELIVERY_STATUS.CONFIRMED]:  { label: "Reached at Pickup",     action: "start_pickup",    cls: "bg-amber-500 hover:bg-amber-600 text-white" },
@@ -249,7 +256,7 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
             </div>
           </div>
           <div className="text-right shrink-0 ml-2">
-            <p className="font-bold text-green-600 text-xl">₹{delivery.earnings || delivery.amount || 0}</p>
+            <p className="font-bold text-green-600 text-xl">{formatRupee(delivery.earnings ?? delivery.amount)}</p>
             <p className="text-[11px] text-gray-400">Your Earnings</p>
           </div>
         </div>
@@ -267,7 +274,7 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
             { label: "Weight",       value: delivery.weight || "0.5 kg" },
             { label: isPublic ? "Walking Distance" : "Detour Distance",
               value: isPublic ? `${delivery.detour_km || 0} km` : `${delivery.detour_km || 0} km (${delivery.detour_percentage || 0}%)` },
-            { label: "Total Amount", value: `₹${delivery.totalAmount || delivery.amount || "450"}` },
+            { label: "Total Amount", value: formatRupee(delivery.totalAmount ?? delivery.amount) },
           ].map(({ label, value }) => (
             <div key={label}>
               <p className="text-xs text-gray-400 mb-0.5">{label}</p>

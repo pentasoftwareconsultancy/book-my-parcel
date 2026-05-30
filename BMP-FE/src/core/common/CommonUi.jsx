@@ -14,6 +14,7 @@ const TextInput = ({
   required = false,
   className = "",
   icon:Icon,
+  ...rest
 }) => {
   return (
     <div className="space-y-1">
@@ -39,6 +40,7 @@ const TextInput = ({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
+        {...rest}
       />
         </div>
     </div>

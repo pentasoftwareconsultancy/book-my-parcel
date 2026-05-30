@@ -79,15 +79,25 @@ const AvailableRequest = () => {
           amount: request.amount || 0,
           parcelType: request.package?.type || "Standard",
           parcel_type: request.package?.type || "Standard",
-          weight: request.package?.weight || 0,
-          distance: `${request.detourKm || request.detour_km || 0} km detour`,
-          distance_km: safeToNumber(request.route?.distance_km),
-          totalAmount: `₹${request.amount || 0}`,
+          weight: request.package?.weight
+            ? `${request.package.weight} kg`
+            : `${request.weight || 0} kg`,
+          // Use actual route distance, fall back to detour distance
+          distance: safeToNumber(request.route?.distance_km || request.routeDistanceKm)
+            ? `${safeToNumber(request.route?.distance_km || request.routeDistanceKm)} km`
+            : `${safeToNumber(request.detourKm || request.detour_km) || 0} km detour`,
+          distance_km: safeToNumber(request.route?.distance_km || request.routeDistanceKm),
+          // Pass raw number — DeliveryCard's formatRupee will add the ₹ prefix
+          totalAmount: request.amount || 0,
           price_quote: request.amount,
+          parcel_ref: request.parcelRef || request.parcel_ref,
           match_score: request.matchScore || request.match_score,
           detour_km: safeToNumber(request.detourKm || request.detour_km),
           detour_percentage: safeToNumber(request.detourPercentage || request.detour_percentage),
           expires_at: request.expiresAt || request.expires_at,
+          // Route dates
+          pickupDate: request.route?.departure_date || request.departureDate || "",
+          dropDate:   request.route?.arrival_date   || request.arrivalDate   || "",
         }));
 
         setRequests(transformed);

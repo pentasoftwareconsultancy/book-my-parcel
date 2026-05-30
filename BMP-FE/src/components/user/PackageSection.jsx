@@ -9,7 +9,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
     <h3 className="mb-4 text-xl font-semibold text-primary">Package Details</h3>
 
     {/* Size selector */}
-    <p className="mb-2 text-xs font-semibold text-gray-700">Select Package Size</p>
+    <p className="mb-2 text-xs font-semibold text-gray-700">Select Package Size <span className="text-red-500">*</span></p>
     <div className="grid gap-3 mb-4 md:grid-cols-4">
       {SIZE_OPTIONS.map((opt) => {
         const active = data.packageSize === opt.id;
@@ -33,7 +33,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
     <div className="grid gap-4 md:grid-cols-[1fr,2fr] mb-4">
       <div>
         <p className="mb-1 text-xs font-medium text-gray-600">
-          Weight (kg)
+          Weight (kg) <span className="text-red-500">*</span>
           {selectedSize && <span className="ml-2 text-[11px] text-blue-600">({selectedSize.min} – {selectedSize.max} kg)</span>}
         </p>
         {!selectedSize ? (
@@ -47,11 +47,11 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
         )}
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium text-gray-600">Dimensions (cm)</p>
+        <p className="mb-1 text-xs font-medium text-gray-600">Dimensions (cm) <span className="text-red-500">*</span></p>
         <div className="grid grid-cols-3 gap-3">
-          <TextInput name="parcelLength" value={data.parcelLength} type="number" onChange={(e) => updateFields({ parcelLength: e.target.value })} placeholder="Length" />
-          <TextInput name="parcelWidth"  value={data.parcelWidth}  type="number" onChange={(e) => updateFields({ parcelWidth:  e.target.value })} placeholder="Width" />
-          <TextInput name="parcelHeight" value={data.parcelHeight} type="number" onChange={(e) => updateFields({ parcelHeight: e.target.value })} placeholder="Height" />
+          <TextInput name="parcelLength" value={data.parcelLength} type="number" required={true} onChange={(e) => updateFields({ parcelLength: e.target.value })} placeholder="Length" />
+          <TextInput name="parcelWidth"  value={data.parcelWidth}  type="number" required={true} onChange={(e) => updateFields({ parcelWidth:  e.target.value })} placeholder="Width" />
+          <TextInput name="parcelHeight" value={data.parcelHeight} type="number" required={true} onChange={(e) => updateFields({ parcelHeight: e.target.value })} placeholder="Height" />
         </div>
       </div>
     </div>
@@ -61,17 +61,17 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
       placeholder="Describe your package contents" className="h-20 mb-4 text-sm text-black" />
 
     {/* Photos + Value + Type */}
-    <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos</p>
+    <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos <span className="text-red-500">*</span></p>
     <div className="grid gap-3 mb-4 md:grid-cols-4">
       {[1, 2, 3].map((i) => (
         <UploadImage key={i} label={`Parcel photo ${i}`} value={data[`parcelPhoto${i}`]}
           onChange={(file) => updateFields({ [`parcelPhoto${i}`]: file })} />
       ))}
       <div className="space-y-3">
-        <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" value={data.parcelValue}
+        <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" required={true} value={data.parcelValue}
           onChange={(e) => updateFields({ parcelValue: e.target.value })} />
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Parcel Type</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Parcel Type <span className="text-red-500">*</span></label>
           <select name="parcelType" value={data.parcelType} onChange={(e) => updateFields({ parcelType: e.target.value })}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
             <option value="">Select type</option>

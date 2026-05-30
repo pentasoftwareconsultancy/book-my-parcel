@@ -1,7 +1,8 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle, User, MapPin, Phone, Mail, Box, DollarSign } from "lucide-react";
+import { CheckCircle, User, MapPin, Phone, Mail, Box, IndianRupee } from "lucide-react";
+const RUN_DECORATOR_MARKER = true; // keeping imports aligned
 import { DELIVERY_STATUS } from "../../../core/constants/app.constant";
 import StepReview from "./StepReview";
 
@@ -10,9 +11,16 @@ const OrderSummary = ({ data: propData }) => {
   const location = useLocation();
 
   const photoPreview = React.useMemo(() => {
-    if (propData?.parcelPhoto1 instanceof File) {
+    if (propData?.parcelPhoto1 instanceof File || propData?.parcelPhoto1 instanceof Blob) {
       const url = URL.createObjectURL(propData.parcelPhoto1);
       return url;
+    }
+    if (typeof propData?.parcelPhoto1 === "string" && propData.parcelPhoto1.trim() !== "") {
+      if (propData.parcelPhoto1.startsWith("http://") || propData.parcelPhoto1.startsWith("https://")) {
+        return propData.parcelPhoto1;
+      }
+      const backendUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3000";
+      return `${backendUrl}${propData.parcelPhoto1.startsWith("/") ? "" : "/"}${propData.parcelPhoto1}`;
     }
     return null;
   }, [propData?.parcelPhoto1]);
@@ -71,7 +79,7 @@ const OrderSummary = ({ data: propData }) => {
           <InfoCard>
             <Info icon={<Box size={14} />} label="Size" value={propData?.packageSize} />
             <Info icon={<Box size={14} />} label="Weight" value={propData?.parcelWeight ? `${propData.parcelWeight} kg` : "—"} />
-            <Info icon={<DollarSign size={14} />} label="Value" value={propData?.parcelValue ? `₹${propData.parcelValue}` : "—"} />
+            <Info icon={<IndianRupee size={14} />} label="Value" value={propData?.parcelValue ? `₹${propData.parcelValue}` : "—"} />
             <Info icon={<CheckCircle size={14} />} label="Description" value={propData?.parcelContents} />
           </InfoCard>
         </Section>

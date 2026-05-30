@@ -17,26 +17,28 @@ const DeliverySection = ({ data, updateFields, geocodeAddress }) => {
       <h3 className="mb-4 text-lg font-semibold text-primary">Delivery Details</h3>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <TextInput label="Receiver Name" name="receiverName" value={data.receiverName} onChange={pat(nameTypingPattern, "receiverName")} />
+        <TextInput label="Receiver Name" name="receiverName" value={data.receiverName} required={true} onChange={pat(nameTypingPattern, "receiverName")} />
         <AddressAutocomplete label="Delivery Address" value={data.deliveryAddress}
-          onChange={(text) => updateFields({ deliveryAddress: text })}
+          required={true}
+          onChange={(text) => updateFields({ deliveryAddress: text, deliveryPlaceId: "" })}
           onSelect={(text, placeId) => { updateFields({ deliveryAddress: text, deliveryPlaceId: placeId || "" }); geocodeAddress(text, "delivery", placeId); }}
           onBlur={() => geocodeAddress(data.deliveryAddress, "delivery")}
           placeholder="Enter delivery address" />
       </div>
 
       <div className="grid gap-4 mt-4 md:grid-cols-3">
-        <TextInput label="City" name="deliveryCity" value={data.deliveryCity} onChange={pat(nameTypingPattern, "deliveryCity")} />
-        <TextInput label="State" name="deliveryState" value={data.deliveryState} onChange={pat(nameTypingPattern, "deliveryState")} />
+        <TextInput label="City" name="deliveryCity" value={data.deliveryCity} required={true} onChange={pat(nameTypingPattern, "deliveryCity")} />
+        <TextInput label="State" name="deliveryState" value={data.deliveryState} required={true} onChange={pat(nameTypingPattern, "deliveryState")} />
         <TextInput label="Pincode" name="deliveryPincode" type="text" inputMode="numeric" value={data.deliveryPincode}
+          required={true}
           onChange={pat(pinTypingPattern, "deliveryPincode")}
           maxLength={6}
           onBlur={() => { const e = validatePincode(data.deliveryPincode); if (e) alert(e); }} />
       </div>
 
       <div className="grid gap-4 mt-4 md:grid-cols-3">
-        <TextInput label="Country" name="deliveryCountry" value={data.deliveryCountry} onChange={pat(nameTypingPattern, "deliveryCountry")} />
-        <TextInput label="Phone Number" name="deliveryPhNo" type="number" value={data.deliveryPhNo} onChange={pat(numberTypingPattern, "deliveryPhNo")} />
+        <TextInput label="Country" name="deliveryCountry" value={data.deliveryCountry} required={true} onChange={pat(nameTypingPattern, "deliveryCountry")} />
+        <TextInput label="Phone Number" name="deliveryPhNo" type="number" required={true} value={data.deliveryPhNo} onChange={pat(numberTypingPattern, "deliveryPhNo")} />
         <TextInput label="Alternate Phone Number" name="deliveryAlternatePhNo" value={data.deliveryAlternatePhNo} onChange={pat(numberTypingPattern, "deliveryAlternatePhNo")} />
       </div>
     </div>
