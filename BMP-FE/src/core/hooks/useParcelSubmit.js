@@ -90,6 +90,10 @@ const buildFormData = (data) => {
   Object.keys(delivery).forEach((k) => delivery[k] === undefined && delete delivery[k]);
   fd.append("delivery_address", JSON.stringify(delivery));
 
+  // Optional preferred pickup date/time (send as separate fields)
+  if (data.pickupDate) fd.append("pickup_date", data.pickupDate);
+  if (data.pickupTime) fd.append("pickup_time", data.pickupTime);
+
   // Photos
   [data.parcelPhoto1, data.parcelPhoto2, data.parcelPhoto3].forEach((f) => {
     if (f) fd.append("parcel_photos", f);

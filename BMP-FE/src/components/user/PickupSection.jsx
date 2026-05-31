@@ -48,6 +48,17 @@ const PickupSection = ({ data, updateFields, geocodeAddress }) => {
         <TextInput label="Alternate phone" name="pickupAltPhone" type="tel" value={data.pickupAltPhone} onChange={pat(numberTypingPattern, "pickupAltPhone")} />
       </div>
 
+      <div className="grid gap-4 mt-4 md:grid-cols-2">
+        <TextInput label="Preferred pickup date (optional)" name="pickupDate" type="date"
+          value={data.pickupDate || ""}
+          onChange={(e) => updateFields({ pickupDate: e.target.value })}
+        />
+        <TextInput label="Preferred pickup time (optional)" name="pickupTime" type="time"
+          value={data.pickupTime || ""}
+          onChange={(e) => updateFields({ pickupTime: e.target.value })}
+        />
+      </div>
+
       <TextInput label="Aadhaar number (optional)" name="pickupAadhaar" type="text"
         value={data.pickupAadhaar} onChange={pat(aadhaarTypingPattern, "pickupAadhaar")} className="mt-4 text-gray-400" />
     </div>
