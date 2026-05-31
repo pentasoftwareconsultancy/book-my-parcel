@@ -355,11 +355,12 @@ static updateDisputeStatus(disputeId, data) {
 
   // ------------------ External APIs ------------------
   // ------------------ External APIs ------------------
-  static async geocodeAddress(address) {
+  static async geocodeAddress(address, placeId = "") {
     try {
-      const response = await this.axiosInstance.get(
-        `${ServerUrl.API_PLACES_GEOCODE}?address=${encodeURIComponent(address)}`
-      );
+      const url = placeId
+        ? `${ServerUrl.API_PLACES_GEOCODE}?address=${encodeURIComponent(address)}&placeId=${placeId}`
+        : `${ServerUrl.API_PLACES_GEOCODE}?address=${encodeURIComponent(address)}`;
+      const response = await this.axiosInstance.get(url);
       return { data: response.data };
     } catch (error) {
       console.error('Geocoding API error:', error);

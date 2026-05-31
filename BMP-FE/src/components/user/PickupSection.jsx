@@ -25,26 +25,29 @@ const PickupSection = ({ data, updateFields, geocodeAddress }) => {
 
       <div className="grid gap-4 md:grid-cols-2">
         <TextInput label="Sender Name" name="senderName" value={data.senderName}
+          required={true}
           onChange={pat(nameTypingPattern, "senderName")} placeholder="Enter sender name" />
         <AddressAutocomplete label="Pickup Address" value={data.pickupAddress}
-          onChange={(text) => updateFields({ pickupAddress: text })}
+          required={true}
+          onChange={(text) => updateFields({ pickupAddress: text, pickupPlaceId: "" })}
           onSelect={(text, placeId) => { updateFields({ pickupAddress: text, pickupPlaceId: placeId || "" }); geocodeAddress(text, "pickup", placeId); }}
           onBlur={() => geocodeAddress(data.pickupAddress, "pickup")}
           placeholder="Enter pickup address" />
       </div>
 
       <div className="grid gap-4 mt-4 md:grid-cols-3">
-        <TextInput label="City / Village" name="pickupCity" value={data.pickupCity} onChange={pat(nameTypingPattern, "pickupCity")} />
-        <TextInput label="State" name="pickupState" value={data.pickupState} onChange={pat(nameTypingPattern, "pickupState")} />
+        <TextInput label="City / Village" name="pickupCity" value={data.pickupCity} required={true} onChange={pat(nameTypingPattern, "pickupCity")} />
+        <TextInput label="State" name="pickupState" value={data.pickupState} required={true} onChange={pat(nameTypingPattern, "pickupState")} />
         <TextInput label="Pincode" name="pickupPincode" type="text" inputMode="numeric" value={data.pickupPincode}
+          required={true}
           onChange={pat(pinTypingPattern, "pickupPincode")}
           maxLength={6}
           onBlur={() => { const e = validatePincode(data.pickupPincode); if (e) alert(e); }} />
       </div>
 
       <div className="grid gap-4 mt-4 md:grid-cols-3">
-        <TextInput label="Country" name="pickupCountry" value={data.pickupCountry} onChange={pat(nameTypingPattern, "pickupCountry")} />
-        <TextInput label="Phone number" name="pickupPhone" type="tel" value={data.pickupPhone} onChange={pat(numberTypingPattern, "pickupPhone")} />
+        <TextInput label="Country" name="pickupCountry" value={data.pickupCountry} required={true} onChange={pat(nameTypingPattern, "pickupCountry")} />
+        <TextInput label="Phone number" name="pickupPhone" type="tel" value={data.pickupPhone} required={true} onChange={pat(numberTypingPattern, "pickupPhone")} />
         <TextInput label="Alternate phone" name="pickupAltPhone" type="tel" value={data.pickupAltPhone} onChange={pat(numberTypingPattern, "pickupAltPhone")} />
       </div>
 

@@ -48,10 +48,10 @@ router.get("/autocomplete", async (req, res) => {
 // GET /api/places/geocode?address=<address>
 // Proxies to Google Geocoding API (server-side, no CORS issues)
 router.get("/geocode", async (req, res) => {
-  const { address } = req.query;
+  const { address, placeId } = req.query;
 
-  if (!address || address.trim().length < 3) {
-    return res.status(400).json({ error: "Address is required" });
+  if ((!address || address.trim().length < 3) && !placeId) {
+    return res.status(400).json({ error: "Address or placeId is required" });
   }
 
   const key = process.env.GOOGLE_API_KEY;
@@ -64,7 +64,7 @@ router.get("/geocode", async (req, res) => {
   }
 
   try {
-    const result = await geocodeAddress(address);
+    const result = await geocodeAddress(address, placeId);
     return res.json(result);
   } catch (err) {
     console.error("[Geocoding proxy] Error:", err.message);

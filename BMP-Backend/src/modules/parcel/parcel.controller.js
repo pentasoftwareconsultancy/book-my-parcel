@@ -2,6 +2,7 @@ import { createParcelRequest } from "./parcel.service.js";
 import { responseSuccess, responseError } from "../../utils/response.util.js";
 import { getUserParcelRequests, getParcelById as getServiceParcelById } from "./parcel.service.js";
 import { enqueueAsyncTask } from "../../jobs/asyncTasks.queue.js";
+import ParcelRequest from "../matching/parcelRequest.model.js";
 
 export const createParcel = async (req, res) => {
   try {
@@ -63,11 +64,20 @@ export const getParcelById = async (req, res) => {
       return responseError(res, "Parcel not found", 404);
     }
 
-    // Ownership check: only the parcel owner OR the assigned traveller can view it
-    const isOwner    = result.user_id === userId;
+    // Ownership check: parcel owner, confirmed booking traveller, or candidate traveller (expressed interest)
+    const isOwner     = result.user_id === userId;
     const isTraveller = result.booking?.traveller_id === userId;
 
+    let isCandidateTraveller = false;
     if (!isOwner && !isTraveller) {
+      // Check if the requesting user has a ParcelRequest for this parcel
+      const candidateRequest = await ParcelRequest.findOne({
+        where: { parcel_id: result.id, traveller_id: userId },
+      });
+      isCandidateTraveller = !!candidateRequest;
+    }
+
+    if (!isOwner && !isTraveller && !isCandidateTraveller) {
       return responseError(res, "Unauthorized", 403);
     }
 

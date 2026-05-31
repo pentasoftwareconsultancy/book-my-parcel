@@ -172,6 +172,9 @@ const RequestForm = () => {
             vehicleType: parcel.vehicle_type || "",
             parcelType: parcel.parcel_type || "",
             parcelNotes: parcel.notes || "",
+            parcelPhoto1: parcel.photos?.[0] || null,
+            parcelPhoto2: parcel.photos?.[1] || null,
+            parcelPhoto3: parcel.photos?.[2] || null,
 
             // Delivery/Receiver data
             receiverName: parcel.deliveryAddress?.name || "",

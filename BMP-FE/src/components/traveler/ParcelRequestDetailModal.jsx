@@ -70,12 +70,17 @@ const ParcelRequestDetailModal = ({ open, onClose, request, onAcceptSuccess }) =
       }}
     >
       <DialogTitle sx={{ pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>
-          Parcel Request Details
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Request ID: {request.id}
-        </Typography>
+        <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+          <Typography variant="h6" fontWeight={700}>
+            Parcel Request Details
+          </Typography>
+          <Chip
+            label={request.parcel_ref || `#${request.id?.slice(0, 8).toUpperCase()}`}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        </Box>
       </DialogTitle>
 
       <DialogContent>
@@ -125,10 +130,6 @@ const ParcelRequestDetailModal = ({ open, onClose, request, onAcceptSuccess }) =
             <Typography variant="body2" color="text.secondary">
               {request.pickup_address?.address || "N/A"}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {request.pickup_address?.city}, {request.pickup_address?.state}{" "}
-              {request.pickup_address?.pincode}
-            </Typography>
           </Box>
         </Box>
 
@@ -143,10 +144,6 @@ const ParcelRequestDetailModal = ({ open, onClose, request, onAcceptSuccess }) =
           <Box sx={{ pl: 4 }}>
             <Typography variant="body2" color="text.secondary">
               {request.drop_address?.address || "N/A"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {request.drop_address?.city}, {request.drop_address?.state}{" "}
-              {request.drop_address?.pincode}
             </Typography>
           </Box>
         </Box>

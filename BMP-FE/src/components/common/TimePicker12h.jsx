@@ -10,7 +10,23 @@ const to24h = (hour, minute, period) => {
 
 const parse24h = (v) => {
   if (!v) return { hour: 12, minute: 0, period: "AM" };
-  const [h, m] = v.split(":").map(Number);
+
+  // Handle 12-hour format: "09:30 AM" or "9:30 PM"
+  const match12 = String(v).match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match12) {
+    let h = parseInt(match12[1], 10);
+    const m = parseInt(match12[2], 10);
+    const p = match12[3].toUpperCase();
+    if (p === "AM" && h === 12) h = 0;
+    if (p === "PM" && h !== 12) h += 12;
+    return { hour: h % 12 || 12, minute: m, period: h >= 12 ? "PM" : "AM" };
+  }
+
+  // Handle 24-hour format: "14:30"
+  const parts = String(v).split(":");
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return { hour: 12, minute: 0, period: "AM" };
   return { hour: h % 12 || 12, minute: m, period: h >= 12 ? "PM" : "AM" };
 };
 

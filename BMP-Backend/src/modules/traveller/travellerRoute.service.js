@@ -18,6 +18,22 @@ import { cacheRoute, invalidateRouteCache, getRoute as getCachedRoute, getActive
 const ADDRESS_ENRICH_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const INTERMEDIATE_DATA_CACHE_TTL_SECONDS = 6 * 60 * 60;
 
+/**
+ * Haversine formula — great-circle distance in km between two lat/lng points.
+ * Used as a fallback when Google Maps API is unavailable.
+ */
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function buildAddressEnrichCacheKey(addressData) {
   const address = (addressData.address || "").trim().toLowerCase();
   const city = (addressData.city || "").trim().toLowerCase();
@@ -487,6 +503,22 @@ export async function createTravellerRoute(data, userId) {
         throw new Error(`Transit route calculation failed: ${error.message}. Please ensure both origin and destination are valid transit-accessible locations.`);
       }
     }
+  }
+
+  // Haversine fallback — use when Google API is unavailable or returned no distance
+  if (!routeDistance &&
+    originEnriched.latitude && originEnriched.longitude &&
+    destEnriched.latitude && destEnriched.longitude
+  ) {
+    const straight = haversineKm(
+      Number(originEnriched.latitude), Number(originEnriched.longitude),
+      Number(destEnriched.latitude),   Number(destEnriched.longitude)
+    );
+    // Apply ~1.3x road-distance correction factor to straight-line distance
+    routeDistance = Math.round(straight * 1.3 * 10) / 10;
+    // Estimate duration: ~50 km/h average speed
+    routeDuration = Math.round((routeDistance / 50) * 60);
+    console.log(`[TravellerRoute] Using Haversine fallback: ${routeDistance} km, ${routeDuration} min`);
   }
 
   // Merge cities from steps with cities from sampled points (for private routes)

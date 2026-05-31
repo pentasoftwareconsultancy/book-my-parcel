@@ -9,6 +9,31 @@ const UploadImage = ({
 }) => {
   const id = React.useId();
 
+  const getImageUrl = () => {
+    if (!value) return "";
+
+    if (typeof value === "string") {
+      if (
+        value.startsWith("http://") ||
+        value.startsWith("https://")
+      ) {
+        return value;
+      }
+
+      const backendUrl =
+        import.meta.env.VITE_API_URL?.replace("/api", "") ||
+        "http://localhost:3000";
+
+      return `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
+    }
+
+    try {
+      return URL.createObjectURL(value);
+    } catch {
+      return "";
+    }
+  };
+
   return (
     <label
       htmlFor={id}
@@ -24,7 +49,7 @@ const UploadImage = ({
 
       {value ? (
         <img
-          src={URL.createObjectURL(value)}
+          src={getImageUrl()}
           alt="Preview"
           className="absolute inset-0 h-full w-full rounded-2xl object-cover"
         />

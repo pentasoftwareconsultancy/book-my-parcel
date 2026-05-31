@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { randomUUID } from "crypto";
 
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE_BYTES = 6 * 1024 * 1024;
 
 function safeImageFilename(file) {
   const ext = path.extname(file.originalname).toLowerCase();
