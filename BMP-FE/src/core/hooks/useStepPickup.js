@@ -211,7 +211,7 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
       if (estimatedPrice) fd.append("price_quote", estimatedPrice);
       fd.append("form_step", 1);
 
-      const response = await ApiService.apipostForm(ServerUrl.API_CREATE_REQUEST, fd);
+      const response = await ApiService.apipostForm(ServerUrl.API_CREATE_REQUEST, fd, { timeout: 120000 });
 
       if (response?.data?.success) {
         const parcelId = response.data.data?.parcel?.parcel_ref || response.data.data?.parcel?.id;
@@ -226,6 +226,10 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
         showError("Too many requests. Please wait a few minutes before trying again.");
       } else if (error.response?.data?.errors) {
         showError("Validation failed: " + error.response.data.errors.map((e) => `${e.field}: ${e.message}`).join(", "));
+      } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        showError("Upload timed out. Please check your connection or use smaller photos and try again.");
+      } else if (!error.response) {
+        showError("Network error. Please check your internet connection and try again.");
       } else {
         showError(error.response?.data?.message || error.message || "Something went wrong");
       }
