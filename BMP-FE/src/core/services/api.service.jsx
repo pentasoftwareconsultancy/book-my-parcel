@@ -468,11 +468,12 @@ static updateDisputeStatus(disputeId, data) {
   }
 
   // ------------------ File / Image Upload ------------------
-  static apipostForm(url, formData) {
+  static apipostForm(url, formData, config = {}) {
     return this.axiosInstance.post(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      ...config,
     });
   }
 

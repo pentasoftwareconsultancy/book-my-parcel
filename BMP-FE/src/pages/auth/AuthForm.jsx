@@ -1,4 +1,5 @@
 import { useState } from "react";
+import React from "react";
 import TextInput from "../../core/common/CommonUi";
 import Button from "../../core/common/Button";
 import { FcGoogle } from "react-icons/fc";
@@ -47,6 +48,7 @@ const AuthForm = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordHint, setShowPasswordHint] = useState(false);
+  const lastAutofillRef = React.useRef(0);
 
   const password = formData.password || "";
 
@@ -122,6 +124,11 @@ const AuthForm = ({
       if (!/^[A-Za-z\s]*$/.test(value)) return;
     }
 
+    // Track when autofill fires so submit can ignore accidental triggers
+    if (e.nativeEvent?.inputType === undefined) {
+      lastAutofillRef.current = Date.now();
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (errors[name]) {
@@ -132,6 +139,8 @@ const AuthForm = ({
   // ── SUBMIT ───────────────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Block submit if it fired within 500ms of an autofill event (browser auto-submit on credential select)
+    if (Date.now() - lastAutofillRef.current < 500) return;
     if (!validate()) return;
     onSubmit({ ...formData, role, rememberMe });
   };
@@ -254,7 +263,7 @@ const AuthForm = ({
                 value={formData[field.name]}
                 onChange={handleChange}
                 className={errors[field.name] ? "border-red-500" : ""}
-                autoComplete={isSignupPage ? "new-password" : "on"}
+                autoComplete={isSignupPage ? "off" : field.name === "email" ? "email" : "off"}
               />
             )}
 

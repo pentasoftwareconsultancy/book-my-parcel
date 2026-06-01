@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, ChevronDown, Bike, Car, Truck, Bus, Train } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Bike, Car, Truck, Bus, Train, Plane } from "lucide-react";
 import Button from "../../../core/common/Button";
 import Confetti from "../../../components/common/Confetti";
 import AcceptanceRouteMap from "../../../components/map/AcceptanceRouteMap";
@@ -15,6 +15,7 @@ const VEHICLE_OPTIONS = [
   { type: "tempo", label: "Tempo",      icon: <Truck size={16} /> },
   { type: "bus",   label: "Bus",        icon: <Bus size={16} /> },
   { type: "train", label: "Train",      icon: <Train size={16} /> },
+  { type: "plane", label: "Plane",      icon: <Plane size={16} /> },
 ];
 
 const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {

@@ -47,6 +47,7 @@ export async function createRoute(req, res) {
       vehicle_type: route.vehicle_type,
       vehicle_number: route.vehicle_number,
       transport_mode: route.transport_mode,
+      transit_details: route.transit_details,
       stops_passed: route.stops_passed,
       max_weight_kg: route.max_weight_kg,
       available_capacity_kg: route.available_capacity_kg,

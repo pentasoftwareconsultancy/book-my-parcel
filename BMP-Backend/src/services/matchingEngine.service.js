@@ -548,6 +548,7 @@ function applyTransportModeFilters(routes, parcelData) {
   return routes.filter((route) => {
     // Default to private for routes without transport_mode (backward compatibility)
     const transportMode = route.transport_mode || 'private';
+    const transitType = route.transit_details?.type || route.transitDetails?.type;
 
     if (transportMode === 'private') {
       // Private routes continue with existing matching logic
@@ -555,8 +556,8 @@ function applyTransportModeFilters(routes, parcelData) {
       return true;
     }
 
-    // PUBLIC TRANSPORT ROUTES (bus, train)
-    if (transportMode === 'bus' || transportMode === 'train') {
+    // PUBLIC TRANSPORT ROUTES (bus, train, plane)
+    if (transportMode === 'public') {
       // If route has explicit stops data (from transit API), use transit-specific matching
       if (route.stops_passed && Array.isArray(route.stops_passed) && route.stops_passed.length > 0) {
         // Check if both pickup and drop are near transit stops (2km walking distance)
@@ -570,11 +571,11 @@ function applyTransportModeFilters(routes, parcelData) {
         );
 
         if (isEligible) {
-          console.log(`[Matching] Route ${route.id} (${transportMode}): Parcel is within walking distance of stops ✓`);
+          console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): Parcel is within walking distance of stops ✓`);
           return true;
         } else {
           // Transit-specific matching failed - FALLBACK to private route approach
-          console.log(`[Matching] Route ${route.id} (${transportMode}): Parcel NOT within stops distance, FALLING BACK to private route matching (geographic proximity)`);
+          console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): Parcel NOT within stops distance, FALLING BACK to private route matching (geographic proximity)`);
           // Continue to spatial/polyline matching in next step (return true = pass this filter)
           return true;
         }
@@ -582,7 +583,7 @@ function applyTransportModeFilters(routes, parcelData) {
         // No explicit stops data: Use route geometry/polyline matching
         // This handles user-created bus/train routes that don't have transit stop API data
         // Note: Direction verification is only possible with explicit stops (transit API data)
-        console.log(`[Matching] Route ${route.id} (${transportMode}): No explicit stops data, using route geometry matching (direction cannot be verified)`);
+        console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): No explicit stops data, using route geometry matching (direction cannot be verified)`);
         return true; // Will be matched using standard polyline proximity in next step
       }
     }
@@ -628,12 +629,13 @@ async function selectTopCandidates(routes, parcelData) {
   const routesWithEstimates = await Promise.all(
     routes.map(async (route) => {
       const transportMode = (route.transport_mode || route.transportMode) || 'private';
+      const transitType = route.transit_details?.type || route.transitDetails?.type;
       let estimatedDetour;
 
       if (transportMode === 'private') {
         // Private route: use Haversine distance to route origin/destination
         estimatedDetour = calculateDetourForPrivateRoute(route, parcelData);
-      } else if (transportMode === 'bus' || transportMode === 'train') {
+      } else if (transportMode === 'public') {
         // Transit route: If stops data available, use walking distance to stops
         if (route.stops_passed && Array.isArray(route.stops_passed) && route.stops_passed.length > 0) {
           const transitDetour = calculateTransitDetour(
@@ -657,6 +659,7 @@ async function selectTopCandidates(routes, parcelData) {
         ...base,
         estimatedDetour,
         transportMode,
+        transitType,
       };
     })
   );
@@ -700,10 +703,11 @@ function calculateDetourForPrivateRoute(route, parcelData) {
 async function calculateExactDetour(route, parcelData) {
   try {
     const transportMode = route.transportMode || route.transport_mode || 'private';
-    console.log(`[calculateExactDetour] Calculating detour for route ${route.id} (${transportMode})`);
+    const transitType = route.transit_details?.type || route.transitDetails?.type;
+    console.log(`[calculateExactDetour] Calculating detour for route ${route.id} (${transportMode}, type: ${transitType || 'N/A'})`);
 
     // TRANSIT ROUTES: Use walking distance to stops (if available)
-    if (transportMode === 'bus' || transportMode === 'train') {
+    if (transportMode === 'public') {
       if (route.stops_passed && Array.isArray(route.stops_passed) && route.stops_passed.length > 0) {
         const transitDetour = calculateTransitDetour(
           parcelData.pickup.lat,
@@ -714,7 +718,7 @@ async function calculateExactDetour(route, parcelData) {
         );
 
         if (transitDetour) {
-          console.log(`[calculateExactDetour] Transit detour for route ${route.id} (${transportMode}): ${transitDetour.totalWalkingKm}km`);
+          console.log(`[calculateExactDetour] Transit detour for route ${route.id} (${transitType || 'public'}): ${transitDetour.totalWalkingKm}km`);
           return {
             detourKm: transitDetour.totalWalkingKm,
             detourPercentage: 0, // Walking distance doesn't have a percentage (not comparable to route distance)
@@ -970,7 +974,7 @@ export async function matchParcelWithTravellers(parcelId) {
             matchScore: Math.max(50, 100 - (detourInfo.detourKm / MAX_TRANSIT_WALKING_KM) * 50), // Score based on walking distance
           });
         } else {
-          console.log(`[Matching] Candidate ${candidate.id} (${transportMode}) rejected: walking distance ${detourInfo.detourKm}km exceeds threshold ${MAX_TRANSIT_WALKING_KM}km`);
+          console.log(`[Matching] Candidate ${candidate.id} (${transportMode}, type: ${candidate.transitType}) rejected: walking distance ${detourInfo.detourKm}km exceeds threshold ${MAX_TRANSIT_WALKING_KM}km`);
         }
       } else {
         // PRIVATE ROUTES: Check percentage and absolute threshold
