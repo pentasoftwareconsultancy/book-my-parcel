@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   Pen, Pause, Trash2, Play, Shirt,
   MapPin, Calendar, Clock, Box,
-  TrendingUp, DollarSign, FileText, Smartphone,
+  FileText, Smartphone,
   ArrowLeft, Check, X, ChevronRight,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -433,27 +433,6 @@ const RouteDetails = () => {
 
           {/* RIGHT COLUMN */}
           <div className="lg:col-span-3 space-y-5">
-
-            {/* Performance Stats */}
-            {d.performanceStats && (
-              <div className="bg-pink-50 border border-purple-100 rounded-xl p-5 shadow-sm">
-                <h2 className="font-semibold text-sm mb-4 flex items-center gap-2">
-                  <TrendingUp className="text-purple-500" /> Performance Stats
-                </h2>
-                <div className="space-y-3">
-                  {[
-                    { icon: <Box className="text-purple-400 text-xs" />, label: "Accepted", value: d.performanceStats.acceptedCount },
-                    { icon: <DollarSign className="text-green-400 text-xs" />, label: "Total Bids", value: d.performanceStats.totalBids },
-                    { icon: <TrendingUp className="text-blue-400 text-xs" />, label: "Avg. Bid Amt", value: d.performanceStats.avgBidAmount },
-                  ].map(({ icon, label, value }, i, arr) => (
-                    <div key={label} className={`flex justify-between items-center py-2 ${i < arr.length - 1 ? "border-b border-purple-100" : ""}`}>
-                      <span className="flex items-center gap-2 text-sm text-gray-600">{icon} {label}</span>
-                      <span className="font-bold text-gray-800">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <VehicleDetailsCard d={d} isEditing={isEditing} setField={setField} />
 
