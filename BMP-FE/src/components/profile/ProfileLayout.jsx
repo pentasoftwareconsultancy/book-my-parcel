@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { fetchProfile, updateProfile } from "../../store/slices/profileSlice.js";
+import { fetchProfile, updateProfile, fetchUserStats } from "../../store/slices/profileSlice.js";
 import ProfileHeader from "./ProfileHeader";
 import StatsSection from "./StatsSection";
 import PersonalTab from "./PersonalTab.jsx";
@@ -150,15 +150,16 @@ const ProfileLayout = ({ role = "USER" }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: profile, loadingFetch: loading, error } = useSelector((state) => state.profile);
+  const { data: profile, liveStats, loadingStats, loadingFetch: loading, error } = useSelector((state) => state.profile);
   
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(DUMMY_DATA[role] ?? DUMMY_DATA.USER);
 
-  // Fetch profile on mount and whenever navigating back to this page
+  // Fetch profile + live stats on mount
   useEffect(() => {
     dispatch(fetchProfile());
+    dispatch(fetchUserStats());
   }, [dispatch, role, location.key]);
 
   // Update local state when profile is fetched
@@ -175,6 +176,23 @@ const ProfileLayout = ({ role = "USER" }) => {
       const fullAvatarUrl = avatarPath && avatarPath.startsWith('/')
         ? `${baseUrl}${avatarPath}`
         : avatarPath;
+
+      // Build addresses array from profile data
+      const savedAddresses = [];
+      if (userProfile.address || userProfile.city) {
+        savedAddresses.push({
+          id: "profile_address",
+          type: "Home",
+          name: userProfile.name || userData.name || "",
+          line1: userProfile.address || "",
+          line2: "",
+          city: userProfile.city || "",
+          state: userProfile.state || "",
+          pincode: userProfile.pincode || "",
+          phone: userData.phone_number || "",
+          isDefault: true,
+        });
+      }
 
       setProfileData((prev) => ({
         ...prev,
@@ -195,6 +213,7 @@ const ProfileLayout = ({ role = "USER" }) => {
           state: userProfile.state || userData.state || "",
           kycStatus: profile.kycStatus || userData.kycStatus || "NOT_STARTED",
         },
+        addresses: savedAddresses,
       }));
     }
   }, [profile]);
@@ -285,7 +304,11 @@ const ProfileLayout = ({ role = "USER" }) => {
           role={role}
         />
 
-        <StatsSection stats={profileData.stats} />
+        <StatsSection
+          stats={profileData.stats}
+          liveStats={liveStats}
+          loadingStats={loadingStats}
+        />
 
         {/* KYC banner — only for USER role when not approved */}
         {role === "USER" && profileData.personalInfo.kycStatus !== KYC_STATUS.APPROVED && (

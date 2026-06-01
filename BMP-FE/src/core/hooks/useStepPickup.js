@@ -98,7 +98,7 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
       const l = Number(data.parcelLength) || 0;
       const w = Number(data.parcelWidth)  || 0;
       const h = Number(data.parcelHeight) || 0;
-      const volumetric = l > 0 && w > 0 && h > 0 ? (l * w * h) / 6000 : 0;
+      const volumetric = l > 0 && w > 0 && h > 0 ? (l * w * h) / 366 : 0;
       const billable = Math.max(Number(data.parcelWeight) || 0, volumetric);
       const multiplier = VEHICLE_MULTIPLIERS[data.vehicleType] || 1.0;
       const price = Math.round(50 + distance * 0.5 + billable * 10) * multiplier;

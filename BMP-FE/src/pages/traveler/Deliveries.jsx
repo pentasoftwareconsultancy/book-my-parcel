@@ -227,7 +227,7 @@ export default function ActiveDeliveries() {
       </Typography>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { title: "Total Earnings", value: `₹${stats.totalEarnings || 0}`, icon: AccountBalanceWallet, gradient: "from-green-400 to-green-500" },
           { title: "Active Deliveries", value: stats.active || 0, icon: LocalShipping, gradient: "from-orange-400 to-orange-500" },
@@ -236,7 +236,7 @@ export default function ActiveDeliveries() {
         ].map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
-      </div>
+      </div> */}
 
       {/* NOTIFICATION */}
       {notification && (
@@ -246,7 +246,7 @@ export default function ActiveDeliveries() {
       {/* ACTIVE DELIVERY LIST */}
       {activeDeliveries.length === 0 ? (
         <div className="bg-white rounded-3xl p-8 text-center">
-          <Typography fontWeight={700}>No Active Deliveries 🚚</Typography>
+          <Typography fontWeight={700}>No Active Deliveries </Typography>
           <Typography fontSize={13} color="text.secondary">
             Confirmed bookings will appear here
           </Typography>

@@ -49,7 +49,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
         )}
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium text-gray-600">Dimensions (cm) <span className="text-red-500">*</span></p>
+        <p className="mb-1 text-xs font-medium text-gray-600">Dimensions (in) <span className="text-red-500">*</span></p>
         <div className="grid grid-cols-3 gap-3">
           <TextInput name="parcelLength" value={data.parcelLength} type="number" required={true} onChange={(e) => updateFields({ parcelLength: e.target.value })} placeholder="Length" />
           <TextInput name="parcelWidth"  value={data.parcelWidth}  type="number" required={true} onChange={(e) => updateFields({ parcelWidth:  e.target.value })} placeholder="Width" />

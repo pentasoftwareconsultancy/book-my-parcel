@@ -221,35 +221,35 @@ const TravellerDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      {/* Header with Sender Name and Parcel Price */}
+    <div className="min-h-screen bg-gray-100 p-3 sm:p-4">
+      {/* Header */}
       <div className="max-w-7xl mx-auto mb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-blue-600">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 break-words">
               {parcelData?.pickup?.name || "—"}
             </h1>
-            <p className="text-lg text-gray-700 mt-2">
+            <p className="text-sm sm:text-base text-gray-700 mt-1">
               Parcel Price: <span className="font-bold text-green-600">₹{parcelData?.price?.actualPrice || "—"}</span>
             </p>
           </div>
-          
-          {/* ID Display Section */}
-          {(parcelData?.parcel_ref || parcelData?.bookingId || parcelData?.trackingId) && (
-            <div className="flex flex-wrap gap-2 justify-end">
+
+          {/* ID badges */}
+          {(parcelData?.parcel_ref || parcelData?.bookingRef || parcelData?.trackingId) && (
+            <div className="flex flex-wrap gap-2">
               {parcelData?.parcel_ref && (
                 <div className="px-3 py-1.5 bg-blue-100 rounded-full border border-blue-300">
-                  <p className="text-xs font-semibold text-blue-700">Parcel ID: {parcelData.parcel_ref}</p>
+                  <p className="text-xs font-semibold text-blue-700">Parcel: {parcelData.parcel_ref}</p>
                 </div>
               )}
               {parcelData?.bookingRef && (
                 <div className="px-3 py-1.5 bg-green-100 rounded-full border border-green-300">
-                  <p className="text-xs font-semibold text-green-700">Booking ID: {parcelData.bookingRef}</p>
+                  <p className="text-xs font-semibold text-green-700">Booking: {parcelData.bookingRef}</p>
                 </div>
               )}
               {parcelData?.trackingId && (
                 <div className="px-3 py-1.5 bg-purple-100 rounded-full border border-purple-300">
-                  <p className="text-xs font-semibold text-purple-700">Tracking ID: {parcelData.trackingId}</p>
+                  <p className="text-xs font-semibold text-purple-700">Tracking: {parcelData.trackingId}</p>
                 </div>
               )}
             </div>
@@ -259,118 +259,78 @@ const TravellerDetailsPage = () => {
 
       {/* Main Layout */}
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-3 gap-4">
-          {/* LEFT COLUMN - 2/3 width */}
-          <div className="col-span-2 bg-white rounded-2xl p-5 shadow-lg">
-            <RouteSection 
-              type="pickup" 
-              address={parcelData.pickup} 
-            />
-            <ContactSection 
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          {/* LEFT COLUMN — full width on mobile, 2/3 on desktop */}
+          <div className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-5 shadow-lg">
+            <RouteSection type="pickup" address={parcelData.pickup} />
+            <ContactSection
               type="pickup"
               name={parcelData.pickup.name}
               phone={parcelData.pickup.phone}
               alt_phone={parcelData.pickup.alt_phone}
             />
-            <PackageSection 
-              {...parcelData.package}
-            />
-            {/* Feedback Section - Show only if DELIVERED and feedback exists */}
-        {parcelData?.status === DELIVERY_STATUS.DELIVERED && (
-          <div className="max-w-7xl mx-auto mb-6 mt-6">
-            {feedbackLoading ? (
-              <div className="bg-white rounded-2xl p-6 shadow-lg">
-                <p className="text-gray-600 text-center">Loading feedback...</p>
-              </div>
-            ) : feedback ? (
-              <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Star size={24} style={{ color: "#ffc107", marginRight: "8px" }} />
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                      Customer Feedback
-                    </Typography>
-                  </Box>
-                  
-                  {/* Rating */}
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <Rating value={feedback.rating} readOnly size="medium" sx={{ color: "#ffc107", mr: 2 }} />
-                    <Typography variant="body2" color="textSecondary">
-                      {feedback.rating} out of 5
-                    </Typography>
-                  </Box>
+            <PackageSection {...parcelData.package} />
 
-                  {/* Tags */}
-                  {feedback.tags && feedback.tags.length > 0 && (
-                    <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                      {feedback.tags.map((tag, idx) => (
-                        <Chip
-                          key={idx}
-                          label={tag}
-                          size="small"
-                          sx={{
-                            backgroundColor: "#e8f5e9",
-                            color: "#2e7d32"
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  )}
-
-                  {/* Comment */}
-                  {feedback.comment && (
-                    <Paper elevation={0} sx={{ 
-                      p: 2, 
-                      backgroundColor: "#f9f9f9",
-                      borderLeft: "3px solid #1976d2",
-                      mb: 2
-                    }}>
-                      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                        {feedback.comment}
+            {/* Feedback Section */}
+            {parcelData?.status === DELIVERY_STATUS.DELIVERED && (
+              <div className="mt-6">
+                {feedbackLoading ? (
+                  <div className="bg-white rounded-2xl p-6 shadow-lg">
+                    <p className="text-gray-600 text-center">Loading feedback...</p>
+                  </div>
+                ) : feedback ? (
+                  <Card sx={{ borderRadius: 3, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                        <Star size={24} style={{ color: "#ffc107", marginRight: "8px" }} />
+                        <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: { xs: "1rem", sm: "1.25rem" } }}>
+                          Customer Feedback
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                        <Rating value={feedback.rating} readOnly size="medium" sx={{ color: "#ffc107", mr: 2 }} />
+                        <Typography variant="body2" color="textSecondary">{feedback.rating} out of 5</Typography>
+                      </Box>
+                      {feedback.tags?.length > 0 && (
+                        <Box sx={{ mb: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                          {feedback.tags.map((tag, idx) => (
+                            <Chip key={idx} label={tag} size="small" sx={{ backgroundColor: "#e8f5e9", color: "#2e7d32" }} />
+                          ))}
+                        </Box>
+                      )}
+                      {feedback.comment && (
+                        <Paper elevation={0} sx={{ p: 2, backgroundColor: "#f9f9f9", borderLeft: "3px solid #1976d2", mb: 2 }}>
+                          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>{feedback.comment}</Typography>
+                        </Paper>
+                      )}
+                      <Typography variant="caption" color="textSecondary">
+                        Feedback received on {new Date(feedback.createdAt).toLocaleDateString()}
                       </Typography>
-                    </Paper>
-                  )}
-
-                  {/* Feedback Date */}
-                  <Typography variant="caption" color="textSecondary">
-                    Feedback received on {new Date(feedback.createdAt).toLocaleDateString()}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ) : (
-              <Alert severity="info" sx={{ borderRadius: 2 }}>
-                No feedback received yet for this delivery.
-              </Alert>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Alert severity="info" sx={{ borderRadius: 2 }}>No feedback received yet for this delivery.</Alert>
+                )}
+              </div>
             )}
           </div>
-        )}
-          </div>
 
-          {/* RIGHT COLUMN - 1/3 width */}
-          <div className="col-span-1 bg-white rounded-2xl p-5 shadow-lg ">
-            <RouteSection 
-              type="delivery" 
-              address={parcelData.delivery} 
-            />
-            <ContactSection 
+          {/* RIGHT COLUMN — full width on mobile, 1/3 on desktop */}
+          <div className="lg:col-span-1 bg-white rounded-2xl p-4 sm:p-5 shadow-lg">
+            <RouteSection type="delivery" address={parcelData.delivery} />
+            <ContactSection
               type="delivery"
               name={parcelData.delivery.name}
               phone={parcelData.delivery.phone}
               alt_phone={parcelData.delivery.alt_phone}
             />
-            
-            {/* Traveller info - showing sender's perspective */}
-            {parcelData.traveller && (
-              <TravellerCard 
-                {...parcelData.traveller}
-              />
-            )}
-            
-            {/* Other Information for Traveller */}
-            <div className="mb-4 mt-12">
-              <p className="text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
-                Earnings Information
-              </p>
+
+            {parcelData.traveller && <TravellerCard {...parcelData.traveller} />}
+
+            {/* Earnings */}
+            <div className="mb-4 mt-8">
+              <p className="text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">Earnings Information</p>
               <div className="bg-green-50 rounded-lg p-4 space-y-3 border border-green-200">
                 <div>
                   <p className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">Parcel Price</p>
@@ -389,19 +349,15 @@ const TravellerDetailsPage = () => {
           </div>
         </div>
 
-        
-
-        {/* Decline Button - Corner positioned */}
-        {parcelData && (
-          <div className="max-w-7xl mx-auto mt-4 flex justify-end">
-            <button
-              onClick={handleDecline}
-              className="px-6 py-2 border-2 border-red-600 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition"
-            >
-              Decline
-            </button>
-          </div>
-        )}
+        {/* Decline Button */}
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={handleDecline}
+            className="px-6 py-2 border-2 border-red-600 text-red-600 rounded-lg font-semibold hover:bg-red-50 transition w-full sm:w-auto"
+          >
+            Decline
+          </button>
+        </div>
       </div>
     </div>
   );

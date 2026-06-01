@@ -1,94 +1,119 @@
 
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckCircle, User, MapPin, Phone, Mail, Box, IndianRupee } from "lucide-react";
-const RUN_DECORATOR_MARKER = true; // keeping imports aligned
+import { CheckCircle, User, MapPin, Phone, Mail, Box, IndianRupee, Ruler, Calendar, Clock, Truck, FileText, StickyNote } from "lucide-react";
 import { DELIVERY_STATUS } from "../../../core/constants/app.constant";
 import StepReview from "./StepReview";
+
+// ── helper: resolve a photo field (File/Blob/string) to a preview URL ──────────
+function resolvePhotoUrl(photo) {
+  if (!photo) return null;
+  if (photo instanceof File || photo instanceof Blob) return URL.createObjectURL(photo);
+  if (typeof photo === "string" && photo.trim() !== "") {
+    if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
+    const base = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3000";
+    return `${base}${photo.startsWith("/") ? "" : "/"}${photo}`;
+  }
+  return null;
+}
 
 const OrderSummary = ({ data: propData }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const photoPreview = React.useMemo(() => {
-    if (propData?.parcelPhoto1 instanceof File || propData?.parcelPhoto1 instanceof Blob) {
-      const url = URL.createObjectURL(propData.parcelPhoto1);
-      return url;
-    }
-    if (typeof propData?.parcelPhoto1 === "string" && propData.parcelPhoto1.trim() !== "") {
-      if (propData.parcelPhoto1.startsWith("http://") || propData.parcelPhoto1.startsWith("https://")) {
-        return propData.parcelPhoto1;
-      }
-      const backendUrl = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3000";
-      return `${backendUrl}${propData.parcelPhoto1.startsWith("/") ? "" : "/"}${propData.parcelPhoto1}`;
-    }
-    return null;
-  }, [propData?.parcelPhoto1]);
+  // Resolve all three photo previews
+  const photo1 = React.useMemo(() => resolvePhotoUrl(propData?.parcelPhoto1), [propData?.parcelPhoto1]);
+  const photo2 = React.useMemo(() => resolvePhotoUrl(propData?.parcelPhoto2), [propData?.parcelPhoto2]);
+  const photo3 = React.useMemo(() => resolvePhotoUrl(propData?.parcelPhoto3), [propData?.parcelPhoto3]);
+  const photos  = [photo1, photo2, photo3].filter(Boolean);
 
+  // Revoke object URLs on unmount to avoid memory leaks
   React.useEffect(() => {
-    return () => { if (photoPreview) URL.revokeObjectURL(photoPreview); };
-  }, [photoPreview]);
+    return () => {
+      [photo1, photo2, photo3].forEach((url) => {
+        if (url && url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+    };
+  }, [photo1, photo2, photo3]);
 
-  // ✅ MODE 1 — Sidebar in RequestForm (propData passed as prop)
+  // ── MODE 1 — Sidebar in RequestForm (propData passed as prop) ────────────────
   if (propData) {
+    const pickupCityState = [propData?.pickupCity, propData?.pickupState].filter(Boolean).join(", ");
+    const pickupPinCountry = [propData?.pickupPincode, propData?.pickupCountry].filter(Boolean).join(", ");
+    const deliveryCityState = [propData?.deliveryCity, propData?.deliveryState].filter(Boolean).join(", ");
+    const deliveryPinCountry = [propData?.deliveryPincode, propData?.deliveryCountry].filter(Boolean).join(", ");
+    const dimensions = [propData?.parcelLength, propData?.parcelWidth, propData?.parcelHeight]
+      .every(Boolean)
+      ? `${propData.parcelLength} × ${propData.parcelWidth} × ${propData.parcelHeight} in`
+      : null;
+
     return (
       <aside className="bg-white h-fit w-full">
         <h3 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h3>
 
-        {/* Header image */}
-        <div className="overflow-hidden rounded-xl mb-5 mt-2 ">
-          {photoPreview ? (
-            <img
-              src={photoPreview}
-              alt="Parcel"
-              className="w-full h-33 object-cover"
-            />
+        {/* Photos — show all uploaded photos or placeholder */}
+        <div className="overflow-hidden rounded-xl mb-5 mt-2">
+          {photos.length > 0 ? (
+            <div className={`grid gap-1 ${photos.length === 1 ? "grid-cols-1" : photos.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+              {photos.map((src, i) => (
+                <img key={i} src={src} alt={`Parcel photo ${i + 1}`} className="w-full h-28 object-cover rounded-lg" />
+              ))}
+            </div>
           ) : (
-            <img
-              src="https://images.pexels.com/photos/6169663/pexels-photo-6169663.jpeg"
-              alt="Delivery"
-              className="w-full h-33 object-cover"
-            />
+            <div className="w-full h-28 rounded-xl bg-gray-100 flex items-center justify-center">
+              <Box size={32} className="text-gray-300" />
+            </div>
           )}
         </div>
 
         {/* Pickup */}
         <Section title="Pickup Details">
           <InfoCard>
-            <Info icon={<User size={14} />} label="Contact Name" value={propData?.senderName} />
-            <Info icon={<MapPin size={14} />} label="Address" value={propData?.pickupAddress} />
-            <Info icon={<MapPin size={14} />} label="City / State" value={propData?.pickupCity ? `${propData.pickupCity}, ${propData.pickupState}` : "—"} />
-            <Info icon={<Phone size={14} />} label="Phone" value={propData?.pickupPhone} />
-            <Info icon={<Mail size={14} />} label="Alternate Phone" value={propData?.pickupAltPhone} />
+            <Info icon={<User size={14} />}        label="Contact Name"    value={propData?.senderName} />
+            <Info icon={<MapPin size={14} />}       label="Address"         value={propData?.pickupAddress} />
+            <Info icon={<MapPin size={14} />}       label="City / State"    value={pickupCityState || null} />
+            <Info icon={<MapPin size={14} />}       label="Pincode / Country" value={pickupPinCountry || null} />
+            <Info icon={<Phone size={14} />}        label="Phone"           value={propData?.pickupPhone} />
+            <Info icon={<Mail size={14} />}         label="Alternate Phone" value={propData?.pickupAltPhone} />
+            <Info icon={<CheckCircle size={14} />}  label="Aadhaar"         value={propData?.pickupAadhaar} />
+            <Info icon={<Calendar size={14} />}     label="Pickup Date"     value={propData?.pickupDate} />
+            <Info icon={<Clock size={14} />}        label="Pickup Time"     value={propData?.pickupTime} />
           </InfoCard>
         </Section>
 
         {/* Delivery */}
         <Section title="Delivery Details">
           <InfoCard>
-            <Info icon={<User size={14} />} label="Contact Name" value={propData?.receiverName} />
-            <Info icon={<MapPin size={14} />} label="Address" value={propData?.deliveryAddress} />
-            <Info icon={<MapPin size={14} />} label="City / State" value={propData?.deliveryCity ? `${propData.deliveryCity}, ${propData.deliveryState}` : "—"} />
-            <Info icon={<Phone size={14} />} label="Phone" value={propData?.deliveryPhNo} />
-            <Info icon={<Mail size={14} />} label="Alternate Phone" value={propData?.deliveryAlternatePhNo} />
+            <Info icon={<User size={14} />}   label="Contact Name"      value={propData?.receiverName} />
+            <Info icon={<MapPin size={14} />}  label="Address"           value={propData?.deliveryAddress} />
+            <Info icon={<MapPin size={14} />}  label="City / State"      value={deliveryCityState || null} />
+            <Info icon={<MapPin size={14} />}  label="Pincode / Country" value={deliveryPinCountry || null} />
+            <Info icon={<Phone size={14} />}   label="Phone"             value={propData?.deliveryPhNo} />
+            <Info icon={<Mail size={14} />}    label="Alternate Phone"   value={propData?.deliveryAlternatePhNo} />
           </InfoCard>
         </Section>
 
         {/* Package */}
         <Section title="Package Details">
           <InfoCard>
-            <Info icon={<Box size={14} />} label="Size" value={propData?.packageSize} />
-            <Info icon={<Box size={14} />} label="Weight" value={propData?.parcelWeight ? `${propData.parcelWeight} kg` : "—"} />
-            <Info icon={<IndianRupee size={14} />} label="Value" value={propData?.parcelValue ? `₹${propData.parcelValue}` : "—"} />
-            <Info icon={<CheckCircle size={14} />} label="Description" value={propData?.parcelContents} />
+            <Info icon={<Box size={14} />}          label="Size"          value={propData?.packageSize} />
+            <Info icon={<Box size={14} />}          label="Weight"        value={propData?.parcelWeight ? `${propData.parcelWeight} kg` : null} />
+            <Info icon={<Ruler size={14} />}        label="Dimensions"    value={dimensions} />
+            <Info icon={<IndianRupee size={14} />}  label="Declared Value" value={propData?.parcelValue ? `₹${propData.parcelValue}` : null} />
+            <Info icon={<FileText size={14} />}     label="Type"          value={propData?.parcelType} />
+            <Info icon={<CheckCircle size={14} />}  label="Description"   value={propData?.parcelContents} />
+            <Info icon={<StickyNote size={14} />}   label="Notes"         value={propData?.parcelNotes} />
+            <Info icon={<Truck size={14} />}        label="Vehicle Type"  value={propData?.vehicleType} />
           </InfoCard>
         </Section>
 
         {/* Price */}
         <div className="rounded-2xl bg-blue-600 px-4 py-4 text-white shadow-md">
           <p className="text-[11px] uppercase tracking-wide opacity-80">Estimated Price</p>
-          <p className="text-2xl font-bold">₹{propData?.priceQuote || "—"}</p>
-          <p className="text-[11px] opacity-80">Includes all taxes & fees</p>
+          <p className="text-2xl font-bold">{propData?.priceQuote ? `₹${propData.priceQuote}` : "—"}</p>
+          {propData?.deliverySpeed && (
+            <p className="text-[11px] opacity-80 mt-1">Speed: {propData.deliverySpeed}</p>
+          )}
         </div>
       </aside>
     );

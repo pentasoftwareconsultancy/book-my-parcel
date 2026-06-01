@@ -9,7 +9,7 @@ const ContactSection = ({ type = "pickup", phone = "—", alt_phone = "—", nam
       <p className="text-xs uppercase tracking-widest text-gray-600 font-semibold mb-2">
         Contact Summary
       </p>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Phone */}
         <div>
           <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide">

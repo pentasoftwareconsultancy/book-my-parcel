@@ -3,7 +3,7 @@
  *
  * Formula: Price = (Base + Distance×Rate + BillableWeight×Rate) × SurgeMultiplier
  * BillableWeight = max(ActualWeight, VolumetricWeight)
- * VolumetricWeight = (L × W × H) / 6000
+ * VolumetricWeight = (L × W × H) / 366
  *
  * Surge multiplier applies during:
  *  - Peak hours (8–10 AM, 5–8 PM IST)
@@ -19,7 +19,7 @@ const PRICING_CONFIG = {
   BASE_PRICE:     50,    // ₹50 base for every delivery
   DISTANCE_RATE:  0.5,   // ₹0.5 per km
   WEIGHT_RATE:    10,    // ₹10 per kg
-  VOLUME_DIVISOR: 6000,  // Divisor for volumetric weight (cm³ → kg)
+  VOLUME_DIVISOR: 366,   // Divisor for volumetric weight (in³ → kg)
 
   // Surge settings
   SURGE_PEAK_HOURS:    1.25,  // 25% extra during peak hours
@@ -58,13 +58,13 @@ const INDIAN_HOLIDAYS = new Set([
 ]);
 
 /**
- * Calculate volumetric weight from dimensions
+ * Calculate volumetric weight from dimensions in inches
  */
-function calculateVolumetricWeight(lengthCm, widthCm, heightCm) {
-  if (!lengthCm || !widthCm || !heightCm) return 0;
-  const l = Number(lengthCm) || 0;
-  const w = Number(widthCm)  || 0;
-  const h = Number(heightCm) || 0;
+function calculateVolumetricWeight(lengthIn, widthIn, heightIn) {
+  if (!lengthIn || !widthIn || !heightIn) return 0;
+  const l = Number(lengthIn) || 0;
+  const w = Number(widthIn)  || 0;
+  const h = Number(heightIn) || 0;
   if (l <= 0 || w <= 0 || h <= 0) return 0;
   return (l * w * h) / PRICING_CONFIG.VOLUME_DIVISOR;
 }
@@ -152,13 +152,13 @@ export async function calculateSurgeMultiplier(options = {}) {
  * @param {object} [surgeOptions] - Passed to calculateSurgeMultiplier
  * @returns {Promise<{ price: number, basePrice: number, surgeMultiplier: number, surgeReasons: string[] }>}
  */
-export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, widthCm, heightCm, vehicleType = "car", surgeOptions = {}) {
+export async function calculatePriceWithSurge(distanceKm, weightKg, lengthIn, widthIn, heightIn, vehicleType = "car", surgeOptions = {}) {
   if (typeof distanceKm !== "number" || distanceKm < 0)
     throw new Error("Invalid distance: must be a non-negative number");
   if (typeof weightKg !== "number" || weightKg < 0)
     throw new Error("Invalid weight: must be a non-negative number");
 
-  const volumetricWeight = calculateVolumetricWeight(lengthCm, widthCm, heightCm);
+  const volumetricWeight = calculateVolumetricWeight(lengthIn, widthIn, heightIn);
   const billableWeight   = Math.max(weightKg, volumetricWeight);
   const basePrice        = Math.round(
     PRICING_CONFIG.BASE_PRICE +
@@ -191,13 +191,13 @@ export async function calculatePriceWithSurge(distanceKm, weightKg, lengthCm, wi
  * Synchronous price calculation (no surge, no DB calls).
  * Used in contexts where async is not available.
  */
-export function calculatePrice(distanceKm, weightKg, lengthCm, widthCm, heightCm) {
+export function calculatePrice(distanceKm, weightKg, lengthIn, widthIn, heightIn) {
   if (typeof distanceKm !== "number" || distanceKm < 0)
     throw new Error("Invalid distance: must be a non-negative number");
   if (typeof weightKg !== "number" || weightKg < 0)
     throw new Error("Invalid weight: must be a non-negative number");
 
-  const volumetricWeight = calculateVolumetricWeight(lengthCm, widthCm, heightCm);
+  const volumetricWeight = calculateVolumetricWeight(lengthIn, widthIn, heightIn);
   const billableWeight   = Math.max(weightKg, volumetricWeight);
   const totalPrice =
     PRICING_CONFIG.BASE_PRICE +
