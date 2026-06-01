@@ -1,8 +1,7 @@
 import { useState } from "react";
 import {
-  Pen, Pause, Trash2, Play, Shirt,
+  Pen, Pause, Trash2, Play,
   MapPin, Calendar, Clock, Box,
-  FileText, Smartphone,
   ArrowLeft, Check, X, ChevronRight,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,7 +13,17 @@ import VehicleDetailsCard from "../../../components/traveler/VehicleDetailsCard"
 import TimePicker12h from "../../../components/common/TimePicker12h";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const PARCEL_TYPES = ["Documents", "Electronics", "Clothes", "Food", "Fragile", "Medicine"];
+// Must match ParcelTypeSelector.jsx exactly (value → label)
+const PARCEL_TYPES = [
+  { value: "documents",   label: "Documents" },
+  { value: "electronics", label: "Electronics" },
+  { value: "clothing",    label: "Clothing" },
+  { value: "food",        label: "Food" },
+  { value: "medicines",   label: "Medicines" },
+  { value: "books",       label: "Books" },
+  { value: "gifts",       label: "Gifts" },
+  { value: "others",      label: "Others" },
+];
 
 const labelCls = "text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-1 block";
 const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white";
@@ -136,6 +145,7 @@ const RouteDetails = () => {
         accepted_parcel_types: editDraft.parcelPreferences?.acceptedTypes?.map((t) => t.toLowerCase()),
         min_earning_per_delivery: parseFloat(String(editDraft.parcelPreferences?.minimumEarning ?? "").replace(/[^0-9.]/g, "")) || null,
         recurring_days: editDraft.recurringDays,
+        transit_details: editDraft.transit_details ?? editDraft.transitDetails ?? null,
       };
       if (originAddressChange) payload.origin_address = originAddressChange;
       if (destAddressChange) payload.dest_address = destAddressChange;
@@ -159,7 +169,9 @@ const RouteDetails = () => {
     setEditDraft((prev) => {
       const parts = path.split(".");
       if (parts.length === 1) return { ...prev, [parts[0]]: value };
-      return { ...prev, [parts[0]]: { ...prev[parts[0]], [parts[1]]: value } };
+      if (parts.length === 2) return { ...prev, [parts[0]]: { ...(prev[parts[0]] || {}), [parts[1]]: value } };
+      if (parts.length === 3) return { ...prev, [parts[0]]: { ...(prev[parts[0]] || {}), [parts[1]]: { ...(prev[parts[0]]?.[parts[1]] || {}), [parts[2]]: value } } };
+      return prev;
     });
   };
 
@@ -171,16 +183,20 @@ const RouteDetails = () => {
         : [...prev.recurringDays, day],
     }));
 
-  const toggleParcelType = (type) =>
-    setEditDraft((prev) => ({
-      ...prev,
-      parcelPreferences: {
-        ...prev.parcelPreferences,
-        acceptedTypes: prev.parcelPreferences.acceptedTypes.includes(type)
-          ? prev.parcelPreferences.acceptedTypes.filter((t) => t !== type)
-          : [...prev.parcelPreferences.acceptedTypes, type],
-      },
-    }));
+  const toggleParcelType = (value) =>
+    setEditDraft((prev) => {
+      const current = prev.parcelPreferences.acceptedTypes.map((t) => t.toLowerCase());
+      const isSelected = current.includes(value);
+      return {
+        ...prev,
+        parcelPreferences: {
+          ...prev.parcelPreferences,
+          acceptedTypes: isSelected
+            ? current.filter((t) => t !== value)
+            : [...current, value],
+        },
+      };
+    });
 
   const updateStop = (index, value) =>
     setEditDraft((prev) => ({ ...prev, stops: prev.stops.map((s, i) => (i === index ? { ...s, location: value } : s)) }));
@@ -445,30 +461,28 @@ const RouteDetails = () => {
                 <label className={labelCls}>Accepted Types</label>
                 {isEditing ? (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {PARCEL_TYPES.map((type) => {
-                      const selected = d.parcelPreferences.acceptedTypes.includes(type);
+                    {PARCEL_TYPES.map(({ value, label }) => {
+                      const selected = d.parcelPreferences?.acceptedTypes
+                        ?.map((t) => t.toLowerCase()).includes(value) ?? false;
                       return (
-                        <button key={type} onClick={() => toggleParcelType(type)}
+                        <button key={value} onClick={() => toggleParcelType(value)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border-2 transition
                             ${selected ? "border-purple-400 bg-purple-50 text-purple-700" : "border-gray-200 bg-white text-gray-400 hover:border-purple-200"}`}>
-                          {type === "Documents" && <FileText size={10} />}
-                          {type === "Electronics" && <Smartphone size={10} />}
-                          {type === "Clothes" && <Shirt size={10} />}
-                          {type}
+                          {label}
                         </button>
                       );
                     })}
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {d.parcelPreferences.acceptedTypes?.map((type, i) => (
-                      <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-purple-100 bg-purple-50 text-purple-600 rounded-md text-xs font-medium">
-                        {type === "Documents" && <FileText size={10} />}
-                        {type === "Electronics" && <Smartphone size={10} />}
-                        {type === "Clothes" && <Shirt size={10} />}
-                        {type}
-                      </span>
-                    ))}
+                    {d.parcelPreferences.acceptedTypes?.map((value, i) => {
+                      const label = PARCEL_TYPES.find((p) => p.value === value.toLowerCase())?.label ?? value;
+                      return (
+                        <span key={i} className="px-3 py-1.5 border-2 border-purple-100 bg-purple-50 text-purple-600 rounded-md text-xs font-medium">
+                          {label}
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
