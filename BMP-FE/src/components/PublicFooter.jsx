@@ -63,7 +63,9 @@ const SharedFooter = ({ type }) => {
           <div>
             <h4 className="text-base font-bold mb-5">Contact Us</h4>
             <div className="space-y-4">
-              {[[FaMapMarkerAlt, "Office Address:", <span>FLAT NO 303, SR NO 17/1A, SAI ENCLAVE-B TUSHAR PARK, Dhanori,<br/> Dhanori Police Station, Pune City, <br/> Pune411015, Maharashtra, India</span>],
+              {[[FaMapMarkerAlt, "Office Address:", <span>
+  Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A, Dhanori, Near Dhanori Police Station, Pune - 411015, Maharashtra, India
+</span>],
                 [FaPhoneAlt, "Phone Number", "+91 9545444591"],
                 [FaEnvelope, "Email Address", "support@bookmyparcel.com"]
               ].map(([Icon, title, value]) => (

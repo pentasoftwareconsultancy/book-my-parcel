@@ -2,78 +2,146 @@ import { useEffect, useState } from "react";
 import { FaStar, FaCheck } from "react-icons/fa";
 import RoutePath from "../../core/constants/routes.constant";
 import { Link } from "react-router-dom";
+import vaishnavi from "../../assets/homeimage/vaishnavi.jpg";
+import priti from "../../assets/homeimage/priti.jpg";
+import komal from "../../assets/homeimage/komal.jpg";
+import saideep from "../../assets/homeimage/saideep.jpg";
+import ajinkya from "../../assets/homeimage/ajinkya.jpg";
+import vivek from "../../assets/homeimage/vivek.jpg";
 
-/* =====================================================
-   ABOUT US / TESTIMONIALS
-===================================================== */
 export default function Aboutus() {
-  const testimonials = [
+  // const testimonials = [
+  //   {
+  //     name: "Rohit Sharma",
+  //     role: "Small Business Owner",
+  //     image: "",
+  //     rating: 5,
+  //     text: "Book My Parcel helped us deliver products faster across cities. The live tracking and secure OTP delivery system made the process smooth and trustworthy.",
+  //     highlight: "Fast & secure deliveries!"
+  //   },
+  //   {
+  //     name: "Priya Mehta",
+  //     role: "Online Store Seller",
+  //     image: "",
+  //     rating: 5,
+  //     text: "I was struggling with expensive courier charges before. With Book My Parcel, I reduced delivery costs and improved customer satisfaction.",
+  //     highlight: "Reduced delivery costs!"
+  //   },
+  //   {
+  //     name: "Amit Kulkarni",
+  //     role: "Startup Founder",
+  //     image: "",
+  //     rating: 5,
+  //     text: "The platform is easy to use and the delivery partners are verified. Parcel booking takes only a few minutes now.",
+  //     highlight: "Easy and reliable platform!"
+  //   },
+  //   {
+  //     name: "Sneha Patil",
+  //     role: "Fashion Boutique Owner",
+  //     image: "",
+  //     rating: 5,
+  //     text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
+  //     highlight: "Timely parcel delivery!"
+  //   },
+  //   {
+  //     name: "Vikas Jadhav",
+  //     role: "Electronics Dealer",
+  //     image: "",
+  //     rating: 5,
+  //     text: "Book My Parcel gave our business a dependable logistics solution. Support response is quick and professional.",
+  //     highlight: "Professional support!"
+  //   },
+  //   {
+  //     name: "Neha Verma",
+  //     role: "Handmade Products Seller",
+  //     image: "",
+  //     rating: 5,
+  //     text: "I love the affordable pricing and smooth booking experience. It’s perfect for small businesses like mine.",
+  //     highlight: "Affordable & smooth!"
+  //   },
+  //   {
+  //     name: "Karan Deshmukh",
+  //     role: "E-commerce Manager",
+  //     image: "",
+  //     rating: 5,
+  //     text: "The route-based delivery matching system is innovative and efficient. We saved both time and operational costs.",
+  //     highlight: "Smart delivery system!"
+  //   },
+  //   {
+  //     name: "Anjali Gupta",
+  //     role: "Home Business Owner",
+  //     image: "",
+  //     rating: 5,
+  //     text: "Very user-friendly platform with secure parcel handling. My delivery experience has improved significantly.",
+  //     highlight: "Safe parcel handling!"
+  //   }
+  // ];
+const testimonials = [
+  {
+    name: "Priti Tole",
+    role: "Small Business Owner",
+    image: priti,
+    rating: 5,
+    text: "Book My Parcel helped us deliver products faster across cities. The live tracking and secure OTP delivery system made the process smooth and trustworthy.",
+    highlight: "Fast & secure deliveries!"
+  },
     {
-      name: "Rohit Sharma",
-      role: "Small Business Owner",
-      image: "",
-      rating: 5,
-      text: "Book My Parcel helped us deliver products faster across cities. The live tracking and secure OTP delivery system made the process smooth and trustworthy.",
-      highlight: "Fast & secure deliveries!"
-    },
-    {
-      name: "Priya Mehta",
-      role: "Online Store Seller",
-      image: "",
-      rating: 5,
-      text: "I was struggling with expensive courier charges before. With Book My Parcel, I reduced delivery costs and improved customer satisfaction.",
-      highlight: "Reduced delivery costs!"
-    },
-    {
-      name: "Amit Kulkarni",
-      role: "Startup Founder",
-      image: "",
-      rating: 5,
-      text: "The platform is easy to use and the delivery partners are verified. Parcel booking takes only a few minutes now.",
-      highlight: "Easy and reliable platform!"
-    },
-    {
-      name: "Sneha Patil",
-      role: "Fashion Boutique Owner",
-      image: "",
-      rating: 5,
-      text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
-      highlight: "Timely parcel delivery!"
-    },
-    {
-      name: "Vikas Jadhav",
-      role: "Electronics Dealer",
-      image: "",
-      rating: 5,
-      text: "Book My Parcel gave our business a dependable logistics solution. Support response is quick and professional.",
-      highlight: "Professional support!"
-    },
-    {
-      name: "Neha Verma",
-      role: "Handmade Products Seller",
-      image: "",
-      rating: 5,
-      text: "I love the affordable pricing and smooth booking experience. It’s perfect for small businesses like mine.",
-      highlight: "Affordable & smooth!"
-    },
-    {
-      name: "Karan Deshmukh",
-      role: "E-commerce Manager",
-      image: "",
-      rating: 5,
-      text: "The route-based delivery matching system is innovative and efficient. We saved both time and operational costs.",
-      highlight: "Smart delivery system!"
-    },
-    {
-      name: "Anjali Gupta",
-      role: "Home Business Owner",
-      image: "",
-      rating: 5,
-      text: "Very user-friendly platform with secure parcel handling. My delivery experience has improved significantly.",
-      highlight: "Safe parcel handling!"
-    }
-  ];
-
+    name: "Sahil Theurkar",
+    role: "Online Store Seller",
+    image: "/testimonials/sneha.jpg",
+    rating: 5,
+    text: "I was struggling with expensive courier charges before. With Book My Parcel, I reduced delivery costs and improved customer satisfaction.",
+    highlight: "Reduced delivery costs!"
+  },
+  {
+    name: "Komal kadam",
+    role: "Online Store Seller",
+    image: komal,
+    rating: 4,
+    text: "I was struggling with expensive courier charges before. With Book My Parcel, I reduced delivery costs and improved customer satisfaction.",
+    highlight: "Reduced delivery costs!"
+  },
+  {
+    name: "Ajinkya Sasane ",
+    role: "Startup Founder",
+    image: ajinkya,
+    rating: 5,
+    text: "The platform is easy to use and the delivery partners are verified. Parcel booking takes only a few minutes now.",
+    highlight: "Easy and reliable platform!"
+  },
+  {
+    name: "saideep gopale",
+    role: "Fashion Boutique Owner",
+    image: saideep,
+    rating: 5,
+    text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
+    highlight: "Timely parcel delivery!"
+  },
+  {
+    name: "Vivek jangam",
+    role: "Fashion Boutique Owner",
+    image: vivek,
+    rating: 5,
+    text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
+    highlight: "Timely parcel delivery!"
+  },
+  {
+    name: "Sneha Patil",
+    role: "Fashion Boutique Owner",
+    image: "/testimonials/sneha.jpg",
+    rating: 5,
+    text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
+    highlight: "Timely parcel delivery!"
+  },
+  {
+    name: "Sneha Patil",
+    role: "Fashion Boutique Owner",
+    image: "/testimonials/sneha.jpg",
+    rating: 5,
+    text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
+    highlight: "Timely parcel delivery!"
+  }
+];
   return (
     <section className="pt-10 sm:pt-10 lg:pt-10 pb-0 bg-gradient-to-b from-white via-blue-50/30 to-[#FFFDF6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,8 +160,7 @@ export default function Aboutus() {
           </p>
         </div>
 
-        {/* Enhanced testimonials */}
-        {/* Scrollable testimonials */}
+        
         <div className="overflow-x-auto scrollbar-hide pb-4">
           <div className="flex gap-6 sm:gap-8 w-max">
             {testimonials.map((testimonial, i) => (
@@ -104,7 +171,7 @@ export default function Aboutus() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
 
                 <div className="absolute top-4 right-6 text-4xl text-blue-200 font-serif">
-                  "
+                  
                 </div>
 
                 <div className="flex gap-1 mb-4">
@@ -149,6 +216,7 @@ export default function Aboutus() {
             ))}
           </div>
         </div>
+
       </div>
     </section>
   );

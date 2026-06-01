@@ -52,9 +52,9 @@ const ContactUs = () => {
 
       {/* Page title */}
       <div className="relative z-10 text-center mb-8 sm:mb-10">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-blue-700 tracking-tight">
-          Get In Touch
-        </h2>
+         <h2 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+    Get In Touch
+  </h2>
         <p className="mt-2 text-sm sm:text-base text-gray-500 max-w-md mx-auto">
           Have a question or need help? Fill out the form 
         </p>
@@ -73,17 +73,19 @@ const ContactUs = () => {
             </div>
 
             <div className="space-y-6">
-              <InfoItem icon={<MdEmail size={20} />} text="contact@bmp.com" />
-              <InfoItem icon={<MdPhone size={20} />} text="+91 98765 43210" />
+              <InfoItem icon={<MdEmail size={20} />} text="support@bookmyparcel.com" />
+              <InfoItem icon={<MdPhone size={20} />} text="+91 9545444591" />
               <InfoItem
                 icon={<MdLocationOn size={20} />}
                 text={
-                  <>
-                    123, MG Road, Pune
-                    <br />
-                    Maharashtra – 411001
-                  </>
-                }
+  <span>
+    Flat No. 303, Sai Enclave-B, Tushar Park,<br />
+    Survey No. 17/1A, Dhanori,<br />
+    Near Dhanori Police Station,<br />
+    Pune City, Pune - 411015,<br />
+    Maharashtra, India
+  </span>
+}
               />
             </div>
 
@@ -137,7 +139,7 @@ const ContactUs = () => {
                   type="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="john@example.com"
+                  placeholder="user@example.com"
                   required
                 />
                 <Field

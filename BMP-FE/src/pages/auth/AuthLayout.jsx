@@ -44,12 +44,11 @@ const AuthLayout = ({ title,subtitle, children }) => {
                 <p className="text-2xl font-semibold text-white">
                   One Account. Two Roles.
                 </p>
-                <p className="text-base text-white/85 font-medium mt-0.5">
+                <div className="text-base text-white/85 font-medium mt-0.5 space-y-1">
                   <p>• Send parcels as an Individual</p>
                   <p>• Earn by delivering parcels</p>
                   <p>• Choose your role at login</p>
-
-                </p>
+                </div>
               </div>
             </div>
           )}
