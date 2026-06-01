@@ -171,7 +171,7 @@ const Navbar = () => {
         .bmp-marquee {
           display: flex;
           white-space: nowrap;
-          animation: bmp-marquee 20s linear infinite;
+          animation: bmp-marquee 60s linear infinite;
         }
 
         .bmp-btn {
@@ -383,14 +383,14 @@ const Navbar = () => {
                 <>
                   {!isMobile && (
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <Link to={RoutePath.AUTH_TRAVELER_REGISTER} style={{
+                      {/* <Link to={RoutePath.AUTH_TRAVELER_REGISTER} style={{
                         display: "flex", alignItems: "center", gap: 5,
                         height: 34, padding: "0 10px", fontSize: 12, borderRadius: 6,
                         textDecoration: "none", whiteSpace: "nowrap",
                         background: "transparent", color: "#2563eb", border: "1px solid #2563eb",
                       }}>
                         <Truck size={12} /> Join as Traveler
-                      </Link>
+                      </Link> */}
                       <Link to={RoutePath.AUTH_LOGIN} style={{
                         display: "flex", alignItems: "center", gap: 5,
                         height: 34, padding: "0 10px", fontSize: 12, borderRadius: 6,

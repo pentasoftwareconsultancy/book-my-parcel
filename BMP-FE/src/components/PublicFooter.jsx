@@ -6,18 +6,18 @@ import whitelogo from '../assets/whiteLogo.png';
 const CONFIGS = {
   user: {
     bg: "linear-gradient(177.15deg, #1F2AFF -7.03%, #5C9DF2 105.42%)",
-    quickLinks: [["/" ,"Home"],["/travelerhome","Join as Traveler"],["/how-it-works","How It Works"],["/send-parcel","Send Parcel"],["/travelerhome","Become Traveler"],["/track-order","Track Order"],["/faq","FAQ"]],
+    quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"],["/travelerhome","Become a Traveler"]],
     supportTitle: "Support",
-    supportLinks: [["/help-center","Help Center"],["/traveler-guidelines","Safety Guidelines"],["/termsAndCondition","Terms and Condition"],["/Policy","Privacy Policy"],["/refund-policy","Refund and cancellation Policy"],["/contact","Contact Us"]],
-    bottomLinks: [["/termsAndCondition","Terms"],["/Policy","Privacy"],["/cookies","Cookies"]],
+    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
+    bottomLinks: [["/termsandcondition","Terms"],["/policy","Privacy"],["/refund-policy","Refund Policy"]],
     badge: false, stats: false, verified: false,
   },
   traveler: {
     bg: "linear-gradient(105deg, #1F2AFF 0%, #3f7de1 50%, #3393c0 100%)",
-    quickLinks: [["/travelerhome","Become a Traveler"],["/my-deliveries","My Deliveries"],["/earnings","Earnings"],["/my-routes","My Routes"],["/traveler-benefits","Traveler Benefits"],["/faq","FAQ"]],
+    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-benefits","Traveler Benefits"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],["/contact","Contact Us"]],
     supportTitle: "Support and help",
-    supportLinks: [["/help-center","Help Center"],["/traveler-guidelines","Traveler Guidelines"],["/termsAndCondition","Terms and Condition"],["/Policy","Privacy Policy"],["/contact","Contact Us"]],
-    bottomLinks: [["/Policy","Privacy Policy"],["/cookies","Cookies Statement"],["/traveler-agreement","Traveler Agreement"]],
+    supportLinks: [["/traveler-guidelines","Traveler Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
+    bottomLinks: [["/policy","Privacy Policy"],["/termsandcondition","Terms & Conditions"],["/refund-policy","Refund Policy"]],
     badge: true, stats: true, verified: true,
   },
 };

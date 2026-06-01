@@ -1,289 +1,221 @@
-// import React from "react";
-// import { MdEmail, MdLocationOn } from "react-icons/md";
-// import { FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
-// import leftImg from "../../assets/contact.png";
-// import rightImg from "../../assets/contact1.png";
-
-// const ContactUs = () => {
-//   return (
-//     <section className="relative min-h-screen bg-[#efefef] flex items-center justify-center overflow-hidden py-28 px-4">
-// <h1
-//   className="absolute top-0 left-1/2 -translate-x-1/2 
-//   text-[12vw] lg:text-[130px] font-bold text-[#0a2dc5] 
-//   opacity-90 
-//   z-0 select-none pointer-events-none"
-// >
-//   ContactUs
-// </h1>
-//       <div className="absolute right-24 bottom-24 w-56 h-56 
-//       bg-blue-600 rounded-full blur-3xl opacity-50 z-10" />
-//       <img
-//         src={leftImg}
-//         alt=""
-//         className="hidden lg:block absolute left-10 bottom-10 w-48 z-30"
-//       />
-//       <img
-//         src={rightImg}
-//         alt=""
-//         className="hidden lg:block absolute right-10 top-10 w-48 z-30"
-//       />
-//       <div className="relative z-10 w-full max-w-6xl 
-//       bg-white/20 
-//       backdrop-blur-2xl 
-//       border border-white/30 
-//       shadow-[0_8px_32px_rgba(31,38,135,0.25)] 
-//       rounded-[30px] 
-//       p-10 md:p-14">
-//         <div className="absolute inset-0 rounded-[30px] 
-//         bg-gradient-to-br from-white/20 to-transparent 
-//         pointer-events-none"></div>
-//         <div className="relative grid md:grid-cols-2 gap-12">
-//           <div className="flex flex-col justify-between">
-//             <div className="space-y-10">
-//               <div className="flex items-center gap-3 text-blue-600 font-medium">
-//                 <MdEmail size={22} />
-//                 <span>contact@bmp.com</span>
-//               </div>
-//               <div className="flex gap-3 text-blue-600 font-medium max-w-xs">
-//                 <MdLocationOn size={22} className="mt-1" />
-//                 <p>
-//                   08 Triveni Tower 3rd Floor, Central Avenue,
-//                   Gandhiputla, Itwari, Nagpur 440002, India.
-//                 </p>
-//               </div>
-//             </div>
-//             <div className="flex gap-4 mt-12 text-2xl">
-//               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-//                 <FaTwitter className="text-sky-500 cursor-pointer" />
-//               </a>
-
-//               <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-//                 <FaInstagram className="text-pink-500 cursor-pointer" />
-//               </a>
-
-//               <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-//                 <FaLinkedin className="text-blue-700 cursor-pointer" />
-//               </a>
-//             </div>
-//           </div>
-          
-//           <form className="space-y-6">
-//             {/* Names */}
-//             <div className="grid grid-cols-2 gap-6">
-//               <Input label="First Name" />
-//               <Input label="Last Name" />
-//             </div>
-//             <div className="grid grid-cols-2 gap-6">
-//               <Input label="Email" />
-//               <div>
-//                 <label className="text-sm text-blue-600 font-medium">
-//                   Phone Number
-//                 </label>
-//                 <input
-//                   type="text"
-//                   placeholder="+91"
-//                   className="w-full mt-1 px-4 py-2 rounded-lg 
-//                   border border-white/40 
-//                   bg-white/40 backdrop-blur-md
-//                   focus:outline-none focus:ring-2 focus:ring-blue-400"
-//                 />
-//               </div>
-//             </div>
-//             <div>
-//               <label className="text-sm text-blue-600 font-medium">
-//                 Message
-//               </label>
-//               <textarea
-//                 rows="5"
-//                 placeholder="Write your message.."
-//                 className="w-full mt-1 px-4 py-2 rounded-lg 
-//                 border border-white/40 
-//                 bg-white/40 backdrop-blur-md
-//                 focus:outline-none focus:ring-2 focus:ring-blue-400"
-//               />
-//             </div>
-//             <div className="flex justify-end pt-2">
-//               <button className="bg-blue-600 text-white px-10 py-3 
-//               rounded-xl shadow-lg 
-//               hover:bg-blue-700 transition">
-//                 Send message
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-
-// const Input = ({ label }) => (
-//   <div>
-//     <label className="text-sm text-blue-600 font-medium">
-//       {label}
-//     </label>
-//     <input
-//       type="text"
-//       className="w-full mt-1 px-4 py-2 rounded-lg 
-//       border border-white/40 
-//       bg-white/40 backdrop-blur-md
-//       focus:outline-none focus:ring-2 focus:ring-blue-400"
-//     />
-//   </div>
-// );
-// export default ContactUs;
-
-
-import React from "react";
-import { MdEmail, MdLocationOn } from "react-icons/md";
+import React, { useState } from "react";
+import { MdEmail, MdLocationOn, MdPhone, MdSend } from "react-icons/md";
 import { FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 import leftImg from "../../assets/contact.png";
 import rightImg from "../../assets/contact1.png";
 
 const ContactUs = () => {
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+    setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
+  };
+
   return (
-    <section className="relative min-h-screen bg-[#efefef] flex items-center justify-center overflow-hidden py-28 px-4">
+    <section className="relative min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#efefef] to-[#dde8ff] flex flex-col items-center justify-center overflow-hidden py-16 px-4 sm:px-6">
 
-      {/* Background Heading */}
-      <h1
-        className="absolute top-0 left-1/2 -translate-x-1/2
-        text-[12vw] lg:text-[130px] font-bold text-[#0a2dc5]
-        opacity-90 z-0 select-none pointer-events-none"
-      >
-        ContactUs
-      </h1>
+      {/* Background watermark */}
+      <span className="absolute top-6 left-1/2 -translate-x-1/2 text-[22vw] sm:text-[16vw] lg:text-[160px] font-extrabold text-blue-1000 opacity-[0.06] whitespace-nowrap select-none pointer-events-none z-0 leading-none">
+        Contact Us
+      </span>
 
-      {/* TOP IMAGE - Sitting on container */}
+      {/* Decorative blobs */}
+      <div className="absolute top-0 right-0 w-72 h-72 bg-blue-300 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-72 h-72 bg-indigo-300 opacity-20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+      {/* Decorative images */}
       <img
-  src={rightImg}
-  alt=""
-  className="absolute z-30 hidden w-32  lg:block -top-0 right-20 xl:w-48"
-/>
-
-      {/* LEFT IMAGE - Behind container */}
+        src={rightImg}
+        alt=""
+        aria-hidden="true"
+        className="absolute top-0 right-[10px] md:right-10 lg:right-16 w-28 md:w-36 lg:w-44 z-10 hidden md:block drop-shadow-xl"
+      />
       <img
         src={leftImg}
         alt=""
-        className="absolute z-20 hidden w-40  lg:block -left-1 bottom-10 xl:w-48 opacity-90"
+        aria-hidden="true"
+        className="absolute bottom-4 left-0 w-28 md:w-36 lg:w-44 z-10 hidden md:block drop-shadow-xl opacity-90"
       />
 
-      {/* MAIN CONTAINER */}
-      <div
-        className="relative z-10 w-full max-w-4xl
-        bg-white/20
-        backdrop-blur-2xl
-        border border-white/30
-        shadow-[0_8px_32px_rgba(31,38,135,0.25)]
-        rounded-[30px]
-        pt-24 pb-10 px-6 sm:px-10 md:px-14"
-      >
+      {/* Page title */}
+      <div className="relative z-10 text-center mb-8 sm:mb-10">
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-blue-700 tracking-tight">
+          Get In Touch
+        </h2>
+        <p className="mt-2 text-sm sm:text-base text-gray-500 max-w-md mx-auto">
+          Have a question or need help? Fill out the form 
+        </p>
+      </div>
 
-        <div className="absolute inset-0 rounded-[30px]
-        bg-gradient-to-br from-white/20 to-transparent
-        pointer-events-none"></div>
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-5xl bg-white/60 backdrop-blur-2xl border border-white/50 shadow-2xl rounded-3xl overflow-hidden">
 
-        <div className="relative grid gap-10 md:grid-cols-2">
+        <div className="grid lg:grid-cols-5">
 
-          {/* LEFT INFO */}
-          <div className="flex flex-col justify-between">
-
-            <div className="space-y-8">
-
-              <div className="flex items-center gap-3 font-medium text-blue-600">
-                <MdEmail size={22} />
-                <span>contact@bmp.com</span>
-              </div>
-
-              <div className="flex max-w-xs gap-3 font-medium text-blue-600">
-                <MdLocationOn size={22} className="mt-1" />
-                <p>
-                  08 Triveni Tower 3rd Floor, Central Avenue,
-                  Gandhiputla, Itwari, Nagpur 440002, India.
-                </p>
-              </div>
-
-            </div>
-
-            {/* Social Icons */}
-            <div className="flex gap-4 mt-10 text-2xl">
-              <a href="https://twitter.com">
-                <FaTwitter className="cursor-pointer text-sky-500" />
-              </a>
-
-              <a href="https://instagram.com">
-                <FaInstagram className="text-pink-500 cursor-pointer" />
-              </a>
-
-              <a href="https://linkedin.com">
-                <FaLinkedin className="text-blue-700 cursor-pointer" />
-              </a>
-            </div>
-
-          </div>
-
-          {/* CONTACT FORM */}
-          <form className="space-y-6">
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <Input label="First Name" />
-              <Input label="Last Name" />
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <Input label="Email" />
-
-              <div>
-                <label className="text-sm font-medium text-blue-600">
-                  Phone Number
-                </label>
-
-                <input
-                  type="text"
-                  placeholder="+91"
-                  className="w-full px-4 py-2 mt-1 border rounded-lg border-white/40 bg-white/40 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-              </div>
-
-            </div>
-
+          {/* Left info panel */}
+          <div className="lg:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 sm:p-10 flex flex-col justify-between gap-10">
             <div>
-              <label className="text-sm font-medium text-blue-600">
-                Message
-              </label>
+              <h3 className="text-2xl font-bold mb-1">Contact Information</h3>
+              <p className="text-blue-200 text-sm">We're here to help you anytime.</p>
+            </div>
 
-              <textarea
-                rows="5"
-                placeholder="Write your message.."
-                className="w-full px-4 py-2 mt-1 border rounded-lg border-white/40 bg-white/40 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            <div className="space-y-6">
+              <InfoItem icon={<MdEmail size={20} />} text="contact@bmp.com" />
+              <InfoItem icon={<MdPhone size={20} />} text="+91 98765 43210" />
+              <InfoItem
+                icon={<MdLocationOn size={20} />}
+                text={
+                  <>
+                    123, MG Road, Pune
+                    <br />
+                    Maharashtra – 411001
+                  </>
+                }
               />
             </div>
 
-            <div className="flex justify-end pt-2">
-              <button
-                className="px-8 py-3 text-white transition bg-blue-600 shadow-lg rounded-xl hover:bg-blue-700"
-              >
-                Send Message
-              </button>
+            {/* Social */}
+            <div>
+              <p className="text-blue-200 text-xs uppercase tracking-widest mb-3">Follow Us</p>
+              <div className="flex gap-4">
+                <SocialLink href="https://twitter.com" icon={<FaTwitter />} label="Twitter" />
+                <SocialLink href="https://instagram.com" icon={<FaInstagram />} label="Instagram" />
+                <SocialLink href="https://linkedin.com" icon={<FaLinkedin />} label="LinkedIn" />
+              </div>
             </div>
 
-          </form>
+            {/* Decorative circle */}
+            <div className="absolute bottom-0 right-0 w-40 h-40 bg-white opacity-5 rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
+          </div>
 
+          {/* Right form panel */}
+          <div className="lg:col-span-3 p-8 sm:p-10">
+            {submitted && (
+              <div className="mb-6 flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3">
+                <MdSend size={18} />
+                Message sent! We'll get back to you soon.
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <Field
+                  label="First Name"
+                  name="firstName"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  placeholder="John"
+                  required
+                />
+                <Field
+                  label="Last Name"
+                  name="lastName"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  placeholder="Doe"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <Field
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="john@example.com"
+                  required
+                />
+                <Field
+                  label="Phone Number"
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="+91 XXXXX XXXXX"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Message <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  name="message"
+                  rows={5}
+                  value={form.message}
+                  onChange={handleChange}
+                  placeholder="Write your message here..."
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white text-sm resize-none transition"
+                />
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold rounded-xl shadow-md transition-all duration-200 text-sm sm:text-base"
+                >
+                  <MdSend size={18} />
+                  Send Message
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </section>
   );
 };
 
-const Input = ({ label }) => (
+const Field = ({ label, name, type = "text", value, onChange, placeholder, required }) => (
   <div>
-    <label className="text-sm font-medium text-blue-600">
-      {label}
+    <label className="block text-sm font-semibold text-gray-700 mb-1">
+      {label} {required && <span className="text-red-400">*</span>}
     </label>
-
     <input
-      type="text"
-      className="w-full px-4 py-2 mt-1 border rounded-lg border-white/40 bg-white/40 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required={required}
+      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white text-sm transition"
     />
   </div>
+);
+
+const InfoItem = ({ icon, text }) => (
+  <div className="flex items-start gap-3 text-sm">
+    <span className="mt-0.5 shrink-0 bg-white/20 p-2 rounded-lg">{icon}</span>
+    <span className="leading-relaxed">{text}</span>
+  </div>
+);
+
+const SocialLink = ({ href, icon, label }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={label}
+    className="bg-white/20 hover:bg-white/30 p-2.5 rounded-lg text-white transition hover:scale-110 text-lg"
+  >
+    {icon}
+  </a>
 );
 
 export default ContactUs;

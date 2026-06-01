@@ -26,6 +26,7 @@ const TravelerBenefits   = lazy(() => import("../pages/public/TravelerBenefits")
 const TravelerHomes      = lazy(() => import("../pages/traveler/TravelerHome"));
 const TravelerGuidelines = lazy(() => import("../pages/public/TravelerGuidelines"));
 const Policy             = lazy(() => import("../pages/public/Policy"));
+const RefundPolicy       = lazy(() => import("../pages/public/RefundPolicy"));
 
 // Auth pages
 const Login          = lazy(() => import("../pages/auth/Login"));
@@ -136,6 +137,7 @@ const AppRoutes = () => {
           <Route path={RoutePath.PUBLIC_TRAVELERBENEFITS}   element={<S><TravelerBenefits /></S>} />
           <Route path={RoutePath.PUBLIC_TERMSANDCONDITION}  element={<S><TermsAndCondition /></S>} />
           <Route path={RoutePath.PUBLIC_POLICY}             element={<S><Policy /></S>} />
+          <Route path={RoutePath.PUBLIC_REFUND_POLICY}      element={<S><RefundPolicy /></S>} />
           <Route path={RoutePath.KYC_REGISTRATION}          element={<S><KYCUpload /></S>} />
           <Route path={RoutePath.PUBLIC_TRACK}              element={<S><Track /></S>} />
         </Route>
