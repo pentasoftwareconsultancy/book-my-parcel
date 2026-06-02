@@ -34,6 +34,7 @@ import { refundPaymentForParcel } from "../payment/payment.service.js";
 import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
+import { matchParcelWithTravellers } from "../../services/matchingEngine.service.js";
 
 const weightMap = { small: 1, medium: 5, large: 10, extra_large: 20 };
 

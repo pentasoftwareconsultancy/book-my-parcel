@@ -112,6 +112,10 @@ export async function updateRoute(req, res) {
     const { id } = req.params;
     const userId = req.user.id;
     const route = await updateTravellerRoute(id, userId, req.body);
+
+    // Re-trigger matching with existing parcels after route update
+    await enqueueAsyncTask("match_route_with_existing_parcels", { routeId: id });
+
     return responseSuccess(res, route, "Route updated successfully");
   } catch (error) {
     console.error("[TravellerRoute] Update route error:", error);

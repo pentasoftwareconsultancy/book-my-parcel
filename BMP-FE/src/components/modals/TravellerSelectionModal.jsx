@@ -29,7 +29,7 @@ const TravellerSelectionModal = ({
     setLoading(true);
 
     const response = await ApiService.apiget(
-      ServerUrl.API_PARCEL_ACCEPTANCES(parcelId)
+      `${ServerUrl.API_PARCEL_ACCEPTANCES(parcelId)}?_t=${Date.now()}`
     );
 
     console.log("API RESPONSE:", response?.data);

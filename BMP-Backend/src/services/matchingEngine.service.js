@@ -21,7 +21,7 @@ const MAX_CANDIDATES = 20;
 const MAX_DETOUR_PERCENTAGE = 30; // 30% detour allowed
 const MAX_DETOUR_KM = 80; // 80km detour allowed
 const DEFAULT_BUFFER_KM = 10;
-const REQUEST_EXPIRY_MINUTES = 30;
+const REQUEST_EXPIRY_MINUTES = 120;
 
 // ─── Step 1: Fetch Parcel Data ──────────────────────────────────────────────
 async function fetchParcelData(parcelId) {
@@ -840,20 +840,50 @@ async function createParcelRequests(parcelId, candidates) {
 
   for (const candidate of candidates) {
     try {
-      console.log(`[createParcelRequests] Creating request for traveller ${candidate.travellerProfile.user_id}, route ${candidate.id}`);
-      
-      const request = await ParcelRequest.create({
-        parcel_id: parcelId,
-        traveller_id: candidate.travellerProfile.user_id,
-        route_id: candidate.id,
-        match_score: candidate.matchScore || null,
-        detour_km: candidate.detourKm || null,
-        detour_percentage: candidate.detourPercentage || null,
-        status: "SENT",
-        expires_at: expiresAt,
+      const travellerId = candidate.travellerProfile.user_id;
+      const routeId = candidate.id;
+
+      // Skip if an active (non-expired, non-rejected) request already exists
+      const existing = await ParcelRequest.findOne({
+        where: {
+          parcel_id: parcelId,
+          traveller_id: travellerId,
+          status: { [Op.in]: ["SENT", "INTERESTED", "ACCEPTED", "SELECTED"] },
+        },
       });
 
-      console.log(`[createParcelRequests] ✅ Created request ${request.id} for parcel ${parcelId}`);
+      if (existing) {
+        console.log(`[createParcelRequests] Skipping duplicate — request already exists for traveller ${travellerId}`);
+        requests.push(existing);
+        continue;
+      }
+
+      console.log(`[createParcelRequests] Creating request for traveller ${travellerId}, route ${routeId}`);
+      let request;
+      try {
+        request = await ParcelRequest.create({
+          parcel_id: parcelId,
+          traveller_id: travellerId,
+          route_id: routeId,
+          match_score: candidate.matchScore || null,
+          detour_km: candidate.detourKm || null,
+          detour_percentage: candidate.detourPercentage || null,
+          status: "SENT",
+          expires_at: expiresAt,
+        });
+      } catch (createErr) {
+        // Race condition: another concurrent matching call already created it
+        if (createErr.name === "SequelizeUniqueConstraintError") {
+          const race = await ParcelRequest.findOne({
+            where: { parcel_id: parcelId, traveller_id: travellerId,
+              status: { [Op.in]: ["SENT", "INTERESTED", "ACCEPTED", "SELECTED"] } },
+          });
+          if (race) { requests.push(race); continue; }
+        }
+        throw createErr;
+      }
+
+      console.log(`[createParcelRequests] Created request ${request.id} for parcel ${parcelId}`);
       requests.push(request);
     } catch (error) {
       console.error(`[Matching] Error creating request for traveller ${candidate.travellerProfile.user_id}:`, error.message);

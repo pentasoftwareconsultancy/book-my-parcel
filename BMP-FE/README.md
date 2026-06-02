@@ -1,420 +1,331 @@
-# Book My Parcel - Frontend
+# Book My Parcel — Frontend
 
-A modern React-based web application for the Book My Parcel logistics platform, connecting parcel senders with travelers for cost-effective delivery.
+> **Live:** [https://bookmyparcel.co.in](https://bookmyparcel.co.in)
 
-## 🚀 Features
+A React 19 web application for the **Book My Parcel** logistics platform — connecting parcel senders with travellers for affordable, peer-to-peer delivery across India.
 
-### User Features
-- **Parcel Request Management** - Multi-step form for creating parcel requests
-- **Traveller Selection** - View and select from available travellers with route visualization
-- **Real-time Tracking** - Live parcel tracking with map integration
-- **Order Dashboard** - Comprehensive order management and history
-- **Profile Management** - User profile with photo upload
+---
 
-### Traveller Features
-- **Route Management** - Create and manage travel routes with map integration
-- **Request Feed** - Real-time parcel requests matching your routes
-- **Acceptance Management** - Accept/reject parcel requests
-- **KYC Verification** - Complete KYC process with document upload
-- **Delivery Management** - Track deliveries with OTP verification
-- **Earnings Dashboard** - View earnings and delivery statistics
+## Tech Stack
 
-### Admin Features
-- **User Management** - View and manage all users
-- **KYC Approval** - Review and approve traveller KYC submissions
-- **Booking Overview** - Monitor all bookings and transactions
-- **Analytics Dashboard** - System-wide statistics and insights
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + JSX |
+| Build Tool | Vite 7 |
+| State Management | Redux Toolkit 2 |
+| Routing | React Router v7 |
+| UI Library | Material-UI (MUI) v6 |
+| Maps | Google Maps JS API + Leaflet / React-Leaflet |
+| Real-time | Socket.IO Client v4 |
+| HTTP Client | Axios |
+| Forms | React Hook Form + Yup |
+| Charts | Chart.js, Recharts |
+| Auth (Social) | Firebase v11 (Google OAuth) |
+| Notifications | Firebase FCM |
+| Animations | Framer Motion |
+| PDF Export | jsPDF |
+| Styling | Tailwind CSS v3 + MUI Emotion |
+| Icons | Lucide React, React Icons, MUI Icons |
+| Testing | Vitest + Testing Library |
 
-### Real-time Features
-- **WebSocket Integration** - Live updates for requests and acceptances
-- **Push Notifications** - FCM-based notifications
-- **Live Route Visualization** - Interactive maps with route geometry
-- **Instant Status Updates** - Real-time booking status changes
+---
 
-## 🛠 Tech Stack
+## Features
 
-- **Framework:** React 18 with JSX
-- **Build Tool:** Vite
-- **State Management:** Redux Toolkit
-- **Routing:** React Router v6
-- **UI Library:** Material-UI (MUI)
-- **Maps:** Leaflet with React-Leaflet
-- **Real-time:** Socket.IO Client
-- **HTTP Client:** Axios
-- **Form Handling:** React Hook Form
-- **Validation:** Zod
-- **Styling:** Tailwind CSS + MUI
-- **Icons:** Lucide React, Material Icons
+### User (Sender)
+- Multi-step parcel request form (pickup → delivery → parcel details → partner selection → review)
+- Real-time traveller matching with route visualization
+- Live parcel tracking with map
+- Order dashboard (active, completed, cancelled)
+- Booking cancellation and dispute filing
+- Feedback and ratings
+- Profile management with photo upload
+- Push notifications (FCM) + in-app notifications
 
-## 📋 Prerequisites
+### Traveller
+- Multi-step route creation wizard with Google Maps integration
+- Real-time parcel request feed matching your route
+- Accept / reject requests
+- OTP-based pickup and drop verification
+- KYC verification (PAN, Aadhaar, Bank)
+- Earnings dashboard
+- Dispute management
+- My Routes management
 
-- Node.js (v16 or higher)
+### Admin
+- Overview dashboard with analytics
+- User and traveller management
+- KYC approval workflow
+- Bookings and payments monitoring
+- Dispute resolution
+- Platform settings
+- Notifications management
+
+### Platform-wide
+- Google OAuth login via Firebase
+- JWT-based session management with auto-timeout
+- WebSocket real-time updates (requests, acceptances, status changes)
+- Role-based access control (Individual / Traveller / Admin)
+- Lazy-loaded routes with error boundaries
+- Optimized production bundle with manual chunk splitting
+
+---
+
+## Prerequisites
+
+- Node.js v18+
 - npm or yarn
-- Backend API running (see backend README)
+- Backend API running (see `BMP-Backend/`)
 
-## 🚀 Quick Start
+---
 
-### 1. Clone & Install
+## Quick Start
 
 ```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
+# 1. Install dependencies
+cd BMP-FE
 npm install
+
+# 2. Configure environment
+cp .env.example .env   # then fill in values (see below)
+
+# 3. Start dev server
+npm run dev
+# → http://localhost:5173
 ```
 
-### 2. Environment Configuration
+---
 
-Create a `.env` file in the frontend root directory:
+## Environment Variables
+
+Create a `.env` file in `BMP-FE/`:
 
 ```env
-# Backend API URL
+# Backend
 VITE_API_URL=http://localhost:3000/api
 VITE_BASE_URL=http://localhost:3000
-
-# WebSocket URL (optional, defaults to VITE_BASE_URL)
 VITE_WS_URL=http://localhost:3000
 
-# Google Maps API Key (for map features)
-VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+# Google Maps
+VITE_GOOGLE_MAPS_API_KEY=your_key
+VITE_GOOGLE_MAPS_JAVASCRIPT_API=your_key
+VITE_GOOGLE_PLACES_API=your_key
+VITE_GOOGLE_GEOCODING_API=your_key
+VITE_GOOGLE_ROUTES_API=your_key
+VITE_GOOGLE_DIRECTION_API=your_key
+VITE_GOOGLE_DISTANCE_MATRIX_API=your_key
+VITE_GOOGLE_GEOLOCATION_KEY=your_key
 
-# Environment
-VITE_NODE_ENV=development
+# Firebase (Google OAuth + FCM)
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
-### 3. Start Development Server
+---
+
+## Scripts
 
 ```bash
-# Start Vite dev server
-npm run dev
+npm run dev          # Start Vite dev server (port 5173)
+npm run build        # Production build → dist/
+npm run preview      # Preview production build locally
+npm run lint         # ESLint
+npm test             # Vitest
+npm run test:watch   # Vitest watch mode
+npm run test:coverage # Coverage report
 ```
 
-The application will start on `http://localhost:5173`
+---
 
-### 4. Build for Production
+## Project Structure
+
+```
+BMP-FE/
+├── public/                  # Static assets
+└── src/
+    ├── components/
+    │   ├── common/          # Shared UI (buttons, inputs, error boundary, etc.)
+    │   ├── map/             # Map components
+    │   ├── modals/          # Modal dialogs
+    │   ├── parcel/          # Parcel-specific components
+    │   └── traveler/        # Traveller-specific components
+    ├── core/
+    │   ├── constants/       # Route paths, app constants, roles
+    │   ├── hooks/           # Custom hooks (useSessionTimeout, etc.)
+    │   ├── services/        # Axios instance, WebSocket service
+    │   ├── theme/           # MUI theme
+    │   └── utils/           # Utility functions
+    ├── firebase/            # Firebase config and auth helpers
+    ├── layouts/             # PublicLayout, UserLayout, TravelerLayout, AdminLayout
+    ├── pages/
+    │   ├── auth/            # Login, Register, ForgotPassword
+    │   ├── public/          # Home, About, Services, Contact, Terms, Policy, etc.
+    │   ├── user/            # User dashboard, request form, tracking, orders
+    │   ├── traveler/        # Traveller dashboard, routes, deliveries, KYC, earnings
+    │   └── admin/           # Admin overview, user mgmt, KYC approval, bookings
+    ├── routes/
+    │   ├── AppRoutes.jsx    # All route definitions (lazy-loaded)
+    │   └── ProtectedRoute.jsx
+    ├── store/
+    │   ├── slices/          # Redux slices (auth, user, traveller, etc.)
+    │   └── store.js
+    ├── App.jsx              # Root component (Redux Provider, MUI Theme, Socket lifecycle)
+    └── main.jsx             # Entry point
+```
+
+---
+
+## Routing Structure
+
+```
+/                          Home
+/about                     About
+/services                  Services
+/contact                   Contact
+/traveler-home             Traveller landing
+/traveler-guidelines       Traveller guidelines
+/traveler-benefits         Traveller benefits
+/terms                     Terms & Conditions
+/policy                    Privacy Policy
+/refund-policy             Refund Policy
+/track                     Public parcel tracking
+/login                     Login
+/register                  Register
+/forgot-password           Forgot Password
+
+/user/*                    User dashboard (role: INDIVIDUAL)
+  /user/                   Dashboard (all orders)
+  /user/request            Create parcel request
+  /user/track/:id          Track parcel
+  /user/profile            Profile
+  /user/notifications      Notifications
+
+/traveler/*                Traveller dashboard (role: TRAVELLER)
+  /traveler/               Dashboard
+  /traveler/requests       Available requests
+  /traveler/deliveries     Active deliveries
+  /traveler/my-routes      My routes
+  /traveler/earnings       Earnings
+  /traveler/profile        Profile
+  /traveler/notifications  Notifications
+
+/admin/*                   Admin panel (role: ADMIN)
+  /admin/                  Overview
+  /admin/users             User management
+  /admin/traveler          KYC approvals
+  /admin/bookings          Bookings
+  /admin/payments          Payments
+  /admin/disputes          Disputes
+  /admin/analytics         Analytics
+  /admin/settings          Platform settings
+```
+
+---
+
+## Authentication Flow
+
+1. Phone/email + password login **or** Google OAuth (Firebase)
+2. JWT token stored in `localStorage`
+3. Axios interceptor attaches `Authorization: Bearer <token>` to every request
+4. Session auto-timeout via `useSessionTimeout` hook
+5. On logout: token blacklisted on backend, Redux state cleared, socket disconnected
+
+---
+
+## Real-time (WebSocket)
+
+Socket connects on login and disconnects on logout. Key events:
+
+```js
+// Traveller receives new matching request
+socket.on('new_request', handler);
+
+// User receives acceptance update
+socket.on('request_accepted', handler);
+
+// Live status changes
+socket.on('booking_status_update', handler);
+```
+
+---
+
+## Production Build
+
+The Vite config splits the bundle into named chunks for optimal caching:
+
+| Chunk | Contents |
+|---|---|
+| `vendor-react` | react, react-dom, react-router-dom |
+| `vendor-redux` | @reduxjs/toolkit, react-redux |
+| `vendor-mui` | MUI, Emotion |
+| `vendor-maps` | Google Maps, Leaflet |
+| `vendor-charts` | Chart.js, Recharts |
+| `vendor-socket` | socket.io-client |
+| `vendor-pdf` | jsPDF |
+| `vendor-animation` | Framer Motion |
+| `vendor-utils` | axios, react-hook-form, yup, react-toastify |
+
+---
+
+## Deployment
+
+### Vercel (live at [bookmyparcel.co.in](https://bookmyparcel.co.in))
 
 ```bash
-# Create production build
+npm install -g vercel
+vercel login
+vercel --prod
+```
+
+Build settings:
+- Build Command: `npm run build`
+- Output Directory: `dist`
+- Install Command: `npm install`
+
+Add all `VITE_*` environment variables in the Vercel dashboard.
+
+### Netlify
+
+```toml
+# netlify.toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+```
+
+### Manual
+
+```bash
 npm run build
-
-# Preview production build
-npm run preview
+# Upload dist/ to your web server / CDN
 ```
 
-## 📁 Project Structure
+---
 
-```
-frontend/
-├── public/              # Static assets
-├── src/
-│   ├── components/      # Reusable UI components
-│   │   ├── common/      # Shared components (buttons, inputs, etc.)
-│   │   ├── map/         # Map-related components
-│   │   ├── modals/      # Modal dialogs
-│   │   ├── parcel/      # Parcel-specific components
-│   │   └── traveler/    # Traveller-specific components
-│   ├── core/            # Core utilities and services
-│   │   ├── common/      # Common utilities
-│   │   ├── constants/   # App constants and configs
-│   │   ├── hooks/       # Custom React hooks
-│   │   ├── services/    # API and service layers
-│   │   └── utils/       # Utility functions
-│   ├── layouts/         # Page layouts
-│   │   ├── PublicLayout.jsx
-│   │   ├── UserLayout.jsx
-│   │   ├── TravelerLayout.jsx
-│   │   └── AdminLayout.jsx
-│   ├── pages/           # Page components
-│   │   ├── auth/        # Authentication pages
-│   │   ├── user/        # User dashboard pages
-│   │   ├── traveler/    # Traveller dashboard pages
-│   │   ├── admin/       # Admin dashboard pages
-│   │   └── public/      # Public pages (home, about, etc.)
-│   ├── routes/          # Route configuration
-│   │   └── AppRoutes.jsx
-│   ├── store/           # Redux store
-│   │   ├── slices/      # Redux slices
-│   │   └── store.js     # Store configuration
-│   ├── App.jsx          # Main app component
-│   ├── main.jsx         # Application entry point
-│   └── index.css        # Global styles
-├── .env                 # Environment variables
-├── vite.config.js       # Vite configuration
-├── tailwind.config.js   # Tailwind CSS configuration
-└── package.json         # Dependencies and scripts
-```
+## Troubleshooting
 
-## 🔑 Key Features Implementation
-
-### Multi-step Parcel Request Form
-- Step 1: Pickup details with address autocomplete
-- Step 2: Delivery details with address autocomplete
-- Step 3: Parcel details (weight, type, photos)
-- Step 4: Partner selection from matched travellers
-- Step 5: Review and submit
-
-### Real-time Updates
-```javascript
-// WebSocket connection for live updates
-import { socket } from './core/services/websocket.service';
-
-// Listen for new requests
-socket.on('new_request', (data) => {
-  // Update UI with new request
-});
-```
-
-### Map Integration
-```javascript
-// Interactive route visualization
-import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
-
-// Display route geometry
-<MapContainer center={[lat, lng]} zoom={13}>
-  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-  <Polyline positions={routeCoordinates} />
-</MapContainer>
-```
-
-### State Management
-```javascript
-// Redux Toolkit slices
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchUserOrders } from './store/slices/userSlice';
-
-const orders = useSelector(state => state.user.orders);
-const dispatch = useDispatch();
-dispatch(fetchUserOrders());
-```
-
-## 🎨 Styling
-
-The application uses a combination of:
-- **Tailwind CSS** for utility-first styling
-- **Material-UI** for component library
-- **Custom CSS** for specific components
-
-```jsx
-// Example: Combining Tailwind with MUI
-<Button 
-  variant="contained" 
-  className="bg-blue-600 hover:bg-blue-700 px-6 py-2"
->
-  Submit
-</Button>
-```
-
-## 🔐 Authentication Flow
-
-1. User enters phone number
-2. OTP sent to phone
-3. User verifies OTP
-4. JWT token stored in localStorage
-5. Token included in all API requests via Axios interceptor
-
-```javascript
-// Axios interceptor for auth
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-```
-
-## 🗺️ Routing Structure
-
-```javascript
-// Public routes
-/                    - Home page
-/login               - Login page
-/signup              - Signup page
-/about               - About page
-/contact             - Contact page
-
-// User routes (authenticated)
-/user/dashboard      - User dashboard
-/user/request        - Create parcel request
-/user/orders         - Order history
-/user/track/:id      - Track parcel
-
-// Traveller routes (authenticated + KYC verified)
-/traveler/dashboard  - Traveller dashboard
-/traveler/routes     - Manage routes
-/traveler/requests   - Available requests
-/traveler/deliveries - Active deliveries
-
-// Admin routes (authenticated + admin role)
-/admin/dashboard     - Admin dashboard
-/admin/users         - User management
-/admin/kyc           - KYC approvals
-/admin/bookings      - Booking management
-```
-
-## 🔄 Common Commands
-
+**Port in use**
 ```bash
-# Development
-npm run dev          # Start dev server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-
-# Testing
-npm test             # Run tests
-npm run test:watch   # Run tests in watch mode
-npm run test:coverage # Generate coverage report
-
-# Utilities
-npm run clean        # Clean build artifacts
-npm run format       # Format code with Prettier
-```
-
-## 🚀 Deployment
-
-### Vercel Deployment (Recommended)
-
-1. **Connect Repository**
-   ```bash
-   # Install Vercel CLI
-   npm install -g vercel
-   
-   # Login and deploy
-   vercel login
-   vercel
-   ```
-
-2. **Configure Environment Variables**
-   - Go to Vercel dashboard
-   - Add environment variables from `.env`
-   - Redeploy
-
-3. **Build Settings**
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
-
-### Netlify Deployment
-
-1. **Build Settings**
-   ```toml
-   [build]
-     command = "npm run build"
-     publish = "dist"
-   ```
-
-2. **Environment Variables**
-   - Add in Netlify dashboard under Site Settings > Environment Variables
-
-### Manual Deployment
-
-```bash
-# Build the application
-npm run build
-
-# The dist/ folder contains the production build
-# Upload dist/ contents to your web server
-```
-
-## 🐛 Troubleshooting
-
-### Port Already in Use
-```bash
-# Kill process on port 5173
-# Windows
 netstat -ano | findstr :5173
 taskkill /PID <PID> /F
-
-# Mac/Linux
-lsof -i :5173
-kill -9 <PID>
 ```
 
-### Build Errors
+**Clear cache**
 ```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Clear Vite cache
 rm -rf node_modules/.vite
 npm run dev
 ```
 
-### API Connection Issues
-```bash
-# Check backend is running
-curl http://localhost:3000/
+**API not connecting** — verify `VITE_API_URL` in `.env` and that the backend is running on port 3000.
 
-# Verify .env file exists and has correct API URL
-cat .env | grep VITE_API_URL
-```
+**Google login fails** — ensure `FIREBASE_SERVICE_ACCOUNT_KEY` in the backend `.env` is a single-line JSON string (no line breaks inside the value).
 
-### WebSocket Connection Issues
-```bash
-# Check WebSocket URL in .env
-# Ensure backend WebSocket server is running
-# Check browser console for connection errors
-```
+---
 
-## 📊 Performance Optimization
+## License
 
-- **Code Splitting** - Lazy loading for routes
-- **Image Optimization** - Compressed images and lazy loading
-- **Bundle Analysis** - Use `npm run build -- --analyze`
-- **Caching** - Service worker for offline support
-- **Memoization** - React.memo for expensive components
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 Code Style
-
-- Use functional components with hooks
-- Follow ESLint configuration
-- Use Prettier for formatting
-- Write meaningful component names
-- Add PropTypes or TypeScript types
-- Document complex logic with comments
-
-## 🆘 Support
-
-For issues and questions:
-- Check existing GitHub issues
-- Create a new issue with detailed description
-- Include error messages and screenshots
-- Provide steps to reproduce
-
-## 📄 License
-
-This project is licensed under the ISC License.
-
-## 🔄 Version History
-
-- **v1.0.0** - Initial release
-  - User parcel request flow
-  - Traveller route management
-  - Real-time matching system
-  - Admin dashboard
-  - Map integration
-  - WebSocket support
+ISC

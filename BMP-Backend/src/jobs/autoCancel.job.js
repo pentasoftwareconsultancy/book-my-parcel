@@ -11,58 +11,10 @@ import { Op } from "sequelize";
 import sequelize from "../config/database.config.js";
 import ParcelRequest from "../modules/matching/parcelRequest.model.js";
 import Parcel from "../modules/parcel/parcel.model.js";
-import TravellerRoute from "../modules/traveller/travellerRoute.model.js";
 
-/**
- * Expire ParcelRequest records whose associated route's departure datetime
- * has already passed. This catches requests that were never explicitly expired
- * via expires_at (e.g. INTERESTED requests that lingered after departure).
- * @returns {number} count of expired requests
- */
 export async function expireRequestsWithExpiredRoutes() {
-  const now = new Date();
-  const todayDate = now.toISOString().slice(0, 10);   // "YYYY-MM-DD"
-  const currentTime = now.toTimeString().slice(0, 8); // "HH:MM:SS"
-
-  // Find all active requests whose route departure has passed
-  const staleRequests = await ParcelRequest.findAll({
-    where: {
-      status: { [Op.in]: ["SENT", "INTERESTED"] },
-    },
-    include: [
-      {
-        model: TravellerRoute,
-        as: "route",
-        required: true,
-        where: {
-          is_recurring: false, // recurring routes are never "expired" by date alone
-          [Op.or]: [
-            { departure_date: { [Op.lt]: todayDate } },
-            {
-              departure_date: todayDate,
-              departure_time: { [Op.lte]: currentTime },
-            },
-          ],
-        },
-        attributes: ["id", "departure_date", "departure_time"],
-      },
-    ],
-    attributes: ["id"],
-  });
-
-  if (staleRequests.length === 0) return 0;
-
-  const ids = staleRequests.map((r) => r.id);
-  const [updatedCount] = await ParcelRequest.update(
-    { status: "EXPIRED" },
-    { where: { id: { [Op.in]: ids } } }
-  );
-
-  if (updatedCount > 0) {
-    console.log(`[AutoCancel] Expired ${updatedCount} request(s) whose route departure has passed`);
-  }
-
-  return updatedCount;
+  console.log("[AutoCancel] Route-departure expiry disabled for testing — skipping route-based request expiration");
+  return 0;
 }
 
 /**
