@@ -32,16 +32,15 @@ export async function findTravellers(req, res) {
       return responseError(res, "Unauthorized", 403);
     }
 
-    // Run matching engine
+    // Run matching engine (internally sets status to MATCHING)
     const result = await matchParcelWithTravellers(parcelId);
 
     if (!result.success) {
       return responseError(res, result.message || "Matching failed", 500);
     }
 
-    // Update parcel status to MATCHING
-    assertValidTransition(parcel.status, "MATCHING", PARCEL_TRANSITIONS, "Parcel");
-    await parcel.update({ status: "MATCHING" });
+    // Re-fetch parcel to get the current status after matchParcelWithTravellers ran
+    await parcel.reload();
 
     // Emit WebSocket event to user
     const io = req.app.get("io");
@@ -398,25 +397,6 @@ export async function getAcceptances(req, res) {
       ];
     }
 
-    const now = new Date();
-    const todayDate = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
-    const currentTime = now.toTimeString().slice(0, 8); // "HH:MM:SS"
-
-    // A route is still valid if:
-    //   - it is recurring (next occurrence is always in the future), OR
-    //   - its departure_date is in the future, OR
-    //   - its departure_date is today AND departure_time hasn't passed yet
-    const validRouteWhere = {
-      [Op.or]: [
-        { is_recurring: true },
-        { departure_date: { [Op.gt]: todayDate } },
-        {
-          departure_date: todayDate,
-          departure_time: { [Op.gt]: currentTime },
-        },
-      ],
-    };
-
     const acceptances = await ParcelAcceptance.findAll({
       where: { parcel_id: parcelId },
       include: [
@@ -429,8 +409,7 @@ export async function getAcceptances(req, res) {
             {
               model: TravellerRoute,
               as: "route",
-              required: true,          // exclude acceptances whose route has been deleted
-              where: validRouteWhere,  // exclude expired routes
+              required: false,
               attributes: ["id", "departure_date", "departure_time", "arrival_date", "arrival_time", "vehicle_type", "vehicle_number", "total_distance_km", "total_duration_minutes", "status", "is_recurring"],
               include: [
                 {
@@ -544,8 +523,7 @@ export async function getAcceptances(req, res) {
           {
             model: TravellerRoute,
             as: "route",
-            required: true,          // exclude requests whose route has expired
-            where: validRouteWhere,  // same datetime filter as acceptances
+            required: false,
             attributes: ["id", "departure_date", "departure_time", "arrival_date", "arrival_time", "vehicle_type", "vehicle_number", "total_distance_km", "total_duration_minutes", "status", "is_recurring"],
             include: [
               {

@@ -28,7 +28,9 @@ export const fetchTravelerStats = createAsyncThunk(
   'traveler/fetchStats',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS);
+      const response = await ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS, {
+        _t: Date.now(),
+      });
       return response.data;
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to fetch stats';
@@ -60,9 +62,9 @@ export const fetchTravelerDashboard = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const [requestsRes, deliveriesRes, statsRes] = await Promise.allSettled([
-        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_REQUESTS, { status: 'SENT,INTERESTED,ACCEPTED,SELECTED,NOT_SELECTED' }),
-        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_DELIVERIES, { status: 'CONFIRMED,PICKUP,IN_TRANSIT' }),
-        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS),
+        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_REQUESTS, { status: 'SENT,INTERESTED,ACCEPTED,SELECTED,NOT_SELECTED', _t: Date.now() }),
+        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_DELIVERIES, { status: 'CONFIRMED,PICKUP,IN_TRANSIT', _t: Date.now() }),
+        ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS, { _t: Date.now() }),
       ]);
 
       return {

@@ -45,11 +45,10 @@ const AuthLayout = ({ title,subtitle, children }) => {
                   One Account. Two Roles.
                 </p>
                 <p className="text-base text-white/85 font-medium mt-0.5">
-                  <p>• Send parcels as an Individual</p>
-                  <p>• Earn by delivering parcels</p>
-                  <p>• Choose your role at login</p>
-
+                  • Send parcels as an Individual
                 </p>
+                <p className="text-base text-white/85 font-medium">• Earn by delivering parcels</p>
+                <p className="text-base text-white/85 font-medium">• Choose your role at login</p>
               </div>
             </div>
           )}

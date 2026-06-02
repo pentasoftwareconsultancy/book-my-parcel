@@ -55,11 +55,15 @@ export const useTravelerDashboard = () => {
         const [reqRes, delRes, statsRes] = await Promise.allSettled([
           ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_REQUESTS, {
             status: "SENT,INTERESTED",
+            _t: Date.now(),
           }),
           ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_DELIVERIES, {
             status: "CONFIRMED,PICKUP,IN_TRANSIT,DELIVERED,CANCELLED",
+            _t: Date.now(),
           }),
-          ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS),
+          ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS, {
+            _t: Date.now(),
+          }),
         ]);
 
         if (reqRes.status === "fulfilled") {

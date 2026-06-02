@@ -64,6 +64,7 @@ class ServerUrl {
   static API_TRAVELER_PARCEL_DETAILS = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}`;
   static API_PARCEL_ACCEPTANCES = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/acceptances`;
   static API_PARCEL_ROUTE_GEOMETRY = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/route-geometry`;
+  static API_PARCEL_FIND_TRAVELLERS = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/find-travellers`;
   static API_PARCEL_SELECT_TRAVELLER = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/select-traveller`;
   static API_UPDATE_PARCEL_STEP = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/step`;
   static API_PARCEL_CANCEL = (id) => `${ServerUrl.API_MODULE_PARCEL}/${id}/cancel`;
