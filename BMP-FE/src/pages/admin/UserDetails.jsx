@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+
 import {
   FiBox,
   FiClock,
@@ -10,6 +10,7 @@ import {
   FiCalendar,
   FiMail
 } from "react-icons/fi";
+
 import { BsCurrencyRupee } from "react-icons/bs";
 import { useParams } from "react-router-dom";
 import RoutePath from "../../core/constants/routes.constant";
@@ -60,7 +61,6 @@ const UserDetails = () => {
   const [activeTab, setActiveTab] = useState(
     RoutePath.ADMIN_USERDETAILS_OVERVIEW
   );
-
   const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [payments, setPayments] = useState([]);
