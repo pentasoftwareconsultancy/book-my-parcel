@@ -2,7 +2,16 @@ import TextInput from "../../core/common/CommonUi";
 import UploadImage from "../../core/common/UploadImage";
 import { SIZE_OPTIONS } from "../../core/hooks/useStepPickup";
 
-const PARCEL_TYPES = ["Documents", "Electronics", "Clothing", "Food", "Medicine", "Fragile", "Books", "Gifts", "Other"];
+const PARCEL_TYPES = [
+  { label: "Documents",   value: "documents" },
+  { label: "Electronics", value: "electronics" },
+  { label: "Clothing",    value: "clothing" },
+  { label: "Food",        value: "food" },
+  { label: "Medicines",   value: "medicines" },
+  { label: "Books",       value: "books" },
+  { label: "Gifts",       value: "gifts" },
+  { label: "Others",      value: "others" },
+];
 
 const VEHICLE_TYPES = ["bike", "car", "suv", "van", "tempo", "truck", "bus", "train", "plane"];
 
@@ -81,7 +90,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
           <select name="parcelType" value={data.parcelType} onChange={(e) => updateFields({ parcelType: e.target.value })}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500">
             <option value="">Select type</option>
-            {PARCEL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {PARCEL_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
         </div>
         <div>

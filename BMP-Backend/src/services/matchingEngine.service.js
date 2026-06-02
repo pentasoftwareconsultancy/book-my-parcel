@@ -18,10 +18,21 @@ import {
 } from "../redis/cache/activeRoutesCache.service.js";
 
 const MAX_CANDIDATES = 20;
-const MAX_DETOUR_PERCENTAGE = 30; // 30% detour allowed
-const MAX_DETOUR_KM = 80; // 80km detour allowed
+const MAX_DETOUR_PERCENTAGE = 30;
+const MAX_DETOUR_KM = 80;
 const DEFAULT_BUFFER_KM = 10;
 const REQUEST_EXPIRY_MINUTES = 120;
+
+function getRouteName(route) {
+  const origin = route.originAddress?.locality || route.originAddress?.city || 'Unknown';
+  const dest   = route.destAddress?.locality   || route.destAddress?.city   || 'Unknown';
+  return `${origin} → ${dest}`;
+}
+
+function getRouteNameById(routes, id) {
+  const r = routes.find((r) => r.id === id);
+  return r ? getRouteName(r) : id;
+}
 
 // ─── Step 1: Fetch Parcel Data ──────────────────────────────────────────────
 async function fetchParcelData(parcelId) {
@@ -38,6 +49,7 @@ async function fetchParcelData(parcelId) {
 
   return {
     id: parcel.id,
+    parcel_ref: parcel.parcel_ref,
     weight: parcel.weight,
     parcel_type: parcel.parcel_type,
     price_quote: parcel.price_quote,
@@ -551,40 +563,32 @@ function applyTransportModeFilters(routes, parcelData) {
     const transitType = route.transit_details?.type || route.transitDetails?.type;
 
     if (transportMode === 'private') {
-      // Private routes continue with existing matching logic
-      console.log(`[Matching] Route ${route.id} is private vehicle - will use standard proximity matching`);
+      console.log(`[Matching] Route ${route.id} (${getRouteName(route)}): private vehicle - standard proximity matching`);
       return true;
     }
 
     // PUBLIC TRANSPORT ROUTES (bus, train, plane)
     if (transportMode === 'public') {
-      // If route has explicit stops data (from transit API), use transit-specific matching
       if (route.stops_passed && Array.isArray(route.stops_passed) && route.stops_passed.length > 0) {
-        // Check if both pickup and drop are near transit stops (2km walking distance)
         const isEligible = isParcelNearTransitRoute(
           parcelData.pickup.lat,
           parcelData.pickup.lng,
           parcelData.delivery.lat,
           parcelData.delivery.lng,
           route.stops_passed,
-          2000 // 2 km walking distance
+          2000
         );
 
         if (isEligible) {
-          console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): Parcel is within walking distance of stops ✓`);
+          console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): Parcel within walking distance of stops ✓`);
           return true;
         } else {
-          // Transit-specific matching failed - FALLBACK to private route approach
-          console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): Parcel NOT within stops distance, FALLING BACK to private route matching (geographic proximity)`);
-          // Continue to spatial/polyline matching in next step (return true = pass this filter)
+          console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): Parcel NOT within 2km of stops → falling back to geographic proximity matching`);
           return true;
         }
       } else {
-        // No explicit stops data: Use route geometry/polyline matching
-        // This handles user-created bus/train routes that don't have transit stop API data
-        // Note: Direction verification is only possible with explicit stops (transit API data)
-        console.log(`[Matching] Route ${route.id} (${transitType || 'public'}): No explicit stops data, using route geometry matching (direction cannot be verified)`);
-        return true; // Will be matched using standard polyline proximity in next step
+        console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): No explicit stops data, using route geometry matching (direction cannot be verified)`);
+        return true;
       }
     }
 
@@ -595,27 +599,33 @@ function applyTransportModeFilters(routes, parcelData) {
 }
 
 // ─── Step 4: Apply Capacity & Preference Filters ────────────────────────────
+const PARCEL_SIZE_VALUES = new Set(["small", "medium", "large", "extra_large", "xl"]);
+
 function applyCapacityAndPreferenceFilters(routes, parcelData) {
   return routes.filter((route) => {
-    // Capacity check — reject if parcel is heavier than route capacity
     if (parcelData.weight && route.available_capacity_kg) {
       if (parcelData.weight > route.available_capacity_kg) {
+        console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${route.id} (${getRouteName(route)}) — parcel weight ${parcelData.weight}kg exceeds route capacity ${route.available_capacity_kg}kg`);
         return false;
       }
     }
 
-    // Parcel type check — reject if type not accepted by this route
     if (route.accepted_parcel_types && route.accepted_parcel_types.length > 0 && parcelData.parcel_type) {
-      const normalizedType = parcelData.parcel_type.toLowerCase();
       const accepted = route.accepted_parcel_types.map((t) => t.toLowerCase());
-      if (!accepted.includes(normalizedType)) {
-        return false;
+      const isSizeList = accepted.every((t) => PARCEL_SIZE_VALUES.has(t));
+
+      if (!isSizeList) {
+        const normalizedType = parcelData.parcel_type.toLowerCase();
+        if (!accepted.includes(normalizedType)) {
+          console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${route.id} (${getRouteName(route)}) — parcel type "${normalizedType}" not accepted (route accepts: [${accepted.join(", ")}])`);
+          return false;
+        }
       }
     }
 
-    // Minimum earning check — skip if parcel has no price quote yet
     if (route.min_earning_per_delivery && parcelData.price_quote !== null) {
       if (parcelData.price_quote < route.min_earning_per_delivery) {
+        console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${route.id} (${getRouteName(route)}) — quote ₹${parcelData.price_quote} < min earning ₹${route.min_earning_per_delivery}`);
         return false;
       }
     }
@@ -992,31 +1002,29 @@ export async function matchParcelWithTravellers(parcelId) {
     for (const candidate of topCandidates) {
       const detourInfo = await calculateExactDetour(candidate, parcelData);
       const transportMode = candidate.transportMode || candidate.transport_mode || 'private';
+      const routeLabel = `${candidate.id} (${getRouteName(candidate)})`;
 
-      // Always have detour info now (no null returns)
       if (detourInfo.isTransitWalkingDistance) {
-        // TRANSIT ROUTES: Check walking distance threshold
         if (detourInfo.detourKm <= MAX_TRANSIT_WALKING_KM) {
           finalCandidates.push({
             ...candidate,
             detourKm: detourInfo.detourKm,
-            detourPercentage: 0, // Not applicable for transit
-            matchScore: Math.max(50, 100 - (detourInfo.detourKm / MAX_TRANSIT_WALKING_KM) * 50), // Score based on walking distance
+            detourPercentage: 0,
+            matchScore: Math.max(50, 100 - (detourInfo.detourKm / MAX_TRANSIT_WALKING_KM) * 50),
           });
         } else {
-          console.log(`[Matching] Candidate ${candidate.id} (${transportMode}, type: ${candidate.transitType}) rejected: walking distance ${detourInfo.detourKm}km exceeds threshold ${MAX_TRANSIT_WALKING_KM}km`);
+          console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${routeLabel} — walking distance ${detourInfo.detourKm}km exceeds threshold ${MAX_TRANSIT_WALKING_KM}km`);
         }
       } else {
-        // PRIVATE ROUTES: Check percentage and absolute threshold
         if (detourInfo.detourPercentage <= MAX_DETOUR_PERCENTAGE && detourInfo.detourKm <= MAX_DETOUR_KM) {
           finalCandidates.push({
             ...candidate,
             detourKm: detourInfo.detourKm,
             detourPercentage: detourInfo.detourPercentage,
-            matchScore: Math.max(10, 100 - detourInfo.detourPercentage), // Minimum 10% match score
+            matchScore: Math.max(10, 100 - detourInfo.detourPercentage),
           });
         } else {
-          console.log(`[Matching] Candidate ${candidate.id} rejected: detour ${detourInfo.detourPercentage.toFixed(1)}% / ${detourInfo.detourKm}km exceeds thresholds`);
+          console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${routeLabel} — detour ${detourInfo.detourPercentage.toFixed(1)}% / ${detourInfo.detourKm}km exceeds thresholds`);
         }
       }
     }
@@ -1024,7 +1032,7 @@ export async function matchParcelWithTravellers(parcelId) {
     console.log(`[Matching] Final candidates after detour check: ${finalCandidates.length}`);
 
     if (finalCandidates.length === 0) {
-      console.log(`[Matching] No candidates within acceptable detour for parcel ${parcelId}`);
+        console.log(`[Matching] Parcel ${parcelData.parcel_ref || parcelId} (id:${parcelData.id}): no candidates within acceptable detour`);
       return { success: true, requestsSent: 0, message: "No candidates within acceptable detour" };
     }
 
@@ -1035,6 +1043,7 @@ export async function matchParcelWithTravellers(parcelId) {
     return {
       success: true,
       requestsSent: requests.length,
+      parcel_ref: parcelData.parcel_ref,
       requests: requests.map((r) => ({
         id: r.id,
         traveller_id: r.traveller_id,
@@ -1109,7 +1118,15 @@ export async function expireOldRequests() {
  */
 export async function matchRouteWithExistingParcels(routeId) {
   try {
-    console.log(`[Matching] Checking route ${routeId} against existing parcels`);
+    const route = await TravellerRoute.findByPk(routeId, {
+      include: [
+        { model: Address, as: "originAddress", attributes: ["locality", "city"] },
+        { model: Address, as: "destAddress", attributes: ["locality", "city"] },
+      ],
+    });
+    const routeName = getRouteName(route || {});
+
+    console.log(`[Matching] Checking route ${routeId} (${routeName}) against existing parcels`);
 
     // Find all parcels that are still looking for travellers
     // Using only valid enum values from the Parcel model
@@ -1122,14 +1139,13 @@ export async function matchRouteWithExistingParcels(routeId) {
           [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days instead of 24 hours
         },
       },
-      attributes: ["id", "status", "createdAt"],
+      attributes: ["id", "parcel_ref", "status", "createdAt"],
     });
 
-    console.log(`[Matching] Found ${matchingParcels.length} parcels in matching-eligible status`);
-    
-    // Log details of found parcels
+    console.log(`[Matching] Found ${matchingParcels.length} parcels in matching-eligible status for route ${routeId} (${routeName})`);
+
     matchingParcels.forEach(parcel => {
-      console.log(`[Matching] Parcel ${parcel.id}: status=${parcel.status}, created=${parcel.createdAt}`);
+      console.log(`[Matching]   Parcel ${parcel.parcel_ref || parcel.id}: status=${parcel.status}`);
     });
 
     if (matchingParcels.length === 0) {
@@ -1141,16 +1157,16 @@ export async function matchRouteWithExistingParcels(routeId) {
     // For each parcel, run the matching engine
     for (const parcel of matchingParcels) {
       try {
-        console.log(`[Matching] Attempting to match route ${routeId} with parcel ${parcel.id}`);
+        console.log(`[Matching] Attempting to match route ${routeId} (${routeName}) with parcel ${parcel.parcel_ref || parcel.id}`);
         const result = await matchParcelWithTravellers(parcel.id);
         if (result.success && result.requestsSent > 0) {
           totalMatched++;
-          console.log(`[Matching] ✅ Route ${routeId} matched with parcel ${parcel.id} - ${result.requestsSent} requests sent`);
+          console.log(`[Matching] ✅ Route ${routeId} (${routeName}) matched with parcel ${parcel.parcel_ref || parcel.id} — ${result.requestsSent} requests sent`);
         } else {
-          console.log(`[Matching] ❌ Route ${routeId} did not match with parcel ${parcel.id} - ${result.message}`);
+          console.log(`[Matching] ❌ Route ${routeId} (${routeName}) did not match with parcel ${parcel.parcel_ref || parcel.id} — ${result.message}`);
         }
       } catch (error) {
-        console.error(`[Matching] Error matching route ${routeId} with parcel ${parcel.id}:`, error.message);
+        console.error(`[Matching] Error matching route ${routeId} with parcel ${parcel.parcel_ref || parcel.id}:`, error.message);
         // Continue with other parcels even if one fails
       }
     }
