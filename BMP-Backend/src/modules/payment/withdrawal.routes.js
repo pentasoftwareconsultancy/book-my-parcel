@@ -18,6 +18,175 @@ import {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/payment/wallet/balance:
+ *   get:
+ *     summary: Get wallet balance
+ *     description: Get current wallet balance for authenticated user
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Balance retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 balance:
+ *                   type: number
+ *                 wallet_id:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /api/payment/wallet/details:
+ *   get:
+ *     summary: Get wallet details
+ *     description: Get detailed wallet information
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Wallet details retrieved
+ */
+
+/**
+ * @swagger
+ * /api/payment/wallet/transactions:
+ *   get:
+ *     summary: Get wallet transactions
+ *     description: Get transaction history for wallet
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *     responses:
+ *       200:
+ *         description: Transactions retrieved
+ */
+
+/**
+ * @swagger
+ * /api/payment/kyc/bank-status:
+ *   get:
+ *     summary: Check KYC status
+ *     description: Check KYC and bank verification status
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: KYC status retrieved
+ */
+
+/**
+ * @swagger
+ * /api/payment/withdrawal/request:
+ *   post:
+ *     summary: Request withdrawal
+ *     description: Create a withdrawal request from wallet
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 minimum: 1
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Withdrawal requested
+ */
+
+/**
+ * @swagger
+ * /api/payment/withdrawal/history:
+ *   get:
+ *     summary: Get withdrawal history
+ *     description: Get all withdrawal requests history
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Withdrawal history retrieved
+ */
+
+/**
+ * @swagger
+ * /api/payment/withdrawal/{id}:
+ *   get:
+ *     summary: Get withdrawal details
+ *     description: Get details of a specific withdrawal
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Withdrawal details retrieved
+ */
+
+/**
+ * @swagger
+ * /api/payment/withdrawal/{id}/process:
+ *   post:
+ *     summary: Process withdrawal (Admin)
+ *     description: Process a pending withdrawal request (Admin only)
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Withdrawal processed
+ */
+
 function parsePagination(query) {
   const limit = Math.min(Math.max(parseInt(query.limit, 10) || 50, 1), 100);
   const offset = Math.max(parseInt(query.offset, 10) || 0, 0);

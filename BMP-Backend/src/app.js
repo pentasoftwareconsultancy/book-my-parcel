@@ -7,6 +7,7 @@ import sequelize from "./config/database.config.js";
 import routes from "./routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { sanitizeBody } from "./middlewares/sanitize.middleware.js";
+import { swaggerUi, swaggerSpec } from "./config/swagger.config.js";
 
 const app = express();
 
@@ -101,6 +102,9 @@ app.use("/uploads/profiles", express.static("uploads/profiles", staticOptions));
 app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
 app.use("/uploads/proofs",   express.static("uploads/proofs",   staticOptions));
 // NOTE: /uploads/kyc is NOT exposed — served via authenticated API route only.
+
+// ── Swagger API Documentation ─────────────────────────────────────────────────
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ── API routes ────────────────────────────────────────────────────────────────
 // Single versioned mount — /api/v1 is the canonical path.

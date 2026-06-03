@@ -4,6 +4,214 @@ import { generalLimiter } from "../../middlewares/rateLimit.middleware.js";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/places/autocomplete:
+ *   get:
+ *     summary: Place autocomplete suggestions
+ *     description: Get autocomplete suggestions for addresses using Google Places API
+ *     tags: [Places]
+ *     parameters:
+ *       - in: query
+ *         name: input
+ *         required: true
+ *         schema:
+ *           type: string
+ *           minLength: 2
+ *         description: Search text for place suggestions
+ *         example: 'mumbai central'
+ *     responses:
+ *       200:
+ *         description: Place suggestions returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 predictions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       place_id:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       structured_formatting:
+ *                         type: object
+ *                         properties:
+ *                           main_text:
+ *                             type: string
+ *                           secondary_text:
+ *                             type: string
+ *                 status:
+ *                   type: string
+ *                   example: 'OK'
+ *       400:
+ *         description: Invalid input (too short)
+ */
+
+/**
+ * @swagger
+ * /api/places/geocode:
+ *   get:
+ *     summary: Geocode address to coordinates
+ *     description: Convert address string or place ID to latitude/longitude coordinates
+ *     tags: [Places]
+ *     parameters:
+ *       - in: query
+ *         name: address
+ *         schema:
+ *           type: string
+ *         description: Address to geocode
+ *         example: 'Gateway of India, Mumbai'
+ *       - in: query
+ *         name: placeId
+ *         schema:
+ *           type: string
+ *         description: Google Place ID (alternative to address)
+ *     responses:
+ *       200:
+ *         description: Coordinates and address details returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: 'OK'
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       formatted_address:
+ *                         type: string
+ *                       geometry:
+ *                         type: object
+ *                         properties:
+ *                           location:
+ *                             type: object
+ *                             properties:
+ *                               lat:
+ *                                 type: number
+ *                               lng:
+ *                                 type: number
+ *                       address_components:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *       400:
+ *         description: Address or placeId required
+ */
+
+/**
+ * @swagger
+ * /api/places/maps-key:
+ *   get:
+ *     summary: Get Google Maps API key
+ *     description: Get the Google Maps JavaScript API key for frontend map rendering
+ *     tags: [Places]
+ *     responses:
+ *       200:
+ *         description: API key returned
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 key:
+ *                   type: string
+ *                   description: Google Maps JavaScript API key
+ *       503:
+ *         description: Maps API key not configured
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 error:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /api/places/directions:
+ *   post:
+ *     summary: Get route directions
+ *     description: Calculate route between two points using Google Routes API
+ *     tags: [Places]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - origin
+ *               - destination
+ *             properties:
+ *               origin:
+ *                 type: object
+ *                 required:
+ *                   - lat
+ *                   - lng
+ *                 properties:
+ *                   lat:
+ *                     type: number
+ *                     example: 19.0760
+ *                   lng:
+ *                     type: number
+ *                     example: 72.8777
+ *               destination:
+ *                 type: object
+ *                 required:
+ *                   - lat
+ *                   - lng
+ *                 properties:
+ *                   lat:
+ *                     type: number
+ *                     example: 18.5204
+ *                   lng:
+ *                     type: number
+ *                     example: 73.8567
+ *               travelMode:
+ *                 type: string
+ *                 enum: ['DRIVE', 'TWO_WHEELER', 'WALK']
+ *                 default: 'DRIVE'
+ *                 description: Mode of transportation
+ *     responses:
+ *       200:
+ *         description: Route calculated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 encodedPolyline:
+ *                   type: string
+ *                   description: Encoded polyline for route visualization
+ *                 distanceMeters:
+ *                   type: integer
+ *                   description: Total distance in meters
+ *                 durationSeconds:
+ *                   type: integer
+ *                   description: Estimated duration in seconds
+ *       400:
+ *         description: Invalid coordinates
+ *       404:
+ *         description: No route found
+ */
+
+
+
 // Apply rate limiting to all places routes (public endpoints)
 router.use(generalLimiter);
 

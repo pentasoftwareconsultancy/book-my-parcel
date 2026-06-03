@@ -1,5 +1,5 @@
 import React from "react";
- import benefits from "./datafiles/Benefits";
+ import benefits from "../datafiles/Benefits";
  
 const TravelerBenefits = () => {
   return (
