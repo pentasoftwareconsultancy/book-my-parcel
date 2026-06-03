@@ -13,6 +13,97 @@ import {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/traveller/routes:
+ *   post:
+ *     summary: Create new route
+ *     tags: [Traveller Routes]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TravellerRoute'
+ *     responses:
+ *       201:
+ *         description: Route created
+ *   get:
+ *     summary: Get my routes
+ *     tags: [Traveller Routes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Routes retrieved
+ */
+
+/**
+ * @swagger
+ * /api/traveller/routes/{id}:
+ *   get:
+ *     summary: Get route by ID
+ *     tags: [Traveller Routes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Route details
+ *   put:
+ *     summary: Update route
+ *     tags: [Traveller Routes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TravellerRoute'
+ *     responses:
+ *       200:
+ *         description: Route updated
+ *   delete:
+ *     summary: Delete route
+ *     tags: [Traveller Routes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Route deleted
+ */
+
+
+
 // Apply rate limiting and authentication to all routes
 router.use(generalLimiter);
 router.use(authMiddleware);

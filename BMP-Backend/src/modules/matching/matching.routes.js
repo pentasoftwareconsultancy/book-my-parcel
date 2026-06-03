@@ -29,30 +29,299 @@ router.use(generalLimiter);
 
 // ─── Parcel Owner Routes ────────────────────────────────────────────────────
 
-// POST /api/parcel/:id/find-travellers - Trigger matching
+/**
+ * @swagger
+ * /api/parcel/{id}/find-travellers:
+ *   post:
+ *     summary: Find available travellers
+ *     description: Trigger matching algorithm to find travellers for this parcel
+ *     tags: [Parcel]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel ID
+ *     responses:
+ *       200:
+ *         description: Matching triggered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       404:
+ *         description: Parcel not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
 router.post("/:id/find-travellers", authMiddleware, findTravellers);
 
-// GET /api/parcel/:id/acceptances - Get acceptances for a parcel
+/**
+ * @swagger
+ * /api/parcel/{id}/acceptances:
+ *   get:
+ *     summary: Get parcel acceptances
+ *     description: Get all traveller acceptances for this parcel
+ *     tags: [Parcel]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel ID
+ *     responses:
+ *       200:
+ *         description: Acceptances retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       traveller_id:
+ *                         type: string
+ *                       traveller_name:
+ *                         type: string
+ *                       match_score:
+ *                         type: number
+ *                       detour_km:
+ *                         type: number
+ *                       accepted_at:
+ *                         type: string
+ *                         format: date-time
+ */
 router.get("/:id/acceptances", authMiddleware, getAcceptances);
 
-// GET /api/parcel/:id/route-geometry - Get route geometry for acceptances
+/**
+ * @swagger
+ * /api/parcel/{id}/route-geometry:
+ *   get:
+ *     summary: Get route geometry
+ *     description: Get route geometry for acceptances visualization
+ *     tags: [Parcel]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Route geometry retrieved
+ */
 router.get("/:id/route-geometry", authMiddleware, getRouteGeometry);
 
-// POST /api/parcel/:id/select-traveller - Select a traveller
+/**
+ * @swagger
+ * /api/parcel/{id}/select-traveller:
+ *   post:
+ *     summary: Select traveller
+ *     description: Select a specific traveller for this parcel delivery
+ *     tags: [Parcel]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - traveller_id
+ *             properties:
+ *               traveller_id:
+ *                 type: string
+ *                 format: uuid
+ *                 description: ID of the selected traveller
+ *     responses:
+ *       200:
+ *         description: Traveller selected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       $ref: '#/components/schemas/Booking'
+ */
 router.post("/:id/select-traveller", authMiddleware, validateRequest(selectTravellerSchema), selectTraveller);
 
 // ─── Traveller Routes ───────────────────────────────────────────────────────
 
-// POST /api/traveller/requests/:requestId/express-interest - Express interest in a request
+/**
+ * @swagger
+ * /api/traveller/requests/{requestId}/express-interest:
+ *   post:
+ *     summary: Express interest in parcel
+ *     description: Express interest in a parcel delivery request
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel request ID
+ *     responses:
+ *       200:
+ *         description: Interest expressed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ */
 router.post("/requests/:requestId/express-interest", authMiddleware, expressInterest);
 
-// POST /api/traveller/requests/:requestId/accept - Accept a request
+/**
+ * @swagger
+ * /api/traveller/requests/{requestId}/accept:
+ *   post:
+ *     summary: Accept parcel request
+ *     description: Accept a parcel delivery request
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel request ID
+ *     responses:
+ *       200:
+ *         description: Request accepted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ */
 router.post("/requests/:requestId/accept", authMiddleware, acceptRequest);
 
-// POST /api/traveller/requests/:requestId/reject - Reject a request
+/**
+ * @swagger
+ * /api/traveller/requests/{requestId}/reject:
+ *   post:
+ *     summary: Reject parcel request
+ *     description: Reject a parcel delivery request
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Parcel request ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 description: Reason for rejection
+ *     responses:
+ *       200:
+ *         description: Request rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ */
 router.post("/requests/:requestId/reject", authMiddleware, rejectRequest);
 
-// GET /api/traveller/requests - Get all requests for traveller
+/**
+ * @swagger
+ * /api/traveller/requests:
+ *   get:
+ *     summary: Get available requests
+ *     description: Get all parcel requests matching traveller's routes
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [SENT, INTERESTED, ACCEPTED, REJECTED, EXPIRED]
+ *         description: Filter by request status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: Requests retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       request_id:
+ *                         type: string
+ *                       parcel:
+ *                         $ref: '#/components/schemas/Parcel'
+ *                       match_score:
+ *                         type: number
+ *                       detour_km:
+ *                         type: number
+ *                       expires_at:
+ *                         type: string
+ *                         format: date-time
+ */
 router.get("/requests", authMiddleware, getTravellerRequests);
 
 // ─── Admin/Testing Routes ───────────────────────────────────────────────────
