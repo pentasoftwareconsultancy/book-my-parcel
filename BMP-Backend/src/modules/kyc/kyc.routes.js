@@ -10,6 +10,101 @@ import TravellerKYC from "../traveller/travellerKYC.model.js";
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/kyc/pan:
+ *   post:
+ *     summary: Verify PAN
+ *     description: Verify PAN card details
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pan_number:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: PAN verified
+ */
+
+/**
+ * @swagger
+ * /api/kyc/bank/verify:
+ *   post:
+ *     summary: Verify bank account
+ *     description: Verify bank account details
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               account_number:
+ *                 type: string
+ *               ifsc:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Bank account verified
+ */
+
+/**
+ * @swagger
+ * /api/kyc/bank/recipient:
+ *   post:
+ *     summary: Add bank recipient
+ *     description: Add bank recipient for payouts
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               account_number:
+ *                 type: string
+ *               ifsc:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Recipient added
+ */
+
+/**
+ * @swagger
+ * /api/kyc/document/{filename}:
+ *   get:
+ *     summary: Get KYC document
+ *     description: Retrieve KYC document (authenticated access only)
+ *     tags: [Traveller]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: filename
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Document retrieved
+ */
+
 // ── KYC Verification endpoints ────────────────────────────────────────────────
 router.post("/pan",            authMiddleware, sensitiveLimiter, verifyPan);
 router.post("/bank/verify",    authMiddleware, sensitiveLimiter, verifyBankAccount);

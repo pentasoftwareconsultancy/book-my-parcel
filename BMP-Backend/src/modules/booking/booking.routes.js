@@ -27,6 +27,470 @@ import {
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /api/booking/{bookingId}/start-pickup:
+ *   post:
+ *     summary: Start pickup process
+ *     description: Initiate the pickup process by generating and sending OTP to sender
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     responses:
+ *       200:
+ *         description: Pickup OTP sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         otp_sent:
+ *                           type: boolean
+ *                         phone_number:
+ *                           type: string
+ *       400:
+ *         description: Invalid booking status or booking not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/verify-pickup:
+ *   post:
+ *     summary: Verify pickup OTP
+ *     description: Verify pickup OTP provided by sender to confirm parcel pickup
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otp
+ *             properties:
+ *               otp:
+ *                 type: string
+ *                 pattern: '^[0-9]{4}$'
+ *                 example: '1234'
+ *                 description: 4-digit OTP received by sender
+ *     responses:
+ *       200:
+ *         description: Pickup verified successfully, parcel is now in transit
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         status:
+ *                           type: string
+ *                           example: 'IN_TRANSIT'
+ *                         pickup_verified_at:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Invalid OTP or booking not in correct state
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/start-delivery:
+ *   post:
+ *     summary: Start delivery process
+ *     description: Initiate the delivery process by generating and sending OTP to recipient
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     responses:
+ *       200:
+ *         description: Delivery OTP sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         otp_sent:
+ *                           type: boolean
+ *                         phone_number:
+ *                           type: string
+ *       400:
+ *         description: Booking not in transit or not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/verify-delivery:
+ *   post:
+ *     summary: Verify delivery OTP
+ *     description: Verify delivery OTP provided by recipient to complete parcel delivery
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otp
+ *             properties:
+ *               otp:
+ *                 type: string
+ *                 pattern: '^[0-9]{4}$'
+ *                 example: '5678'
+ *                 description: 4-digit OTP received by recipient
+ *     responses:
+ *       200:
+ *         description: Delivery verified successfully, parcel delivered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         status:
+ *                           type: string
+ *                           example: 'DELIVERED'
+ *                         delivered_at:
+ *                           type: string
+ *                           format: date-time
+ *                         payment_released:
+ *                           type: boolean
+ *       400:
+ *         description: Invalid OTP or delivery cannot be completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/cancel:
+ *   post:
+ *     summary: Cancel booking
+ *     description: Cancel a booking (traveller initiated cancellation)
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 example: 'Unable to complete delivery due to vehicle breakdown'
+ *                 description: Reason for cancellation
+ *               cancel_reason:
+ *                 type: string
+ *                 enum: ['TRAVELLER_CANCELLED', 'VEHICLE_ISSUE', 'EMERGENCY', 'OTHER']
+ *                 description: Category of cancellation reason
+ *     responses:
+ *       200:
+ *         description: Booking cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/SuccessResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         status:
+ *                           type: string
+ *                           example: 'CANCELLED'
+ *                         refund_initiated:
+ *                           type: boolean
+ *       400:
+ *         description: Booking cannot be cancelled in current status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/receive-payment:
+ *   post:
+ *     summary: Receive payment (Pay After Delivery)
+ *     description: Mark that payment has been received from recipient for PAD orders
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Booking ID
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount_received:
+ *                 type: number
+ *                 description: Amount received from recipient
+ *               notes:
+ *                 type: string
+ *                 description: Additional notes about payment reception
+ *     responses:
+ *       200:
+ *         description: Payment reception confirmed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/chat:
+ *   get:
+ *     summary: Get chat history
+ *     description: Retrieve chat messages for a booking
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *           maximum: 200
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *     responses:
+ *       200:
+ *         description: Chat messages retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       booking_id:
+ *                         type: string
+ *                       sender_id:
+ *                         type: string
+ *                       sender_role:
+ *                         type: string
+ *                       message:
+ *                         type: string
+ *                       is_read:
+ *                         type: boolean
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/delivery-attempt:
+ *   post:
+ *     summary: Log delivery attempt
+ *     description: Log a failed delivery attempt when recipient is unavailable
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 enum: ['recipient_unavailable', 'address_incorrect', 'recipient_refused']
+ *                 default: 'recipient_unavailable'
+ *               notes:
+ *                 type: string
+ *                 description: Additional details about the failed attempt
+ *               rescheduled_at:
+ *                 type: string
+ *                 format: date-time
+ *                 description: When the next delivery attempt is scheduled
+ *               attempt_photo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Photo evidence of delivery attempt
+ *     responses:
+ *       201:
+ *         description: Delivery attempt logged
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 attempt:
+ *                   type: object
+ *                 attempts_remaining:
+ *                   type: integer
+ *                 auto_cancelled:
+ *                   type: boolean
+ */
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/delivery-attempts:
+ *   get:
+ *     summary: Get delivery attempts
+ *     description: Get all delivery attempts for a booking
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Delivery attempts retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       attempt_number:
+ *                         type: integer
+ *                       reason:
+ *                         type: string
+ *                       notes:
+ *                         type: string
+ *                       photo_url:
+ *                         type: string
+ *                       attempted_at:
+ *                         type: string
+ *                         format: date-time
+ *                       rescheduled_at:
+ *                         type: string
+ *                         format: date-time
+ */
+
+
+
 // All routes require authentication
 router.use(authMiddleware);
 
