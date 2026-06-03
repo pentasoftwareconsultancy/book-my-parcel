@@ -871,7 +871,10 @@ export async function selectTraveller(req, res) {
 export async function getTravellerRequests(req, res) {
   try {
     const travellerId = req.user.id;
-    const { status = "SENT" } = req.query;
+    const { status } = req.query;
+    
+    // Default to showing SENT and INTERESTED requests (traveller should see both)
+    const statusFilter = status ? status.split(',') : ['SENT', 'INTERESTED'];
 
     const now = new Date();
     const todayDate = now.toISOString().slice(0, 10);
@@ -891,7 +894,7 @@ export async function getTravellerRequests(req, res) {
     const requests = await ParcelRequest.findAll({
       where: {
         traveller_id: travellerId,
-        ...(status && { status }),
+        status: { [Op.in]: statusFilter },
       },
       include: [
         {
