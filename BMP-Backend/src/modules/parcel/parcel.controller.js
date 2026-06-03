@@ -11,14 +11,9 @@ export const createParcel = async (req, res) => {
 
     const result = await createParcelRequest(parcelData, req.files);
 
-    // Trigger matching asynchronously (don't block API response path)
-    await enqueueAsyncTask("match_parcel_with_travellers", {
-      parcelId: result.parcel.id,
-      pickupCity: result.pickupAddress.city,
-      deliveryCity: result.deliveryAddress.city,
-    });
-
     // Return the parcel ID and booking ID to frontend
+    // Note: matching is triggered by the frontend when the user reaches
+    // the partner selection step (POST /api/parcel/:id/find-travellers)
     return responseSuccess(res, {
       id: result.parcel.id,
       parcel: result.parcel,
@@ -109,7 +104,17 @@ export const updateParcelStep = async (req, res) => {
 
     // Import the service function
     const { updateParcelStep: updateStep } = await import("./parcel.service.js");
-    const updatedParcel = await updateStep(id, stepData, req); // Pass req for WebSocket access
+    const updatedParcel = await updateStep(id, stepData, req);
+
+    // Re-trigger matching when parcel details are edited (step 1 = parcel details updated)
+    // Also re-trigger if pickup/delivery addresses changed
+    if (stepData.form_step === 1 || stepData.pickup_address || stepData.delivery_address) {
+      await enqueueAsyncTask("match_parcel_with_travellers", {
+        parcelId: id,
+        pickupCity: parcel.pickupAddress?.city,
+        deliveryCity: parcel.deliveryAddress?.city,
+      });
+    }
 
     return responseSuccess(
       res,

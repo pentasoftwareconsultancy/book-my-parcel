@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IoCarOutline } from "react-icons/io5";
 import { IoCarSport } from "react-icons/io5";
-import { FaBus, FaTrainSubway } from "react-icons/fa6";
+import { FaBus, FaTrainSubway, FaPlane } from "react-icons/fa6";
 import RoutePath from "../../../core/constants/routes.constant";
 import { APPLICATION_CONSTANTS } from "../../../core/constants/app.constant";
 import { validateRequired, validateVehicleNumber, validateWeight } from "../../../core/utils/validation";
@@ -15,6 +15,7 @@ const TRANSPORT_MODES = [
   { value: "private", label: "Private Vehicle", icon: <IoCarSport /> },
   { value: "bus",     label: "Bus",             icon: <FaBus /> },
   { value: "train",   label: "Train",           icon: <FaTrainSubway /> },
+  { value: "plane",   label: "Plane",           icon: <FaPlane /> },
 ];
 
 const INITIAL_STATE = {
@@ -30,6 +31,9 @@ const INITIAL_STATE = {
   hasReservation: false,
   pnrNumber: "",
   seatNumbers: "",
+  planeAirlineName: "",
+  planeFlightNumber: "",
+  planeBaggageType: "cabin",
 };
 
 export default function TravelRoute2() {
@@ -66,10 +70,13 @@ export default function TravelRoute2() {
         if (!formData.seatNumbers) e.seatNumbers = "Please enter seat numbers";
       }
     }
+    if (formData.transportMode === "plane") {
+      if (!formData.planeAirlineName) e.planeAirlineName = "Airline name is required";
+    }
     const weightErr = validateWeight(formData.maxWeightKg, "Max weight");
     if (weightErr) e.maxWeightKg = weightErr;
-    else if (formData.transportMode !== "private" && Number(formData.maxWeightKg) > 5)
-      e.maxWeightKg = "Maximum weight for public transport is 5 kg";
+    else if (formData.transportMode !== "private" && Number(formData.maxWeightKg) > 15)
+      e.maxWeightKg = "Maximum weight for public transport is 15 kg";
 
     setErrors(e);
     return Object.keys(e).length === 0;

@@ -35,7 +35,12 @@ const TRAIN_CLASSES = [
   { value: "sleeper", label: "Sleeper" },
   { value: "general", label: "General" },
 ];
-const WEIGHT_OPTIONS = ["1", "2", "3", "4", "5"];
+const BUS_WEIGHT_OPTIONS = ["1", "2", "3", "4", "5"];
+const PLANE_WEIGHT_OPTIONS = ["1", "2", "3", "4", "5", "7", "10", "15"];
+const PLANE_BAGGAGE_TYPES = [
+  { value: "cabin", label: "Cabin Baggage", max: 7 },
+  { value: "checked", label: "Checked Baggage", max: 15 },
+];
 
 export default function PublicTransportForm({ formData, errors, onChange }) {
   const { transportMode } = formData;
@@ -101,35 +106,73 @@ export default function PublicTransportForm({ formData, errors, onChange }) {
               <span className="text-sm text-gray-500">{formData.hasReservation ? "Yes" : "No"}</span>
             </div>
 
-            {formData.hasReservation && (
-              <>
-                <Field label="PNR Number *" error={errors.pnrNumber} helper="10-digit PNR">
-                  <Input
-                    placeholder="e.g. 9876543210"
-                    value={formData.pnrNumber}
-                    onChange={(e) => onChange("pnrNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    maxLength={10}
-                    error={!!errors.pnrNumber}
-                  />
-                </Field>
-                <Field label="Seat Numbers *" error={errors.seatNumbers} helper="e.g. 32A, 32B or 45">
-                  <Input placeholder="e.g. 32A, 32B" value={formData.seatNumbers} onChange={(e) => onChange("seatNumbers", e.target.value)} error={!!errors.seatNumbers} />
-                </Field>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+{formData.hasReservation && (
+               <>
+                 <Field label="PNR Number *" error={errors.pnrNumber} helper="10-digit PNR">
+                   <Input
+                     placeholder="e.g. 9876543210"
+                     value={formData.pnrNumber}
+                     onChange={(e) => onChange("pnrNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                     maxLength={10}
+                     error={!!errors.pnrNumber}
+                   />
+                 </Field>
+                 <Field label="Seat Numbers *" error={errors.seatNumbers} helper="e.g. 32A, 32B or 45">
+                   <Input placeholder="e.g. 32A, 32B" value={formData.seatNumbers} onChange={(e) => onChange("seatNumbers", e.target.value)} error={!!errors.seatNumbers} />
+                 </Field>
+               </>
+             )}
+           </div>
+         </div>
+       )}
 
-      {/* MAX WEIGHT */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Field label="Max Weight (kg) *" error={errors.maxWeightKg} helper="Select maximum luggage weight">
-          <Select value={formData.maxWeightKg} onChange={(e) => onChange("maxWeightKg", e.target.value)} error={!!errors.maxWeightKg}>
-            <option value="">Select weight</option>
-            {WEIGHT_OPTIONS.map((w) => <option key={w} value={w}>{w} kg</option>)}
-          </Select>
-        </Field>
-      </div>
+       {/* PLANE */}
+       {transportMode === "plane" && (
+         <div className="mb-4">
+           <p className="text-sm font-semibold text-blue-700 mb-3">✈️ Airline Details</p>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <Field label="Airline Name *" error={errors.planeAirlineName}>
+               <Input placeholder="e.g. Indigo, Air India" value={formData.planeAirlineName} onChange={(e) => onChange("planeAirlineName", e.target.value)} error={!!errors.planeAirlineName} />
+             </Field>
+             <Field label="Flight Number" error={errors.planeFlightNumber} helper="(Optional - e.g. 6E-123)">
+               <Input placeholder="e.g. 6E-123" value={formData.planeFlightNumber} onChange={(e) => onChange("planeFlightNumber", e.target.value)} error={!!errors.planeFlightNumber} />
+             </Field>
+           </div>
+
+           {/* Baggage Type Selection */}
+           <div className="mt-4">
+             <p className="text-sm font-semibold text-gray-700 mb-2">Baggage Type *</p>
+             <div className="flex gap-3 flex-wrap">
+               {PLANE_BAGGAGE_TYPES.map((b) => {
+                 const selected = formData.planeBaggageType === b.value;
+                 return (
+                   <button
+                     key={b.value}
+                     type="button"
+                     onClick={() => { onChange("planeBaggageType", b.value); onChange("maxWeightKg", String(b.max)); }}
+                     className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors
+                       ${selected ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"}`}
+                   >
+                     {b.label} (Max {b.max} kg)
+                   </button>
+                 );
+               })}
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* MAX WEIGHT */}
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <Field label="Max Weight (kg) *" error={errors.maxWeightKg} helper={transportMode === "plane" ? "Auto-filled based on baggage type, can adjust" : "Select maximum luggage weight"}>
+           <Select value={formData.maxWeightKg} onChange={(e) => onChange("maxWeightKg", e.target.value)} error={!!errors.maxWeightKg}>
+             <option value="">Select weight</option>
+             {transportMode === "plane"
+               ? PLANE_WEIGHT_OPTIONS.map((w) => <option key={w} value={w}>{w} kg</option>)
+               : BUS_WEIGHT_OPTIONS.map((w) => <option key={w} value={w}>{w} kg</option>)}
+           </Select>
+         </Field>
+       </div>
     </>
   );
 }

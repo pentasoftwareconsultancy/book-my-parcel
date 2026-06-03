@@ -42,38 +42,38 @@ export const BookingModal = ({ booking, onClose }) => {
   const steps = getTimelineSteps(booking.rawStatus);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-5 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 rounded-xl p-2.5">
-              <LuPackage size={26} className="text-white" />
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 px-4 sm:px-6 py-4 sm:py-5 flex items-start justify-between">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="bg-white/20 rounded-xl p-2 sm:p-2.5">
+              <LuPackage size={20} className="sm:w-[26px] sm:h-[26px] text-white" />
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h2 className="text-white text-xl font-bold">{booking.id}</h2>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <h2 className="text-white text-base sm:text-xl font-bold truncate">{booking.id}</h2>
                 <BookingStatusBadge status={booking.rawStatus} />
               </div>
-              <div className="flex items-center gap-4 mt-1 text-white/80 text-sm">
+              <div className="flex items-center gap-2 sm:gap-4 mt-1 text-white/80 text-xs sm:text-sm flex-wrap">
                 <span className="flex items-center gap-1">
                   ₹{booking.amount}
                 </span>
-                <span>Created: {booking.createdAt}</span>
+                <span className="truncate">Created: {booking.createdAt}</span>
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="bg-white/20 hover:bg-white/30 text-white rounded-full p-1.5 transition">
+          <button onClick={onClose} className="bg-white/20 hover:bg-white/30 text-white rounded-full p-1.5 transition flex-shrink-0">
             <FiX size={18} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 px-6 bg-white">
+        <div className="flex border-b border-gray-100 px-3 sm:px-6 bg-white overflow-x-auto no-scrollbar">
           {TABS.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`py-3 px-4 text-sm font-medium border-b-2 transition -mb-px ${
+              className={`py-2.5 sm:py-3 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition -mb-px whitespace-nowrap ${
                 activeTab === tab ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500 hover:text-gray-700"
               }`}>
               {tab}
@@ -82,7 +82,7 @@ export const BookingModal = ({ booking, onClose }) => {
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-4 bg-gray-50">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-3 sm:space-y-4 bg-gray-50">
 
           {/* ── OVERVIEW ── */}
           {activeTab === "Overview" && (
@@ -299,25 +299,25 @@ const TrackRow = ({ icon, color, label, value }) => (
 /* ── Booking list card ───────────────────────────────────────────────── */
 const BookingCard = ({ booking, onOpen }) => (
   <div onClick={() => onOpen(booking)}
-    className="flex items-center justify-between bg-white border border-gray-100 hover:border-orange-200 hover:shadow-sm transition cursor-pointer px-4 py-3 rounded-xl">
-    <div className="flex items-center gap-3">
-      <div className="bg-orange-500 text-white w-10 h-10 flex items-center justify-center rounded-xl shrink-0">
-        <LuPackage size={18} />
+    className="flex items-center justify-between bg-white border border-gray-100 hover:border-orange-200 hover:shadow-sm transition cursor-pointer px-3 sm:px-4 py-3 rounded-xl gap-3">
+    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+      <div className="bg-orange-500 text-white w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl shrink-0">
+        <LuPackage size={16} className="sm:w-[18px] sm:h-[18px]" />
       </div>
-      <div>
-        <p className="font-bold text-sm text-gray-900">{booking.id}</p>
-        <p className="text-xs text-gray-400 mb-1">{booking.createdAt}</p>
-        <div className="text-xs text-gray-500 space-y-0.5">
-          <p className="flex items-center gap-1.5"><FiMapPin className="text-green-500 shrink-0" size={12} />{booking.pickup.label}</p>
-          <p className="flex items-center gap-1.5"><FiMapPin className="text-red-400 shrink-0" size={12} />{booking.drop.label}</p>
+      <div className="min-w-0 flex-1">
+        <p className="font-bold text-xs sm:text-sm text-gray-900 truncate">{booking.id}</p>
+        <p className="text-[10px] sm:text-xs text-gray-400 mb-1">{booking.createdAt}</p>
+        <div className="text-[10px] sm:text-xs text-gray-500 space-y-0.5">
+          <p className="flex items-center gap-1.5 truncate"><FiMapPin className="text-green-500 shrink-0" size={11} /><span className="truncate">{booking.pickup.label}</span></p>
+          <p className="flex items-center gap-1.5 truncate"><FiMapPin className="text-red-400 shrink-0" size={11} /><span className="truncate">{booking.drop.label}</span></p>
           {booking.partner?.name && booking.partner.name !== "Not Assigned" && (
-            <p className="flex items-center gap-1.5"><LuTruck className="text-purple-400 shrink-0" size={12} />Partner: {booking.partner.name}</p>
+            <p className="flex items-center gap-1.5 truncate"><LuTruck className="text-purple-400 shrink-0" size={11} /><span className="truncate">Partner: {booking.partner.name}</span></p>
           )}
         </div>
       </div>
     </div>
-    <div className="text-right flex flex-col items-end gap-1.5 shrink-0 ml-4">
-      <span className="font-bold text-sm text-gray-900">₹{booking.amount || "—"}</span>
+    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
+      <span className="font-bold text-xs sm:text-sm text-gray-900">₹{booking.amount || "—"}</span>
       <BookingStatusBadge status={booking.rawStatus} />
     </div>
   </div>
@@ -346,10 +346,10 @@ const DetailsBookings = ({ bookings = [] }) => {
   }));
 
   return (
-    <div className="mt-6">
-      <h3 className="font-semibold text-gray-800 mb-4">Booking History ({mapped.length})</h3>
-      {mapped.length === 0 && <p className="text-gray-400 text-sm">No bookings found.</p>}
-      <div className="space-y-3">
+    <div className="mt-4 sm:mt-6">
+      <h3 className="font-semibold text-gray-800 mb-3 sm:mb-4 text-sm sm:text-base">Booking History ({mapped.length})</h3>
+      {mapped.length === 0 && <p className="text-gray-400 text-xs sm:text-sm">No bookings found.</p>}
+      <div className="space-y-2 sm:space-y-3">
         {mapped.map((b, i) => <BookingCard key={i} booking={b} onOpen={setSelected} />)}
       </div>
       {selected && <BookingModal booking={selected} onClose={() => setSelected(null)} />}

@@ -52,15 +52,15 @@ export const createRouteSchema = Joi.object({
   
   // Vehicle
   vehicle_type: Joi.string()
-    .valid("bike", "car", "suv", "van", "truck", "tempo", "bus", "train")
+    .valid("bike", "car", "suv", "van", "truck", "tempo", "bus", "train", "plane")
     .required(),
   vehicle_number: Joi.string().max(20).optional(),
   
-  // Transport mode (private vehicle, bus, train)
-  transport_mode: Joi.string()
-    .valid("private", "bus", "train")
-    .optional()
-    .default("private"),
+// Transport mode (private vehicle, bus, train, plane)
+   transport_mode: Joi.string()
+     .valid("private", "public")
+     .optional()
+     .default("private"),
   
   max_weight_kg: Joi.number().integer().min(1).max(10000).required(),
   

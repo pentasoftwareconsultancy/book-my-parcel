@@ -81,9 +81,9 @@ const TravellerRoute = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    // Transport mode (private vehicle, bus, train)
+    // Transport mode (private vehicle, bus, train, plane)
     transport_mode: {
-      type: DataTypes.ENUM("private", "bus", "train"),
+      type: DataTypes.ENUM("private", "public"),
       allowNull: false,
       defaultValue: "private",
     },
@@ -92,11 +92,11 @@ const TravellerRoute = sequelize.define(
       type: DataTypes.JSONB,
       allowNull: true,
     },
-    // Transit details (bus/train specific information)
+    // Transit details (bus/train/plane specific information)
     transit_details: {
       type: DataTypes.JSONB,
       allowNull: true,
-      comment: "Stores bus/train details: service_name, bus_number, train_number, class_type, pnr_number, seat_numbers, etc.",
+      comment: "Stores bus/train/plane details: airline_name, flight_number, baggage_type, service_name, bus_number, train_number, class_type, pnr_number, seat_numbers, etc.",
     },
     max_weight_kg: {
       type: DataTypes.INTEGER,

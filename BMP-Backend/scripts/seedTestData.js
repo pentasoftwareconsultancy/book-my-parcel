@@ -603,20 +603,20 @@ async function seedTravellerRoutes(travellerProfiles, addresses) {
       const route = await ensureRow(
         routesTable,
         {
-          traveller_profile_id: traveller.id,
-          origin_address_id: origin.id,
-          dest_address_id: destination.id,
-          departure_date: departure.toISOString().slice(0, 10),
-          departure_time: departure.toISOString().slice(11, 19),
-          vehicle_type: traveller.vehicle_type || "bike",
-          transport_mode: routeIndex % 3 === 0 ? "private" : routeIndex % 3 === 1 ? "bus" : "train",
-          max_weight_kg: traveller.capacity_kg || 20,
-          status: "ACTIVE",
-        },
-        applyTimestamps(
-          routesTable,
-          {
-            traveller_profile_id: traveller.id,
+traveller_profile_id: traveller.id,
+           origin_address_id: origin.id,
+           dest_address_id: destination.id,
+           departure_date: departure.toISOString().slice(0, 10),
+           departure_time: departure.toISOString().slice(11, 19),
+           vehicle_type: routeIndex % 4 === 1 ? "bus" : routeIndex % 4 === 2 ? "train" : routeIndex % 4 === 3 ? "plane" : traveller.vehicle_type || "bike",
+           transport_mode: routeIndex % 4 === 0 ? "private" : "public",
+           max_weight_kg: traveller.capacity_kg || 20,
+           status: "ACTIVE",
+         },
+         applyTimestamps(
+           routesTable,
+           {
+             traveller_profile_id: traveller.id,
             origin_address_id: origin.id,
             dest_address_id: destination.id,
             departure_date: departure.toISOString().slice(0, 10),
@@ -627,11 +627,25 @@ async function seedTravellerRoutes(travellerProfiles, addresses) {
             recurring_days: routeIndex === 0 ? ["Monday", "Wednesday", "Friday"] : null,
             recurring_start_date: routeIndex === 0 ? departure.toISOString().slice(0, 10) : null,
             recurring_end_date: routeIndex === 0 ? plusDays(departure, 30).toISOString().slice(0, 10) : null,
-            vehicle_type: traveller.vehicle_type || "bike",
+            vehicle_type: routeIndex % 4 === 1 ? "bus" : routeIndex % 4 === 2 ? "train" : routeIndex % 4 === 3 ? "plane" : traveller.vehicle_type || "bike",
             vehicle_number: traveller.vehicle_number || `MH${randomInt(10, 99)}${String(randomInt(1000, 9999))}`,
-            transport_mode: routeIndex % 3 === 0 ? "private" : routeIndex % 3 === 1 ? "bus" : "train",
+            transport_mode: routeIndex % 4 === 0 ? "private" : "public",
             stops_passed: routeIndex === 0 ? [origin.city, destination.city] : [origin.city],
-            transit_details: routeIndex === 0 ? null : { service_name: `${origin.city} Express`, seat_numbers: ["12A", "12B"] },
+transit_details: routeIndex % 4 === 1 ? {
+               type: "bus",
+               service_name: origin.city + " Bus Service",
+               bus_number: String(routeIndex)
+             } : routeIndex % 4 === 2 ? {
+               type: "train",
+               train_number: `12${routeIndex}${randomInt(10,99)}`, 
+               train_name: `${origin.city} Express`, 
+               class_type: "sleeper" 
+             } : routeIndex % 4 === 3 ? {
+               type: "plane",
+               airline_name: routeIndex % 2 === 0 ? "Indigo" : "Air India",
+               flight_number: `6E-${randomInt(100, 999)}`,
+               baggage_type: "cabin"
+             } : null,
             max_weight_kg: traveller.capacity_kg || 20,
             available_capacity_kg: traveller.capacity_kg || 20,
             accepted_parcel_types: ["small", "medium", "large"],

@@ -416,7 +416,7 @@ export async function createTravellerRoute(data, userId) {
 
   // Determine travel mode based on transport_mode
   let travelMode = "DRIVE";
-  if (data.transport_mode === "bus" || data.transport_mode === "train") {
+  if (data.transport_mode === "bus" || data.transport_mode === "train" || data.transport_mode === "plane") {
     travelMode = "TRANSIT";
   }
 

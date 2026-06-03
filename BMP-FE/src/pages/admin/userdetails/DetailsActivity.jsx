@@ -36,30 +36,31 @@ const DetailsActivity = ({ bookings = [], user = {} }) => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-gray-800">Activity Logs</h2>
-        <span className="text-xs text-gray-400">{activities.length} events</span>
+      <div className="flex items-center justify-between mb-4 sm:mb-5">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-800">Activity Logs</h2>
+        <span className="text-[10px] sm:text-xs text-gray-400">{activities.length} events</span>
       </div>
 
       {activities.length === 0 ? (
-        <div className="text-center py-12">
-          <FiActivity size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">No activity found for this user.</p>
+        <div className="text-center py-10 sm:py-12">
+          <FiActivity size={32} className="sm:w-10 sm:h-10 text-gray-300 mx-auto mb-2 sm:mb-3" />
+          <p className="text-gray-400 text-xs sm:text-sm">No activity found for this user.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {activities.map((a, i) => (
-            <div key={i} className="flex items-start gap-4 bg-white border border-gray-100 p-4 rounded-xl hover:shadow-sm transition">
-              <div className={`w-10 h-10 flex items-center justify-center rounded-lg flex-shrink-0 ${a.color}`}>
+            <div key={i} className="flex items-start gap-2 sm:gap-4 bg-white border border-gray-100 p-3 sm:p-4 rounded-xl hover:shadow-sm transition">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg flex-shrink-0 ${a.color}`}>
                 {a.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-800 text-sm">{a.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{a.sub}</p>
+                <p className="font-medium text-gray-800 text-xs sm:text-sm">{a.title}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate">{a.sub}</p>
               </div>
-              <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
-                <FiClock size={11} />
-                {a.time}
+              <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-400 flex-shrink-0">
+                <FiClock size={10} className="sm:w-[11px] sm:h-[11px]" />
+                <span className="hidden sm:inline">{a.time}</span>
+                <span className="sm:hidden">{a.time.split(',')[0]}</span>
               </div>
             </div>
           ))}

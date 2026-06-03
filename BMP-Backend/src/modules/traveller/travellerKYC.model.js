@@ -95,8 +95,6 @@ import { KYC_STATUS } from "../../utils/constants.js";
 const TravellerKYC = sequelize.define(
   "traveller_kyc",
   {
-    // id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,

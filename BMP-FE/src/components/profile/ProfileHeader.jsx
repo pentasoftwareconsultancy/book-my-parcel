@@ -139,7 +139,7 @@ const ProfileHeader = ({
               <Calendar size={12} /> Member since {user.memberSince}
             </span>
 
-            <span className="flex items-center gap-1 text-gray-500 text-[10px] sm:text-xs">
+            {/* <span className="flex items-center gap-1 text-gray-500 text-[10px] sm:text-xs">
               <svg
                 width="11"
                 height="11"
@@ -153,7 +153,7 @@ const ProfileHeader = ({
                 <line x1="7" y1="13" x2="13" y2="13" />
               </svg>
               User ID- {user.userId}
-            </span>
+            </span> */}
           </div>
         </div>
       </div>

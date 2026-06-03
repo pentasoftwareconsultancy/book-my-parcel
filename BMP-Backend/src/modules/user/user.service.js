@@ -262,11 +262,18 @@ export async function fetchOrderDetails(userId, bookingId) {
  */
 export async function fetchUserStats(userId) {
 
+  // Count all parcels created by the user (includes CREATED/MATCHING with no booking yet)
+  const parcels = await Parcel.findAll({
+    where: { user_id: userId },
+    attributes: ["id", "status", "price_quote"],
+  });
+
+  // Count bookings for delivered + cancelled stats
   const bookings = await Booking.findAll({
     include: [{
       model: Parcel,
       as: "parcel",
-      where: { user_id: userId }, // ✅ filter via parcel
+      where: { user_id: userId },
       required: true,
       attributes: ["price_quote"],
     }],
@@ -274,7 +281,7 @@ export async function fetchUserStats(userId) {
   });
 
   const stats = {
-    totalOrders: bookings.length,
+    totalOrders: parcels.length,
     active:      0,
     completed:   0,
     cancelled:   0,
@@ -283,15 +290,18 @@ export async function fetchUserStats(userId) {
 
   bookings.forEach(booking => {
     const status = booking.status;
-
-    if (["CREATED", "MATCHING", "CONFIRMED", "IN_TRANSIT"].includes(status)) {
+    if (["CREATED", "MATCHING", "CONFIRMED", "PICKUP", "IN_TRANSIT"].includes(status)) {
       stats.active += 1;
     } else if (status === "DELIVERED") {
       stats.completed += 1;
-      stats.totalSpent += booking.parcel?.price_quote || 0;
     } else if (status === "CANCELLED") {
       stats.cancelled += 1;
     }
+  });
+
+  // Total spent = sum of price_quote across ALL parcels (not just delivered)
+  parcels.forEach(parcel => {
+    stats.totalSpent += Number(parcel.price_quote) || 0;
   });
 
   return stats;

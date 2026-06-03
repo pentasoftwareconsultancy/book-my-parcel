@@ -5,14 +5,14 @@ export const up = async (queryInterface, Sequelize) => {
 
   try {
     await queryInterface.sequelize.query(`
-      CREATE TYPE "enum_traveller_routes_transport_mode" AS ENUM ('private', 'bus', 'train');
+      CREATE TYPE "enum_traveller_routes_transport_mode" AS ENUM ('private', 'public');
     `).catch((err) => {
       if (!err.message.includes('already exists')) throw err;
     });
 
     if (!tableDesc.transport_mode) {
       await queryInterface.addColumn('traveller_routes', 'transport_mode', {
-        type: Sequelize.ENUM('private', 'bus', 'train'),
+        type: Sequelize.ENUM('private', 'public'),
         allowNull: false,
         defaultValue: 'private',
       });

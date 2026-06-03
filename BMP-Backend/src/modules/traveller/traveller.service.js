@@ -259,20 +259,7 @@ export async function fetchTravellerParcelRequests(travellerUserId, query = {}) 
         {
           model: TravellerRoute,
           as: "route",
-          required: true, // exclude requests with no route
-          where: {
-            // Only show requests for routes that haven't departed yet.
-            // Routes with null departure_date (recurring or undated) are always shown.
-            [Op.or]: [
-              { departure_date: null },
-              { is_recurring: true },
-              { departure_date: { [Op.gt]: new Date().toISOString().slice(0, 10) } },
-              {
-                departure_date: new Date().toISOString().slice(0, 10),
-                departure_time: { [Op.gt]: new Date().toTimeString().slice(0, 8) },
-              },
-            ],
-          },
+          required: false,
           attributes: ["id", "vehicle_type", "max_weight_kg", "status", "departure_date", "departure_time", "arrival_date", "arrival_time", "is_recurring"],
           include: [
             {

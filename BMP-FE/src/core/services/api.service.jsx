@@ -157,6 +157,8 @@ class ApiService {
       url += `?${params.join('&')}`;
     }
 
+    url += `${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+
     return this.apiget(url);
   }
 
@@ -181,7 +183,10 @@ class ApiService {
 
   // Phase 3: Get all parcel requests for the logged-in traveller
   static getTravellerRequests(params = {}) {
-    return this.apiget(ServerUrl.API_TRAVELER_REQUESTS, params);
+    return this.apiget(ServerUrl.API_TRAVELER_REQUESTS, {
+      ...params,
+      _t: Date.now(),
+    });
   }
 
   // Get available requests for traveller (alias for getTravellerRequests)
@@ -430,7 +435,7 @@ static updateDisputeStatus(disputeId, data) {
   // ------------------ Notification APIs ------------------
   static getNotifications(role, page = 1, limit = 20) {
     return this.axiosInstance.get(ServerUrl.API_NOTIFICATIONS_GET, {
-      params: { role, page, limit },
+      params: { role, page, limit, _t: Date.now() },
     });
   }
 
@@ -468,11 +473,12 @@ static updateDisputeStatus(disputeId, data) {
   }
 
   // ------------------ File / Image Upload ------------------
-  static apipostForm(url, formData) {
+  static apipostForm(url, formData, config = {}) {
     return this.axiosInstance.post(url, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      ...config,
     });
   }
 

@@ -40,12 +40,12 @@ const BookingSummary = ({ bookings, onFilter }) => {
   const Card = ({ title, value, status, color, icon }) => (
     <div
       onClick={() => onFilter(status)}
-      className={`cursor-pointer rounded-lg border p-4 shadow-sm hover:shadow-md transition ${color}`}
+      className={`cursor-pointer rounded-lg border p-3 sm:p-4 shadow-sm hover:shadow-md transition ${color}`}
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-2xl font-semibold text-gray-900">{value}</p>
-          <p className="text-xs text-gray-500">{title}</p>
+          <p className="text-xl sm:text-2xl font-semibold text-gray-900">{value}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500">{title}</p>
         </div>
         {icon}
       </div>
@@ -53,7 +53,7 @@ const BookingSummary = ({ bookings, onFilter }) => {
   );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2 sm:gap-4 sm:mb-6 lg:grid-cols-3 xl:grid-cols-6">
       {/* TOTAL */}
       <Card
         title="Total Bookings"
@@ -61,8 +61,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status={null}
         color="bg-white border-blue-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
-            <FiPackage />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-500 text-white flex items-center justify-center">
+            <FiPackage className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -74,8 +74,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status="pending"
         color="bg-white border-yellow-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center">
-            <MdPending />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center">
+            <MdPending className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -87,8 +87,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status="accepted"
         color="bg-white border-green-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center">
-            <MdCheckCircle />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-500 text-white flex items-center justify-center">
+            <MdCheckCircle className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -100,8 +100,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status="transit"
         color="bg-white border-indigo-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center">
-            <MdLocalShipping />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center">
+            <MdLocalShipping className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -113,8 +113,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status="delivered"
         color="bg-white border-emerald-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-            <MdCheckCircle />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+            <MdCheckCircle className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -126,8 +126,8 @@ const BookingSummary = ({ bookings, onFilter }) => {
         status="cancelled"
         color="bg-white border-red-200"
         icon={
-          <div className="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center">
-            <MdCancel />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500 text-white flex items-center justify-center">
+            <MdCancel className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -304,7 +304,7 @@ const Bookings = () => {
   });
 
   return (
-    <div className="p-4">
+    <div className="p-3 sm:p-4 md:p-6">
       <BookingSummary bookings={allBookings} onFilter={handleFilter} />
       <BookingTable />
 

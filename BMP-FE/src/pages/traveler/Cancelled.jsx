@@ -81,7 +81,7 @@ export default function Cancelled() {
       </Typography>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { title: "Total Earnings", value: `₹${stats.totalEarnings || 0}`, icon: AccountBalanceWallet, gradient: "from-green-400 to-green-500" },
           { title: "Active Deliveries", value: stats.active || 0, icon: LocalShipping, gradient: "from-orange-400 to-orange-500" },
@@ -90,7 +90,7 @@ export default function Cancelled() {
         ].map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
-      </div>
+      </div> */}
 
       {/* CANCELLED DELIVERY CARDS */}
       <div>

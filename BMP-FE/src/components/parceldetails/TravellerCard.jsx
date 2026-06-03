@@ -47,7 +47,7 @@ const TravellerCard = ({
         </div>
 
         {/* Vehicle Details */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Vehicle</p>
             <p className="text-xs font-semibold text-gray-900">{vehicle}</p>

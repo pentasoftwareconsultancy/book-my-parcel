@@ -74,9 +74,12 @@ const transformRoute = (r) => {
 
     price: Number(r.total_earnings || 0),
 
-    vehicle: r.vehicle_type || "—",
-
     transportMode: r.transport_mode || r.vehicle_type || "—",
+
+    // For public transport modes, show the transit type from transit_details
+    vehicle: r.transport_mode === "public" && r.transitDetails?.type
+      ? r.transitDetails.type
+      : r.vehicle_type || "—",
 
     weight: r.max_weight_kg
       ? `${r.max_weight_kg} kg`
@@ -315,6 +318,9 @@ const RouteCard = ({ route, navigate, toggleRouteStatus }) => {
       return `🚌 ${transitDetails.service_name}${transitDetails.bus_number ? ` - ${transitDetails.bus_number}` : ''}`;
     } else if (transitDetails.type === 'train') {
       return `🚂 Train ${transitDetails.train_number} (${transitDetails.class_type})`;
+    } else if (transitDetails.type === 'plane') {
+      const baggage = transitDetails.baggage_type ? ` (${transitDetails.baggage_type})` : '';
+      return `✈️ ${transitDetails.airline_name}${transitDetails.flight_number ? ` - ${transitDetails.flight_number}` : ''}${baggage}`;
     }
     return null;
   };

@@ -1,5 +1,30 @@
 import React from "react";
 
+const MAX_DIMENSION = 1200;
+const JPEG_QUALITY  = 0.82;
+
+/** Compress a File/Blob to a JPEG Blob, capped at MAX_DIMENSION on the longest side. */
+function compressImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width > height) { height = Math.round((height * MAX_DIMENSION) / width); width = MAX_DIMENSION; }
+        else                { width  = Math.round((width  * MAX_DIMENSION) / height); height = MAX_DIMENSION; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => resolve(blob || file), "image/jpeg", JPEG_QUALITY);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 const UploadImage = ({
   label,
   helper = "Upload Parcel Photo",
@@ -8,6 +33,15 @@ const UploadImage = ({
   onChange,
 }) => {
   const id = React.useId();
+
+  const handleChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const compressed = await compressImage(file);
+    // Wrap blob back into a File so FormData sends a proper filename
+    const result = new File([compressed], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+    onChange?.(result);
+  };
 
   const getImageUrl = () => {
     if (!value) return "";
@@ -43,8 +77,9 @@ const UploadImage = ({
         id={id}
         type="file"
         accept="image/*"
+        capture="environment"
         className="hidden"
-        onChange={(e) => onChange?.(e.target.files?.[0] || null)}
+        onChange={handleChange}
       />
 
       {value ? (
@@ -59,7 +94,7 @@ const UploadImage = ({
             {label}
           </span>
           <span className="mb-1 text-gray-600">{helper}</span>
-          <span className="text-[10px] text-gray-400">{note}</span>
+          <span className="text-[10px] text-gray-400">PNG, JPG — auto compressed</span>
         </>
       )}
     </label>

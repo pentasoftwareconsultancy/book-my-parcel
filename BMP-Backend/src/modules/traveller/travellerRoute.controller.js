@@ -47,6 +47,7 @@ export async function createRoute(req, res) {
       vehicle_type: route.vehicle_type,
       vehicle_number: route.vehicle_number,
       transport_mode: route.transport_mode,
+      transit_details: route.transit_details,
       stops_passed: route.stops_passed,
       max_weight_kg: route.max_weight_kg,
       available_capacity_kg: route.available_capacity_kg,
@@ -111,6 +112,10 @@ export async function updateRoute(req, res) {
     const { id } = req.params;
     const userId = req.user.id;
     const route = await updateTravellerRoute(id, userId, req.body);
+
+    // Re-trigger matching with existing parcels after route update
+    await enqueueAsyncTask("match_route_with_existing_parcels", { routeId: id });
+
     return responseSuccess(res, route, "Route updated successfully");
   } catch (error) {
     console.error("[TravellerRoute] Update route error:", error);

@@ -91,10 +91,19 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
   const [highlightedRouteId, setHighlightedRouteId] = useState(null);
   const [newlyAcceptedIds, setNewlyAcceptedIds]   = useState(new Set());
 
-  const fetchTravellers = async () => {
+  const fetchTravellers = async (triggerMatching = false) => {
     if (!parcelId) { showToast("Please complete step 1 first", "error"); return; }
     try {
       setLoading(true);
+
+      // Trigger matching engine before fetching acceptances
+      if (triggerMatching) {
+        try {
+          await ApiService.apipost(ServerUrl.API_PARCEL_FIND_TRAVELLERS(parcelId), {});
+        } catch {
+          // non-fatal — proceed to fetch whatever acceptances exist
+        }
+      }
 
       // If booking already exists (navigating back from step 3)
       if (data.bookingId) {
@@ -177,8 +186,16 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
     }
   };
 
-  // Fetch on mount / sort change
-  useEffect(() => { fetchTravellers(); }, [parcelId, sortBy]);
+  // Trigger matching on first mount, then just re-fetch on sort change
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+  useEffect(() => {
+    if (!hasFetchedOnce) {
+      setHasFetchedOnce(true);
+      fetchTravellers(true); // trigger matching engine on first load
+    } else {
+      fetchTravellers(false);
+    }
+  }, [parcelId, sortBy]);
 
   // Restore selection when navigating back
   useEffect(() => {

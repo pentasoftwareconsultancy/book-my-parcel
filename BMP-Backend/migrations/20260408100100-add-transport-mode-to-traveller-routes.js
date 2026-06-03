@@ -5,7 +5,7 @@ export const up = async (queryInterface, Sequelize) => {
   if (tableDesc.transport_mode) return;
 
   await queryInterface.addColumn('traveller_routes', 'transport_mode', {
-    type: Sequelize.ENUM('private', 'bus', 'train'),
+    type: Sequelize.ENUM('private', 'public'),
     defaultValue: 'private',
     allowNull: true,
   });

@@ -28,27 +28,27 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
   const Card = ({ title, value, color, icon, status }) => (
     <div
       onClick={() => onStatusClick(status)}
-      className={`cursor-pointer rounded-md p-4 border transition
+      className={`cursor-pointer rounded-md p-3 sm:p-4 border transition
         ${color}
         ${selectedStatus === status ? "ring-2 ring-blue-400 shadow-sm" : ""}
       `}
     >
       {icon}
-      <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500">{title}</p>
+      <p className="mt-2 text-xl sm:text-2xl font-semibold text-gray-900">{value}</p>
+      <p className="text-[10px] sm:text-xs text-gray-500">{title}</p>
     </div>
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-2 sm:gap-4 sm:mb-6 lg:grid-cols-5">
       <Card
         title="Total Users"
         value={stats.total}
         status="all"
         color="bg-white border-blue-200"
         icon={
-          <div className="flex items-center justify-center w-10 h-10 text-white bg-blue-500 rounded-full">
-            <FiUsers />
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-white bg-blue-500 rounded-full">
+            <FiUsers className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -59,8 +59,8 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
         status="active"
         color="bg-white border-green-200"
         icon={
-          <div className="flex items-center justify-center w-10 h-10 text-white bg-green-500 rounded-full">
-            <MdCheckCircle />
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-white bg-green-500 rounded-full">
+            <MdCheckCircle className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -71,8 +71,8 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
         status="pending"
         color="bg-white border-yellow-200"
         icon={
-          <div className="flex items-center justify-center w-10 h-10 text-white bg-yellow-500 rounded-full">
-            <MdPending />
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-white bg-yellow-500 rounded-full">
+            <MdPending className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -83,8 +83,8 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
         status="suspended"
         color="bg-white border-orange-200"
         icon={
-          <div className="flex items-center justify-center w-10 h-10 text-white bg-orange-500 rounded-full">
-            <MdBlock />
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-white bg-orange-500 rounded-full">
+            <MdBlock className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -95,8 +95,8 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
         status="banned"
         color="bg-white border-red-200"
         icon={
-          <div className="flex items-center justify-center w-10 h-10 text-white bg-red-500 rounded-full">
-            <MdCancel />
+          <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-white bg-red-500 rounded-full">
+            <MdCancel className="text-sm sm:text-base" />
           </div>
         }
       />
@@ -318,7 +318,7 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-3 sm:p-4 md:p-6">
       <UserSummary
         users={users}
         selectedStatus={selectedStatus}

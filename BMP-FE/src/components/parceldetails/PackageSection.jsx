@@ -22,8 +22,8 @@ const PackageSection = ({
         Package Information
       </p>
 
-      {/* Package Basics Grid */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      {/* Package Basics */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
         <div>
           <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Size</p>
           <p className="text-xs font-semibold text-gray-900">{size}</p>
@@ -39,7 +39,7 @@ const PackageSection = ({
       </div>
 
       {/* Delivery Details */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
         <div>
           <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Speed</p>
           <p className="text-xs font-semibold text-gray-900">{speed}</p>
@@ -55,19 +55,13 @@ const PackageSection = ({
       </div>
 
       {/* Dimensions */}
-      <div className="grid grid-cols-3 gap-3 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
         <div>
           <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wide">Dimensions</p>
           <div className="space-y-1">
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Length:</span> {length}
-            </p>
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Breadth:</span> {width}
-            </p>
-            <p className="text-xs text-gray-600">
-              <span className="font-medium">Width:</span> {height}
-            </p>
+            <p className="text-xs text-gray-600"><span className="font-medium">Length:</span> {length}</p>
+            <p className="text-xs text-gray-600"><span className="font-medium">Breadth:</span> {width}</p>
+            <p className="text-xs text-gray-600"><span className="font-medium">Height:</span> {height}</p>
           </div>
         </div>
         <div>
@@ -83,7 +77,7 @@ const PackageSection = ({
       {/* Photos */}
       {photos && photos.length > 0 && (
         <div>
-          <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide ">Photos</p>
+          <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide">Photos</p>
           <PhotoGallery photos={photos} />
         </div>
       )}

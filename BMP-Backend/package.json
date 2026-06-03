@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node scripts/seedTestData.js",
+    "clear": "node scripts/clearDatabase.js",
     "check-migrations": "node scripts/checkMigrationStatus.js",
     "generate-migration": "node scripts/generateMigration.js",
     "recover-migrations": "node scripts/recoverMigrations.js",

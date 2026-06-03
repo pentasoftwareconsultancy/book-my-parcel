@@ -165,13 +165,19 @@ const Navbar = () => {
     <>
       <style>{`
         @keyframes bmp-marquee {
-          0%   { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        .bmp-marquee {
+        .bmp-marquee-track {
           display: flex;
+          width: max-content;
+          animation: bmp-marquee 40s linear infinite;
+        }
+        .bmp-marquee-track:hover { animation-play-state: paused; }
+        .bmp-marquee-set {
+          display: flex;
+          align-items: center;
           white-space: nowrap;
-          animation: bmp-marquee 60s linear infinite;
         }
 
         .bmp-btn {
@@ -255,21 +261,37 @@ const Navbar = () => {
       `}</style>
 
       {/* ── Marquee ── */}
-      {!isAuthenticated && (
-        <div style={{ overflow: "hidden", background: "#2563eb", color: "#fff" }}>
-          <div className="bmp-marquee" style={{ alignItems: "center", gap: 24, padding: "6px 16px", fontSize: 12, fontWeight: 500 }}>
-            {[
-              [Truck, "Fast & Secure Parcel Delivery Across Cities"],
-              [IndianRupee, "Save More – Affordable Traveler Shipping"],
-              [Package, "Send Parcels Easily With Trusted Travelers"],
-            ].map(([Icon, text], i) => (
-              <span key={i} style={{ display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}>
-                <Icon style={{ color: "#f87171" }} /> {text}
+      {!isAuthenticated && !user && (() => {
+        const items = [
+          [Truck,        "Fast & Secure Parcel Delivery Across India"],
+          [IndianRupee,  "Save More – Affordable Traveler-Based Shipping"],
+          [Package,      "Send Parcels Easily With Verified Travelers"],
+          [Send,         "Door-to-Door Delivery at Unbeatable Prices"],
+          [Truck,        "Real-Time Tracking for Every Shipment"],
+          [IndianRupee,  "Zero Hidden Charges – Pay Only What You See"],
+          [Package,      "Trusted by Thousands of Senders Across Cities"],
+          [Send,         "Book in Minutes, Deliver with Confidence"],
+        ];
+        const renderSet = (suffix) => (
+          <span key={suffix} className="bmp-marquee-set" style={{ gap: 0 }}>
+            {items.map(([Icon, text], i) => (
+              <span key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 32px", fontSize: 12, fontWeight: 500 }}>
+                <Icon size={13} style={{ color: "#fca5a5", flexShrink: 0 }} />
+                {text}
+                <span style={{ marginLeft: 32, color: "#93c5fd", fontSize: 10 }}>✦</span>
               </span>
             ))}
+          </span>
+        );
+        return (
+          <div style={{ overflow: "hidden", background: "#2563eb", color: "#fff", borderBottom: "1px solid #1d4ed8" }}>
+            <div className="bmp-marquee-track" style={{ padding: "7px 0" }}>
+              {renderSet("a")}
+              {renderSet("b")}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Navbar ── */}
       <header style={{
@@ -413,9 +435,8 @@ const Navbar = () => {
                   {isMobile && (
                     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       {[
-                        { key: "traveler", Icon: Truck, label: "Join as Traveler", path: RoutePath.AUTH_TRAVELER_REGISTER },
-                        { key: "send2",    Icon: Send,  label: "Send Parcel",      path: RoutePath.AUTH_LOGIN             },
-                        { key: "login",    Icon: User,  label: "Log in",           path: RoutePath.AUTH_LOGIN             },
+                        { key: "send2", Icon: Send, label: "Send Parcel", path: RoutePath.AUTH_LOGIN },
+                        { key: "login", Icon: User, label: "Log in",      path: RoutePath.AUTH_LOGIN },
                       ].map(({ key, Icon, label, path }) => (
                         <div key={key} style={{ position: "relative" }}>
                           <button className="bmp-btn" onClick={() => navigate(path)}

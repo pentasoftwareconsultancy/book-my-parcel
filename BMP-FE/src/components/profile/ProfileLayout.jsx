@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { fetchProfile, updateProfile } from "../../store/slices/profileSlice.js";
+import ApiService from "../../core/services/api.service";
+import ServerUrl from "../../core/constants/serverUrl.constant";
 import ProfileHeader from "./ProfileHeader";
 import StatsSection from "./StatsSection";
 import PersonalTab from "./PersonalTab.jsx";
 import AddressTab from "./AddressTab";
 import SecurityTab from "./SecurityTab";
-import SettingsTab from "./SettingTab.jsx";
-import { KYC_STATUS } from "../../core/constants/app.constant";
+// import SettingsTab from "./SettingTab.jsx";
+import { KYC_STATUS, DELIVERY_STATUS } from "../../core/constants/app.constant";
 import RoutePath from "../../core/constants/routes.constant";
 // ─── DUMMY DATA ───────────────────────────────────────────────────────────────
 // Kept here so it's easy to remove and replace with API/Redux later.
@@ -144,22 +146,87 @@ const DUMMY_DATA = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS = ["Personal Info", "Saved Addresses", "Security", "Settings"];
+const TABS = ["Personal Info", "Saved Addresses", "Settings"];
 
 const ProfileLayout = ({ role = "USER" }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: profile, loadingFetch: loading, error } = useSelector((state) => state.profile);
+  const { data: profile, liveStats, loadingStats, loadingFetch: loading, error } = useSelector((state) => state.profile);
   
   const [activeTab, setActiveTab] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(DUMMY_DATA[role] ?? DUMMY_DATA.USER);
 
-  // Fetch profile on mount and whenever navigating back to this page
+  // Fetch profile on mount
   useEffect(() => {
     dispatch(fetchProfile());
-  }, [dispatch, role, location.key]);
+  }, [dispatch, location.key]);
+
+  // Calculate stats from orders/deliveries based on role
+  useEffect(() => {
+    if (role === "USER") {
+      const calculateStats = async () => {
+        try {
+          const response = await ApiService.apiget(ServerUrl.API_USER_DASHBOARD_ORDERS);
+          if (response?.data?.success) {
+            const orders = response.data.data?.data || response.data.data || [];
+            
+            // Active deliveries = orders that are not delivered/cancelled/failed
+            const activeStatuses = [
+              DELIVERY_STATUS.CREATED,
+              DELIVERY_STATUS.MATCHING,
+              DELIVERY_STATUS.PARTNER_SELECTED,
+              DELIVERY_STATUS.CONFIRMED,
+              DELIVERY_STATUS.PICKUP,
+              DELIVERY_STATUS.IN_TRANSIT
+            ];
+            
+            const stats = {
+              totalOrders: orders.length,
+              completedBookings: orders.filter(o => 
+                activeStatuses.includes(o.booking?.status)
+              ).length,
+              totalAmount: orders.reduce((sum, o) => {
+                const amount = parseFloat(o.price_quote || o.value || 0);
+                return sum + amount;
+              }, 0),
+            };
+            
+            console.log('📊 USER Calculated Stats:', stats);
+            dispatch({ type: 'profile/setLiveStats', payload: stats });
+          }
+        } catch (err) {
+          console.error('Failed to fetch user orders for stats:', err);
+        }
+      };
+      
+      calculateStats();
+    } else if (role === "TRAVELLER") {
+      const fetchTravellerStats = async () => {
+        try {
+          const response = await ApiService.apiget(ServerUrl.API_TRAVELER_DASHBOARD_STATS);
+          if (response?.data?.success || response?.data) {
+            const responseData = response.data?.data || response.data || {};
+            const statsData = responseData?.stats || responseData || {};
+            
+            const stats = {
+              totalDeliveries: statsData.completed || statsData.completedDeliveries || 0,
+              totalEarnings: statsData.totalEarnings || statsData.total_earnings || 0,
+              avgRating: statsData.rating || statsData.averageRating || 0,
+            };
+            
+            console.log('📊 TRAVELLER Stats:', stats);
+            dispatch({ type: 'profile/setLiveStats', payload: stats });
+          }
+        } catch (err) {
+          console.error('Failed to fetch traveller stats:', err);
+        }
+      };
+      
+      fetchTravellerStats();
+    }
+  }, [dispatch, role, location.key, profile]);
 
   // Update local state when profile is fetched
   useEffect(() => {
@@ -175,6 +242,23 @@ const ProfileLayout = ({ role = "USER" }) => {
       const fullAvatarUrl = avatarPath && avatarPath.startsWith('/')
         ? `${baseUrl}${avatarPath}`
         : avatarPath;
+
+      // Build addresses array from profile data
+      const savedAddresses = [];
+      if (userProfile.address || userProfile.city) {
+        savedAddresses.push({
+          id: "profile_address",
+          type: "Home",
+          name: userProfile.name || userData.name || "",
+          line1: userProfile.address || "",
+          line2: "",
+          city: userProfile.city || "",
+          state: userProfile.state || "",
+          pincode: userProfile.pincode || "",
+          phone: userData.phone_number || "",
+          isDefault: true,
+        });
+      }
 
       setProfileData((prev) => ({
         ...prev,
@@ -195,6 +279,7 @@ const ProfileLayout = ({ role = "USER" }) => {
           state: userProfile.state || userData.state || "",
           kycStatus: profile.kycStatus || userData.kycStatus || "NOT_STARTED",
         },
+        addresses: savedAddresses,
       }));
     }
   }, [profile]);
@@ -285,7 +370,11 @@ const ProfileLayout = ({ role = "USER" }) => {
           role={role}
         />
 
-        <StatsSection stats={profileData.stats} />
+        <StatsSection
+          liveStats={liveStats}
+          loadingStats={loadingStats}
+          role={role}
+        />
 
         {/* KYC banner — only for USER role when not approved */}
         {role === "USER" && profileData.personalInfo.kycStatus !== KYC_STATUS.APPROVED && (

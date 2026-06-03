@@ -34,6 +34,7 @@ const buildPayload = (step1, step2, formData) => {
     arrival_time: step1.arrivalTime || null,
     is_recurring: step1.isRecurring || false,
     vehicle_type: step2.transportMode === "private" ? (step2.vehicleType || "bike") : step2.transportMode,
+    transport_mode: step2.transportMode === "private" ? "private" : "public",
     max_weight_kg: Number(step2.maxWeightKg) || 0,
     accepted_parcel_types: formData.acceptedParcelTypes,
     min_earning_per_delivery: formData.minEarningPerDelivery ? Number(formData.minEarningPerDelivery) : undefined,
@@ -49,6 +50,7 @@ const buildPayload = (step1, step2, formData) => {
 
   if (step2.vehicleNumber) payload.vehicle_number = step2.vehicleNumber;
 
+  // For public transport modes, store the mode in transit_details for proper UI display
   if (step2.transportMode === "bus") {
     payload.transit_details = { type: "bus", service_name: step2.busServiceName, bus_number: step2.busNumber };
   }
@@ -61,6 +63,14 @@ const buildPayload = (step1, step2, formData) => {
       has_reservation: step2.hasReservation,
       pnr_number: step2.hasReservation ? step2.pnrNumber : null,
       seat_numbers: step2.hasReservation ? step2.seatNumbers : null,
+    };
+  }
+  if (step2.transportMode === "plane") {
+    payload.transit_details = {
+      type: "plane",
+      airline_name: step2.planeAirlineName,
+      flight_number: step2.planeFlightNumber,
+      baggage_type: step2.planeBaggageType,
     };
   }
 
