@@ -4,10 +4,10 @@ import { FaStar } from "react-icons/fa";
 
 const Whychooseus = () => {
   const features = [
-    { title: "Fast & Flexible Deliveries", icon: <FiZap />, desc: "Lightning-fast delivery with flexible timing options", bg: "#FACC15", delay: "0s" },
-    { title: "Verified & Trusted Partners", icon: <FiShield />, desc: "All delivery partners are thoroughly verified and trusted", bg: "#34D399", delay: "0.5s" },
+    { title: "Flexible Deliveries", icon: <FiZap />, desc: "Lightning-fast delivery with flexible timing options", bg: "#FACC15", delay: "0s" },
+    { title: "Trusted & Verified ", icon: <FiShield />, desc: "Trusted partners ensuring secure and reliable  delivery.", bg: "#34D399", delay: "0.5s" },
     { title: "Real Time Tracking", icon: <FiMapPin />, desc: "Track your parcel in real-time with live updates", bg: "#3B82F6", delay: "1s" },
-    { title: "Secure OTP Based Handover", icon: <FiLock />, desc: "Secure delivery with OTP verification system", bg: "#8B5CF6", delay: "1.5s" },
+    { title: "OTP Based Handover", icon: <FiLock />, desc: "Secure delivery with OTP verification system", bg: "#8B5CF6", delay: "1.5s" },
   ];
 
   return (

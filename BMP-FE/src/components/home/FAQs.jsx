@@ -21,51 +21,53 @@ export default function FAQs() {
             you need to know for a smooth and secure experience.
           </p>
         </div>
-        <div className="space-y-4">
-          {faqs.map((item, i) => {
-            const isOpen = openIndex === i;
-            return (
-              <div
-                key={i}
-                className={`rounded-xl shadow-md transition-all duration-300 ${
-                  isOpen
-                    ? "bg-primary text-white"
-                    : "bg-white text-gray-900"
-                }`}
-              >
-                {/* QUESTION */}
-                <button
-                  onClick={() => setOpenIndex(isOpen ? null : i)}
-                  className="w-full px-6 py-5 flex justify-between items-center text-left"
-                >
-                  <span className="font-medium text-sm">
-                    {`${i + 1}. ${item.q}`}
-                  </span>
-                  <span
-                    className={`h-6 w-6 flex items-center justify-center rounded-full transition-transform duration-300 ${
-                      isOpen
-                        ? "bg-white text-blue-600 rotate-180"
-                        : "bg-primary text-white"
-                    }`}
-                  >
-                    ˄
-                  </span>
-                </button>
-                <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    isOpen
-                      ? "max-h-40 px-6 pb-5 opacity-100"
-                      : "max-h-0 opacity-0"
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed opacity-90">
-                    {item.a}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+<div className="space-y-4 text-left">
+  {faqs.map((item, i) => {
+    const isOpen = openIndex === i;
+
+    return (
+      <div
+        key={i}
+        className={`rounded-xl shadow-md transition-all duration-300 ${
+          isOpen
+            ? "bg-primary text-white"
+            : "bg-white text-gray-900"
+        }`}
+      >
+        <button
+          onClick={() => setOpenIndex(isOpen ? null : i)}
+          className="w-full px-6 py-5 flex items-start justify-between gap-4 text-left"
+        >
+          <span className="flex-1 font-medium text-sm leading-relaxed text-left">
+            {`${i + 1}. ${item.q}`}
+          </span>
+
+          <span
+            className={`h-6 w-6 flex-shrink-0 flex items-center justify-center rounded-full transition-transform duration-300 ${
+              isOpen
+                ? "bg-white text-blue-600 rotate-180"
+                : "bg-primary text-white"
+            }`}
+          >
+            ˄
+          </span>
+        </button>
+
+        <div
+          className={`overflow-hidden transition-all duration-300 text-left ${
+            isOpen
+              ? "max-h-40 px-6 pb-5 opacity-100"
+              : "max-h-0 opacity-0"
+          }`}
+        >
+          <p className="text-sm leading-relaxed opacity-90 text-left whitespace-normal">
+            {item.a}
+          </p>
         </div>
+      </div>
+    );
+  })}
+</div>
       </div>
     </section>
   );
