@@ -372,8 +372,8 @@ const options = {
     ],
   },
   apis: [
-    './BMP-Backend/src/modules/**/*.routes.js',
-    './BMP-Backend/src/routes.js'
+    './src/modules/**/*.routes.js',
+    './src/routes.js'
   ], // Path to API routes
 };
 
