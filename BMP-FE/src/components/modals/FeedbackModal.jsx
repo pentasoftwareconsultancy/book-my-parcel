@@ -95,6 +95,7 @@ const FeedbackModal = ({ order, onClose, onSubmitted, existingFeedback = null })
             <div className="p-5">
               {/* Stars */}
               <div className="text-center mb-4">
+                <p className="text-xs font-medium text-gray-600 mb-2">Rating <span className="text-red-500">*</span></p>
                 <div className="flex justify-center gap-2 mb-1">
                   {[1,2,3,4,5].map((s) => (
                     <FaStar

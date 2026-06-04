@@ -65,7 +65,7 @@ const ForgotPassword = () => {
     <form onSubmit={handleRequestOtp} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Email Address
+          Email Address <span className="text-red-500">*</span>
         </label>
         <input
           type="email"
@@ -100,7 +100,7 @@ const ForgotPassword = () => {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">OTP</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">OTP <span className="text-red-500">*</span></label>
         <input
           type="text"
           value={otp}
@@ -114,7 +114,7 @@ const ForgotPassword = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">New Password <span className="text-red-500">*</span></label>
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -136,7 +136,7 @@ const ForgotPassword = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password <span className="text-red-500">*</span></label>
         <input
           type={showPassword ? "text" : "password"}
           value={confirmPassword}

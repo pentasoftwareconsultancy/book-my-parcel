@@ -58,6 +58,7 @@ export default function SecurityTab() {
   return (
     <div className="bg-white p-6 rounded-xl shadow">
       <div className="relative mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">Old Password <span className="text-red-500">*</span></label>
         <input
           type={showPassword.oldPassword ? "text" : "password"}
           placeholder="Old Password"
@@ -75,6 +76,7 @@ export default function SecurityTab() {
       </div>
 
       <div className="relative mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">New Password <span className="text-red-500">*</span></label>
         <input
           type={showPassword.newPassword ? "text" : "password"}
           placeholder="New Password"
@@ -92,6 +94,7 @@ export default function SecurityTab() {
       </div>
 
       <div className="relative mb-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">Confirm New Password <span className="text-red-500">*</span></label>
         <input
           type={showPassword.confirmPassword ? "text" : "password"}
           placeholder="Confirm New Password"

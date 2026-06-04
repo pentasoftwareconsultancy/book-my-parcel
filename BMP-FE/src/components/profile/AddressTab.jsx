@@ -61,13 +61,13 @@ const AddressModal = ({ onClose, onSave, saving }) => {
             </div>
           </div>
           {[
-            { label: "Full Name", key: "name", col: 2 },
-            { label: "Address Line 1", key: "line1", col: 2 },
+            { label: "Full Name *", key: "name", col: 2 },
+            { label: "Address Line 1 *", key: "line1", col: 2 },
             { label: "Address Line 2 (Optional)", key: "line2", col: 2 },
-            { label: "City", key: "city", col: 1 },
-            { label: "State", key: "state", col: 1 },
-            { label: "Pincode", key: "pincode", col: 1 },
-            { label: "Phone", key: "phone", col: 1 },
+            { label: "City *", key: "city", col: 1 },
+            { label: "State *", key: "state", col: 1 },
+            { label: "Pincode *", key: "pincode", col: 1 },
+            { label: "Phone *", key: "phone", col: 1 },
           ].map(({ label, key, col }) => (
             <div key={key} className={`flex flex-col gap-1.5 ${col === 2 ? "col-span-2" : ""}`}>
               <label className="text-sm font-medium text-gray-700">{label}</label>

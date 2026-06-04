@@ -72,7 +72,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
       placeholder="Describe your package contents" className="h-20 mb-4 text-sm text-black" />
 
     {/* Photos + Value + Type */}
-    <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos</p>
+    <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(at least 1)</span></p>
     <div>
       <div className="grid gap-3 md:grid-cols-3 col-span-2">
         {[1, 2, 3].map((i) => (
@@ -83,6 +83,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
       <div className="space-y-3 grid gap-3 md:grid-cols-3">
         <div className="my-2">
           <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" value={data.parcelValue}
+            required={true}
             onChange={(e) => updateFields({ parcelValue: e.target.value })} />
         </div>
         <div>

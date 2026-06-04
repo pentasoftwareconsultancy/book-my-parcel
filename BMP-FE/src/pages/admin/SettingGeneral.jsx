@@ -55,7 +55,7 @@ const SettingGeneral = () => {
 
       <div className="space-y-4 mb-8">
         <div>
-          <label className="text-xs text-gray-500">Platform Name</label>
+          <label className="text-xs text-gray-500">Platform Name <span className="text-red-500">*</span></label>
           <input
             type="text"
             value={form.platform_name}
@@ -66,7 +66,7 @@ const SettingGeneral = () => {
         </div>
 
         <div>
-          <label className="text-xs text-gray-500">Support Email</label>
+          <label className="text-xs text-gray-500">Support Email <span className="text-red-500">*</span></label>
           <input
             type="email"
             value={form.support_email}
@@ -77,7 +77,7 @@ const SettingGeneral = () => {
         </div>
 
         <div>
-          <label className="text-xs text-gray-500">Support Phone</label>
+          <label className="text-xs text-gray-500">Support Phone <span className="text-red-500">*</span></label>
           <input
             type="text"
             value={form.support_phone}
@@ -92,7 +92,7 @@ const SettingGeneral = () => {
 
       <div className="space-y-4 mb-8">
         <div>
-          <label className="text-xs text-gray-500">Maximum Booking Distance (km)</label>
+          <label className="text-xs text-gray-500">Maximum Booking Distance (km) <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.max_booking_distance}
@@ -104,7 +104,7 @@ const SettingGeneral = () => {
         </div>
 
         <div>
-          <label className="text-xs text-gray-500">Minimum Booking Amount (₹)</label>
+          <label className="text-xs text-gray-500">Minimum Booking Amount (₹) <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.min_booking_amount}

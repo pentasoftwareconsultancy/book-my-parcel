@@ -54,13 +54,13 @@ export default function ScheduleCard({ control, errors, watch, setValue }) {
         </div>
         <div className="flex flex-col md:flex-row gap-3">
           <Controller name="departureDate" control={control} render={({ field }) => (
-            <InputField label="Date" error={!!errors.departureDate} helperText={errors.departureDate?.message}>
+            <InputField label="Date *" error={!!errors.departureDate} helperText={errors.departureDate?.message}>
               <TextInput {...field} type="date" min={today()} error={!!errors.departureDate} />
             </InputField>
           )} />
           <Controller name="departureTime" control={control} render={({ field }) => (
             <TimePicker12h
-              label="Time"
+              label="Time *"
               value={field.value}
               onChange={field.onChange}
               minTime={departureDate === today() ? currentTime() : undefined}

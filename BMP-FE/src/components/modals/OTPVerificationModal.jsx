@@ -238,7 +238,7 @@ const OTPVerificationModal = ({
           {/* OTP Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Enter OTP
+              Enter OTP <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-3 justify-center" onPaste={handlePaste}>
               {otp.map((digit, index) => (
