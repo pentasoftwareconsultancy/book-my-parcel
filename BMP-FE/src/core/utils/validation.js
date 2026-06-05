@@ -306,3 +306,25 @@ export const travelRouteSchema = yup.object({
     otherwise: (s) => s.nullable(),
   }),
 });
+
+
+export const validateName = (name, fieldName = "Name") => {
+  const label = fieldName.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  if (!name || !name.trim()) return `${label} is required`;
+
+  if (!/^[A-Za-z\s]+$/.test(name)) {
+    return `${label} must contain only letters`;
+  }
+
+  if (name.trim().length < 2) {
+    return `${label} must be at least 2 characters`;
+  }
+
+  if (name.trim().length > 50) {
+    return `${label} is too long`;
+  }
+
+  return "";
+};
+
