@@ -40,7 +40,7 @@ const testimonials = [
     highlight: "Easy and reliable platform!"
   },
   {
-    name: "saideep gopale",
+    name: "Saideep Gopale",
     role: "Fashion Boutique Owner",
     image: saideep,
     rating: 5,
@@ -48,7 +48,7 @@ const testimonials = [
     highlight: "Timely parcel delivery!"
   },
   {
-    name: "Vivek jangam",
+    name: "Vivek Jangam",
     role: "Fashion Boutique Owner",
     image: vivek,
     rating: 5,
@@ -56,15 +56,7 @@ const testimonials = [
     highlight: "Timely parcel delivery!"
   },
   {
-    name: "Sneha Patil",
-    role: "Fashion Boutique Owner",
-    image: "/testimonials/sneha.jpg",
-    rating: 5,
-    text: "Our customers now receive parcels on time without any confusion. The real-time updates are extremely helpful.",
-    highlight: "Timely parcel delivery!"
-  },
-  {
-    name: "Sneha Patil",
+    name: "Riya Patil",
     role: "Fashion Boutique Owner",
     image: "/testimonials/sneha.jpg",
     rating: 5,
