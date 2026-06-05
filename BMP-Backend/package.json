@@ -12,7 +12,8 @@
     "generate-migration": "node scripts/generateMigration.js",
     "recover-migrations": "node scripts/recoverMigrations.js",
     "migration:generate": "sequelize-cli migration:generate",
-    "migrate": "sequelize-cli db:migrate"
+    "migrate": "sequelize-cli db:migrate",
+    "generate-swagger": "node scripts/generateSwaggerJson.js"
   },
   "keywords": [],
   "author": "",

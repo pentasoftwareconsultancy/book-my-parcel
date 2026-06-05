@@ -184,7 +184,7 @@ export default function TravelRoute3() {
         ) : (
           <>
             <div className="bg-white rounded-2xl p-6 mb-4 border border-gray-100 shadow-lg">
-              <p className="font-bold mb-4"> Parcel Preferences</p>
+              <p className="font-bold mb-4"> Parcel Preferences <span className="text-red-500">*</span></p>
 
               <ParcelTypeSelector
                 selected={formData.acceptedParcelTypes}

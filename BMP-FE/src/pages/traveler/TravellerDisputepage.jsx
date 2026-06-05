@@ -266,7 +266,7 @@ const TravellerDisputepage = () => {
         <div className="bg-white rounded-2xl shadow-sm border p-4 md:p-6 space-y-5">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Reason for Dispute
+              Reason for Dispute <span className="text-red-500">*</span>
             </label>
             
             <div className="relative">

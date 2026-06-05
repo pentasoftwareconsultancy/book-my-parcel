@@ -84,7 +84,7 @@ const SettingEmail = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Subject</label>
+                <label className="text-sm font-medium text-gray-700">Subject <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={editing.subject}
@@ -93,7 +93,7 @@ const SettingEmail = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Body HTML</label>
+                <label className="text-sm font-medium text-gray-700">Body HTML <span className="text-red-500">*</span></label>
                 <textarea
                   value={editing.body_html}
                   onChange={(e) => setEditing((p) => ({ ...p, body_html: e.target.value }))}

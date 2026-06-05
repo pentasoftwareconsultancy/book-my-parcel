@@ -303,7 +303,7 @@ const handleSubmit = async (e) => {
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label>First name</label>
+        <label>First name <span className="text-red-500">*</span></label>
         <input 
           name="first_name" 
           onChange={handleChange} 
@@ -316,7 +316,7 @@ const handleSubmit = async (e) => {
       </div>
 
       <div>
-        <label>Last name</label>
+        <label>Last name <span className="text-red-500">*</span></label>
         <input 
           name="last_name" 
           onChange={handleChange} 
@@ -329,7 +329,7 @@ const handleSubmit = async (e) => {
       </div>
 
       <div>
-        <label>Date Of Birth</label>
+        <label>Date Of Birth <span className="text-red-500">*</span></label>
         <input 
           type="date" 
           name="dob" 
@@ -343,7 +343,7 @@ const handleSubmit = async (e) => {
       </div>
 
       <div>
-        <label>Select Gender</label>
+        <label>Select Gender <span className="text-red-500">*</span></label>
         <select 
           name="gender" 
           onChange={handleChange} 
@@ -380,6 +380,7 @@ const handleSubmit = async (e) => {
     {/* Document Numbers */}
     <div className="grid md:grid-cols-2 gap-6 mb-6">
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Aadhaar Number <span className="text-red-500">*</span></label>
         <input 
           name="aadhar_number" 
           placeholder="Aadhaar card number (12 digits)" 
@@ -392,6 +393,7 @@ const handleSubmit = async (e) => {
         {errors.aadhar_number && <span className="text-red-500 text-sm">{errors.aadhar_number}</span>}
       </div>
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">PAN Number <span className="text-red-500">*</span></label>
         <input 
           name="pan_number" 
           placeholder="PAN number (e.g., ABCDE1234F)" 
@@ -412,6 +414,7 @@ const handleSubmit = async (e) => {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       {/* Aadhaar Front */}
       <div>
+      <p className="text-xs font-medium text-gray-700 mb-1">Aadhaar Front <span className="text-red-500">*</span></p>
       <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 transition ${errors.aadharFront ? 'border-red-400' : 'border-gray-300'}`}>
         <input type="file" name="aadharFront" accept=".jpg,.jpeg,.png,.pdf" onChange={handleChange} className="hidden" />
         {formData.aadharFront ? (
@@ -428,6 +431,7 @@ const handleSubmit = async (e) => {
 
       {/* Aadhaar Back */}
       <div>
+      <p className="text-xs font-medium text-gray-700 mb-1">Aadhaar Back <span className="text-red-500">*</span></p>
       <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 transition ${errors.aadharBack ? 'border-red-400' : 'border-gray-300'}`}>
         <input type="file" name="aadharBack" accept=".jpg,.jpeg,.png,.pdf" onChange={handleChange} className="hidden" />
         {formData.aadharBack ? (
@@ -444,6 +448,7 @@ const handleSubmit = async (e) => {
 
       {/* PAN Front */}
       <div>
+      <p className="text-xs font-medium text-gray-700 mb-1">PAN Front <span className="text-red-500">*</span></p>
       <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 transition ${errors.panFront ? 'border-red-400' : 'border-gray-300'}`}>
         <input type="file" name="panFront" accept=".jpg,.jpeg,.png,.pdf" onChange={handleChange} className="hidden" />
         {formData.panFront ? (
@@ -460,6 +465,7 @@ const handleSubmit = async (e) => {
 
       {/* PAN Back */}
       <div>
+      <p className="text-xs font-medium text-gray-700 mb-1">PAN Back <span className="text-red-500">*</span></p>
       <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 transition ${errors.panBack ? 'border-red-400' : 'border-gray-300'}`}>
         <input type="file" name="panBack" accept=".jpg,.jpeg,.png,.pdf" onChange={handleChange} className="hidden" />
         {formData.panBack ? (
@@ -499,6 +505,7 @@ const handleSubmit = async (e) => {
       </div>
 
       <div>
+      <p className="text-xs font-medium text-gray-700 mb-1">Selfie <span className="text-red-500">*</span></p>
       <label className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 transition ${errors.selfie ? 'border-red-400' : 'border-gray-300'}`}>
         <input type="file" name="selfie" accept="image/*" onChange={handleChange} className="hidden" />
         {formData.selfie ? (
@@ -524,6 +531,7 @@ const handleSubmit = async (e) => {
 
     <div className="grid md:grid-cols-2 gap-6">
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Account Number <span className="text-red-500">*</span></label>
         <input 
           name="account_number" 
           placeholder="Account number" 
@@ -535,6 +543,7 @@ const handleSubmit = async (e) => {
       </div>
       
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Account Holder Name <span className="text-red-500">*</span></label>
         <input 
           name="account_holder" 
           placeholder="Account holder name" 
@@ -546,6 +555,7 @@ const handleSubmit = async (e) => {
       </div>
       
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">IFSC Code <span className="text-red-500">*</span></label>
         <input 
           name="ifsc" 
           placeholder="IFSC number" 
@@ -557,6 +567,7 @@ const handleSubmit = async (e) => {
       </div>
       
       <div>
+        <label className="text-sm font-medium text-gray-700 mb-1 block">Bank Name <span className="text-red-500">*</span></label>
         <select 
           name="bank_name" 
           onChange={handleChange} 

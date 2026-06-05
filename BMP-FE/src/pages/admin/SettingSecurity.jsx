@@ -66,7 +66,7 @@ const SettingSecurity = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Session Timeout (minutes)</label>
+          <label className="text-sm font-medium">Session Timeout (minutes) <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.session_timeout_mins}
@@ -77,7 +77,7 @@ const SettingSecurity = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Password Expiry (days)</label>
+          <label className="text-sm font-medium">Password Expiry (days) <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.password_expiry_days}
@@ -88,7 +88,7 @@ const SettingSecurity = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">Max Login Attempts</label>
+          <label className="text-sm font-medium">Max Login Attempts <span className="text-red-500">*</span></label>
           <input
             type="number"
             value={form.max_login_attempts}

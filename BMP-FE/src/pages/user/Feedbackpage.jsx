@@ -177,7 +177,7 @@ const FeedbackPage = () => {
         {/* Rating Card */}
         <div className="bg-white rounded-2xl shadow p-6 mb-5">
           <p className="text-base font-semibold text-gray-700 mb-1 text-center">
-            How was your delivery experience?
+            How was your delivery experience? <span className="text-red-500">*</span>
           </p>
           <p className="text-xs text-gray-400 text-center mb-5">
             Tap a star to rate

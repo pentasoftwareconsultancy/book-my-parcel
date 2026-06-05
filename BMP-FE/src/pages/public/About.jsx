@@ -60,10 +60,6 @@ const values = [
   },
 ];
 
-
-
-
-
 export default function About() {
   return (
     <div className="overflow-hidden bg-slate-50">

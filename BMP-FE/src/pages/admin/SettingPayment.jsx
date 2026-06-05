@@ -4,7 +4,7 @@ import { showSuccess, showError } from "../../core/utils/toast.util";
 
 const Field = ({ label, hint, value, onChange }) => (
   <div className="mb-6">
-    <label className="block text-sm font-semibold text-gray-800 mb-1">{label}</label>
+    <label className="block text-sm font-semibold text-gray-800 mb-1">{label} <span className="text-red-500">*</span></label>
     <input
       type="number"
       value={value}

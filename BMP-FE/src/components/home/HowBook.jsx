@@ -21,10 +21,10 @@ const steps = [
     icon: FaBookmark,
   },
   {
-    title: "Get Matched With Delivery Partner",
+    title: "Delivery Partner Assigned",
     desc: "Our system finds verified delivery partners traveling on the same route.",
     img: Step2Img,
-    icon: BsPersonBadge,
+    icon:  BsPersonBadge,
   },
   {
     title: "Secure Pickup With OTP",
@@ -80,7 +80,6 @@ export default function HowBook() {
 
           {steps.map((step, i) => (
             <div key={i}>
-
               {/* ── Tablet: side-by-side alternating | Mobile: stacked ── */}
               <div className="flex flex-col md:flex-row md:items-center md:gap-10 gap-4 mb-6 md:mb-10">
 
@@ -185,6 +184,7 @@ export default function HowBook() {
                       </h2>
                     </div>
                   )}
+
                   <div className="relative group">
                     <div className="text-white rounded-2xl max-w-md lg:max-w-lg shadow-2xl p-5 sm:p-6 transform group-hover:scale-105 transition-all duration-300 flex items-start gap-4 bg-primary" >
                       <div className="p-4 bg-white/20 rounded-xl shrink-0 flex items-center justify-center self-stretch">

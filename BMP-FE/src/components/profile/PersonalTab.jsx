@@ -126,6 +126,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="Enter full name"
           error={errors.fullName}
+          required
         />
         <TextInput
           label="Email Address"
@@ -135,6 +136,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="Enter email"
           error={errors.email}
+          required
         />
         <TextInput
           label="Phone Number"
@@ -143,6 +145,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="Enter phone number"
           error={errors.phone}
+          required
         />
         <TextInput
           label="Location"
@@ -151,6 +154,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="City, State"
           error={errors.location}
+          required
         />
         <TextInput
           label="Role"
@@ -159,6 +163,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="Enter role"
           error={errors.role}
+          required
         />
         <TextInput
           label="Department"
@@ -167,6 +172,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="Enter department"
           error={errors.department}
+          required
         />
       </div>
 
@@ -301,11 +307,11 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
       <div className="grid grid-cols-2 gap-x-8 gap-y-5">
         {isEditing ? (
           <>
-            <TextInput label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} placeholder="Enter your full name" error={errors.fullName} />
-            <TextInput label="Email Address" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter your email" error={errors.email} />
-            <TextInput label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="Enter phone number" error={errors.phone} />
-            <TextInput label="City" name="city" value={form.city} onChange={handleChange} placeholder="Enter your city" error={errors.city} />
-            <TextInput label="State" name="state" value={form.state} onChange={handleChange} placeholder="Enter your state" error={errors.state} />
+            <TextInput label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} placeholder="Enter your full name" error={errors.fullName} required />
+            <TextInput label="Email Address" name="email" type="email" value={form.email} onChange={handleChange} placeholder="Enter your email" error={errors.email} required />
+            <TextInput label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="Enter phone number" error={errors.phone} required />
+            <TextInput label="City" name="city" value={form.city} onChange={handleChange} placeholder="Enter your city" error={errors.city} required />
+            <TextInput label="State" name="state" value={form.state} onChange={handleChange} placeholder="Enter your state" error={errors.state} required />
           </>
         ) : (
           <>
