@@ -6,15 +6,15 @@ import whitelogo from '../assets/whiteLogo.png';
 const CONFIGS = {
   user: {
     bg: "linear-gradient(177.15deg, #1F2AFF -7.03%, #5C9DF2 105.42%)",
-    quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"],["/travelerhome","Become a Traveler"]],
+    quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"]],
     supportTitle: "Support",
-    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
+    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],],
     bottomLinks: [["/termsandcondition","Terms"],["/policy","Privacy"],["/refund-policy","Refund Policy"]],
     badge: false, stats: false, verified: false,
   },
   traveler: {
     bg: "linear-gradient(105deg, #1F2AFF 0%, #3f7de1 50%, #3393c0 100%)",
-    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-benefits","Traveler Benefits"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],["/contact","Contact Us"]],
+    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-benefits","Traveler Benefits"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],],
     supportTitle: "Support and help",
     supportLinks: [["/traveler-guidelines","Traveler Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
     bottomLinks: [["/policy","Privacy Policy"],["/termsandcondition","Terms & Conditions"],["/refund-policy","Refund Policy"]],
@@ -101,7 +101,9 @@ const SharedFooter = ({ type }) => {
 
         {/* BOTTOM BAR */}
         <div className="border-t border-white/30 pt-2 flex flex-col sm:flex-row justify-between items-center gap-0 text-xs">
-          <p className="opacity-90 text-center sm:text-left m-0 leading-relaxed">© 2025 Book My Parcel. All rights reserved.<br />Made in India</p>
+          <p className="opacity-90 text-center sm:text-left m-0 leading-relaxed">
+  © 2025 BOOK MY PERCEL LLP. All Rights Reserved. Developed and Maintained by SmartMatrix Digital Services Pvt. Ltd.
+</p>
           <div className="flex gap-6 opacity-90">{bottomLinks.map(([to, label]) => <span key={label}>{lnk(to, label)}</span>)}</div>
           <div className="flex gap-3">
             {[FaLinkedinIn, FaFacebookF, FaTwitter].map((Icon, i) => (
@@ -125,3 +127,5 @@ const SharedFooter = ({ type }) => {
 export const UserFooter = () => <SharedFooter type="user" />;
 export const TravelerFooter = () => <SharedFooter type="traveler" />;
 export default UserFooter;
+
+

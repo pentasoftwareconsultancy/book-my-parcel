@@ -4,20 +4,20 @@ import RoutePath from "../../core/constants/routes.constant";
 import { Link } from "react-router-dom";
 import  testimonials  from "/src/pages/datafiles/AboutTestimonials.js";
 
-export default function Aboutus() {
+export default function Testimonials() {
   return (
     <section className="pt-10 sm:pt-10 lg:pt-10 pb-0 bg-gradient-to-b from-white via-blue-50/30 to-[#FFFDF6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced heading */}
         <div className="text-center mb-12 sm:mb-16 lg:mb-20">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light leading-tight mb-2">
-            <span className="text-blue-600 font-light"> What Our Clients Say </span>
+            <span className="text-blue-600 font-black"> What Our Clients Say </span>
             <br />
-            <span className="text-blue-600 font-black">About Us</span>
+          
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-blue-700 mx-auto rounded-full mb-6"></div>
           <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto font-medium">
-            Join thousands of satisfied customers who trust Book My Parcel
+
           </p>
         </div>    
         <div className="overflow-x-auto scrollbar-hide pb-4">

@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DeliveryDataManager from "../../services/DeliveryDataManager";
+import {content} from "../datafiles/ServiceData";
 
 // ================= SAME FILE NAME =================
 export default function TermsAndCondition() {
@@ -51,67 +52,7 @@ export default function TermsAndCondition() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
 
-    const content = `
-TERMS & CONDITIONS FOR TRAVELERS
 
-1. Platform Role
-Book My Parcel is a technology platform connecting users with travelers.
-Travelers are independent individuals, not employees, agents, or partners.
-Book My Parcel does not provide courier or transportation services.
-
-2. Eligibility
-- Must be 18 years or older
-- Provide accurate and updated profile information
-- Must have valid travel plans for accepted routes
-
-3. Acceptance of Parcels
-- Travelers may accept or reject parcel requests
-- Must review parcel details before acceptance
-- Must not accept illegal, hazardous, or restricted items
-- After acceptance, must complete delivery responsibly
-
-4. Parcel Handling & Delivery
-- Handle parcels with due care
-- Do not open, inspect, tamper, or misuse parcels
-- Deliver only to intended recipient or authorized third party
-- Third-party involvement only for delivery purposes
-
-5. Payments
-- Travelers paid only after successful delivery
-- Payments processed through the platform
-- Platform/service fees may be deducted
-
-6. Cancellations
-- Avoid canceling after accepting parcels
-- Frequent cancellations may impact ratings or account
-- In emergencies, notify user and platform support immediately
-
-7. Ratings & Performance
-- Rated on punctuality, communication, and delivery success
-- Poor ratings may lead to suspension or termination
-
-8. Legal Compliance & Safety
-- Must follow local laws and transport rules
-- Traveler responsible for actions during transit
-- Platform not liable for traveler violations
-
-9. Prohibited Conduct
-- Carrying illegal or undisclosed items
-- Fraud, harassment, unsafe behavior
-- Misuse of user data
-- False delivery confirmations
-
-10. Limitation of Liability
-- Platform not responsible for loss, delay, damage, or disputes
-- Travelers indemnify the platform against claims
-
-11. Account Suspension or Termination
-- Accounts may be suspended or terminated for policy violations
-
-12. Governing Law
-- Governed by laws of India
-- Disputes subject to Indian courts
-`;
 
     const lines = doc.splitTextToSize(content, 180);
     doc.text(lines, 14, 30);

@@ -3,6 +3,7 @@ import { MdEmail, MdLocationOn, MdPhone, MdSend } from "react-icons/md";
 import { FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 import leftImg from "../../assets/contact.png";
 import rightImg from "../../assets/contact1.png";
+import emailjs from "@emailjs/browser";
 
 const ContactUs = () => {
   const [form, setForm] = useState({
@@ -13,16 +14,50 @@ const ContactUs = () => {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-    setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  setLoading(true);
+
+  const templateParams = {
+    first_name: form.firstName,
+    last_name: form.lastName,
+    user_email: form.email,
+    phone: form.phone,
+    message: form.message,
   };
+
+  try {
+    await emailjs.send(
+      "service_rh1pcea",
+      "template_gwazvug",
+      templateParams,
+      "p_3bCQ_ULuwRZ4zU7"
+    );
+
+    setSubmitted(true);
+
+    setForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      message: "",
+    });
+
+    setTimeout(() => setSubmitted(false), 3000);
+  } catch (error) {
+    console.error(error);
+    alert("Failed to send message");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#efefef] to-[#dde8ff] flex flex-col items-center justify-center overflow-hidden py-16 px-4 sm:px-6">
@@ -168,13 +203,14 @@ const ContactUs = () => {
               </div>
 
               <div className="flex justify-end pt-1">
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold rounded-xl shadow-md transition-all duration-200 text-sm sm:text-base"
-                >
-                  <MdSend size={18} />
-                  Send Message
-                </button>
+              <button
+  type="submit"
+  disabled={loading}
+  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-xl shadow-md transition-all duration-200 text-sm sm:text-base"
+>
+  <MdSend size={18} />
+  {loading ? "Sending..." : "Send Message"}
+</button>
               </div>
             </form>
           </div>

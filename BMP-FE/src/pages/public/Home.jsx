@@ -1,4 +1,4 @@
-import Aboutus from "../../components/home/Aboutus";
+import Testimonials from "../../components/home/Testimonials";
 import FAQs from "../../components/home/FAQs";
 import Hero from "../../components/home/Hero";
 import HowBook from "../../components/home/HowBook";
@@ -13,7 +13,7 @@ export default function Home() {
       <Hero />
       <HowBook/>
       <Whychoose/>
-      <Aboutus/>
+      <Testimonials/>
       <FAQs /> 
     </main>
   );
