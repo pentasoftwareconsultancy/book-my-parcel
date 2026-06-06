@@ -16,12 +16,20 @@ import {
   cacheActiveRoutesFull,
   invalidateActiveRoutesCache
 } from "../redis/cache/activeRoutesCache.service.js";
+// Route expiry is handled by scheduled job in src/jobs/autoCancel.job.js
 
 const MAX_CANDIDATES = 20;
 const MAX_DETOUR_PERCENTAGE = 30;
 const MAX_DETOUR_KM = 80;
 const DEFAULT_BUFFER_KM = 10;
 const REQUEST_EXPIRY_MINUTES = 120;
+
+const ROUTE_EXPIRY_SQL_CONDITION = `
+  (tr.arrival_date IS NULL
+    OR tr.arrival_date > CURRENT_DATE
+    OR (tr.arrival_date = CURRENT_DATE AND (tr.arrival_time IS NULL OR tr.arrival_time >= CURRENT_TIME))
+  )
+`;
 
 function getRouteName(route) {
   const origin = route.originAddress?.locality || route.originAddress?.city || 'Unknown';
@@ -83,11 +91,12 @@ async function findCandidateTravellers(parcelData) {
       WITH 
       -- Method A: Endpoint matching (highest priority)
       endpoint_matches AS (
-        SELECT tr.id, 0 as priority, 'endpoint' as match_type
-        FROM traveller_routes tr
-        JOIN address oa ON oa.id = tr.origin_address_id
-        JOIN address da ON da.id = tr.dest_address_id
-        WHERE tr.status = 'ACTIVE'
+         SELECT tr.id, 0 as priority, 'endpoint' as match_type
+  FROM traveller_routes tr
+  JOIN address oa ON oa.id = tr.origin_address_id
+  JOIN address da ON da.id = tr.dest_address_id
+  WHERE tr.status = 'ACTIVE'
+    AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND (
             (:pickupPlaceId IS NOT NULL AND oa.place_id = :pickupPlaceId)
             OR (:pickupLocalityName IS NOT NULL AND oa.locality = :pickupLocalityName)
@@ -103,7 +112,10 @@ async function findCandidateTravellers(parcelData) {
         SELECT DISTINCT rp1.route_id as id, 1 as priority, 'place_id' as match_type
         FROM route_places rp1
         JOIN route_places rp2 ON rp1.route_id = rp2.route_id
-        WHERE rp1.place_id = :pickupPlaceId
+        JOIN traveller_routes tr ON tr.id = rp1.route_id
+        WHERE tr.status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
+          AND rp1.place_id = :pickupPlaceId
           AND rp2.place_id = :deliveryPlaceId
           AND (
             rp1.sequence_order IS NULL
@@ -116,6 +128,7 @@ async function findCandidateTravellers(parcelData) {
         SELECT tr.id, 2 as priority, 'locality' as match_type
         FROM traveller_routes tr
         WHERE tr.status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND tr.localities_passed @> :pickupLocality
           AND tr.localities_passed @> :deliveryLocality
           AND (
@@ -162,6 +175,7 @@ async function findCandidateTravellers(parcelData) {
         SELECT tr.id, 3 as priority, 'city' as match_type
         FROM traveller_routes tr
         WHERE tr.status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND :includeCityMatch = true
           AND tr.cities_passed @> :pickupCity
           AND (:isSameCity = true OR tr.cities_passed @> :deliveryCity)
@@ -208,6 +222,7 @@ async function findCandidateTravellers(parcelData) {
         SELECT id, 4 as priority, 'spatial' as match_type
         FROM traveller_routes
         WHERE status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND :includeSpatial = true
           AND route_geom IS NOT NULL
           AND ST_DWithin(
@@ -233,6 +248,7 @@ async function findCandidateTravellers(parcelData) {
         SELECT id, 5 as priority, 'buffer' as match_type
         FROM traveller_routes
         WHERE status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND :includeBuffer = true
           AND route_geom IS NOT NULL
           AND ST_DWithin(
@@ -313,7 +329,8 @@ async function findCandidateTravellers(parcelData) {
 
     // Cache full candidate metadata so callers can show which match type matched
     try {
-      await cacheActiveRoutesFull(candidateResults);
+      // await cacheActiveRoutesFull(candidateResults);
+      await cacheActiveRoutesFull(parcelData.id, candidateResults);
     } catch (err) {
       console.warn('[Matching] Failed to cache full candidate metadata:', err.message);
     }
@@ -389,7 +406,10 @@ async function findCandidateTravellersLegacy(parcelData) {
         SELECT DISTINCT rp1.route_id
         FROM route_places rp1
         JOIN route_places rp2 ON rp1.route_id = rp2.route_id
-        WHERE rp1.place_id = :pickupPlaceId
+        JOIN traveller_routes tr ON tr.id = rp1.route_id
+        WHERE tr.status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
+          AND rp1.place_id = :pickupPlaceId
           AND rp2.place_id = :deliveryPlaceId
           AND (
             rp1.sequence_order IS NULL
@@ -420,7 +440,9 @@ async function findCandidateTravellersLegacy(parcelData) {
       const arrayMatches = await sequelize.query(
         `
         SELECT id FROM traveller_routes
-        WHERE localities_passed @> :pickupLocality
+        WHERE status = 'ACTIVE'
+          AND ${ROUTE_EXPIRY_SQL_CONDITION}
+          AND localities_passed @> :pickupLocality
           AND localities_passed @> :deliveryLocality
         `,
         {
@@ -441,8 +463,8 @@ async function findCandidateTravellersLegacy(parcelData) {
     // For different-city parcels: check if route passes through both cities
     if (candidates.size < 10 && parcelData.pickup.city) {
       const query = isSameCity
-        ? `SELECT id FROM traveller_routes WHERE cities_passed @> :pickupCity`
-        : `SELECT id FROM traveller_routes WHERE cities_passed @> :pickupCity AND cities_passed @> :deliveryCity`;
+        ? `SELECT id FROM traveller_routes WHERE status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND cities_passed @> :pickupCity`
+        : `SELECT id FROM traveller_routes WHERE status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND cities_passed @> :pickupCity AND cities_passed @> :deliveryCity`;
 
       const cityMatches = await sequelize.query(query, {
         replacements: {
@@ -852,6 +874,8 @@ async function createParcelRequests(parcelId, candidates) {
     try {
       const travellerId = candidate.travellerProfile.user_id;
       const routeId = candidate.id;
+
+      // Expiry is enforced by the scheduled job; assume routes from DB are ACTIVE
 
       // Skip if an active (non-expired, non-rejected) request already exists
       const existing = await ParcelRequest.findOne({
