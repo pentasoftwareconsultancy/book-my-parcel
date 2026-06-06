@@ -2,7 +2,8 @@ import sequelize from "../../config/database.config.js";
 import Withdrawal from "./withdrawal.model.js";
 import TravellerKYC from "../traveller/travellerKYC.model.js";
 import { debitWalletService, getWalletBalanceService } from "./wallet.service.js";
-
+import { createBeneficiary } from "../../services/cashfreePayout.service.js";
+import { transferToBank } from "../../services/cashfreePayout.service.js";
 import { getSetting } from "../../redis/cache/platformSettingsCache.service.js";
 
 // Minimum withdrawal amount — loaded from platform_settings via cache service.
@@ -194,7 +195,7 @@ export async function processWithdrawalService(withdrawalId) {
     } catch (walletError) {
       // Wallet debit failed, revert status
       await withdrawal.update(
-        { 
+        {
           status: "FAILED",
           failure_reason: walletError.message
         },
@@ -205,12 +206,30 @@ export async function processWithdrawalService(withdrawalId) {
 
     // TODO: Integrate with actual bank transfer API (Razorpay, etc.)
     // For now, simulate success
-    const transactionId = `TXN_${Date.now()}`;
+    const kyc = await TravellerKYC.findOne({
+      where: { user_id: withdrawal.user_id },
+    });
+
+    const beneficiaryId = await createBeneficiary(kyc);
+
+    const payout = await transferToBank(
+      beneficiaryId,
+      Number(withdrawal.amount),
+      withdrawal.id
+    );
+
+    const transactionId =
+      payout?.data?.referenceId ||
+      payout?.data?.transferId ||
+      payout?.referenceId ||
+      payout?.transferId;
 
     // Update withdrawal status to SUCCESS
     await withdrawal.update(
       {
         status: "SUCCESS",
+        beneficiary_id: beneficiaryId,
+        cashfree_transfer_id: transactionId,
         transaction_id: transactionId,
         processed_at: new Date(),
       },

@@ -451,9 +451,13 @@ GOOGLE_GEOLOCATION_KEY=
 # TODO: Add Razorpay LIVE keys (rzp_live_*)
 # RAZORPAY_KEY_ID=
 # RAZORPAY_KEY_SECRET=
+# TODO: Add Cashfree LIVE keys (cf_live_*)
 CASHFREE_APP_ID=
 CASHFREE_SECRET_KEY=
 CASHFREE_ENV=
+
+CASHFREE_P_SECRET_ID=
+CASHFREE_P_SECRET_KEY=
 
 # TODO: Add Twilio credentials and set TRIAL_MODE=false for production
 TWILIO_ACCOUNT_SID=

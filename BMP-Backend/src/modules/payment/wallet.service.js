@@ -85,7 +85,7 @@ export async function creditWalletService(userId, amount, reason, externalTransa
 }
 
 // ─── Debit Wallet (Remove Money) ──────────────────────────────────────────
-export async function debitWalletService(userId, amount, reason, externalTransaction = null) {
+export async function debitWalletService(userId, amount, reason, externalTransaction = null, idempotencyKey = null) {
   const t = externalTransaction || await sequelize.transaction();
   const shouldCommit = !externalTransaction; // Only commit if we created the transaction
   
