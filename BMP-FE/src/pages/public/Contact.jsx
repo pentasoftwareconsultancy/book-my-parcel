@@ -3,6 +3,7 @@ import { MdEmail, MdLocationOn, MdPhone, MdSend } from "react-icons/md";
 import { FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 import leftImg from "../../assets/contact.png";
 import rightImg from "../../assets/contact1.png";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 const ContactUs = () => {
   const [form, setForm] = useState({
@@ -13,16 +14,42 @@ const ContactUs = () => {
     message: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const res = await fetch(`${API_BASE}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName:  form.lastName,
+        email:     form.email,
+        phone:     form.phone,
+        message:   form.message,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to send message");
+
     setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
     setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
-  };
+    setTimeout(() => setSubmitted(false), 3000);
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "Failed to send message");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#efefef] to-[#dde8ff] flex flex-col items-center justify-center overflow-hidden py-16 px-4 sm:px-6">
@@ -73,6 +100,16 @@ const ContactUs = () => {
             </div>
 
             <div className="space-y-6">
+              <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm p-4">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1.5">
+                  Registered Legal Name
+                </p>
+                <p className="font-black text-white text-lg tracking-wide leading-tight">
+                  BOOK MY PERCEL LLP
+                </p>
+                <p className="text-white/50 text-xs mt-1">Limited Liability Partnership · India</p>
+              </div>
               <InfoItem icon={<MdEmail size={20} />} text="support@bookmyparcel.com" />
               <InfoItem icon={<MdPhone size={20} />} text="+91 9545444591" />
               <InfoItem
@@ -168,13 +205,14 @@ const ContactUs = () => {
               </div>
 
               <div className="flex justify-end pt-1">
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold rounded-xl shadow-md transition-all duration-200 text-sm sm:text-base"
-                >
-                  <MdSend size={18} />
-                  Send Message
-                </button>
+              <button
+  type="submit"
+  disabled={loading}
+  className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-xl shadow-md transition-all duration-200 text-sm sm:text-base"
+>
+  <MdSend size={18} />
+  {loading ? "Sending..." : "Send Message"}
+</button>
               </div>
             </form>
           </div>

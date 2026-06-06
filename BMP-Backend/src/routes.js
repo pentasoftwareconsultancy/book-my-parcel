@@ -16,6 +16,7 @@ import withdrawalRoutes   from "./modules/payment/withdrawal.routes.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
 import kycRoutes          from "./modules/kyc/kyc.routes.js";
 import queueMonitorRoutes from "./routes/queue-monitor.routes.js";
+import contactRoutes      from "./modules/contact/contact.routes.js";
 
 const router = express.Router();
 
@@ -94,6 +95,9 @@ router.use("/kyc", kycRoutes);
 
 // ── Queue monitor (BullMQ observability — auth-protected) ─────────────────────
 router.use("/queues", queueMonitorRoutes);
+
+// ── Contact form ──────────────────────────────────────────────────────────────
+router.use("/contact", contactRoutes);
 
 // ── Development-only routes — NEVER exposed in production ─────────────────────
 if (process.env.NODE_ENV !== "production") {
