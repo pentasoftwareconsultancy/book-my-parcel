@@ -1,24 +1,23 @@
 import React from 'react'
 import { motion } from "framer-motion";
 import { FaRocket, FaHandshake, FaShieldAlt } from "react-icons/fa";
-
 const values = [
   {
     title: "Our Mission",
     description:
-      "To provide affordable and reliable parcel delivery by connecting senders with verified travelers.",
+      "To provide a secure, affordable, and efficient parcel delivery platform by connecting parcel senders with verified travelers who are already traveling between cities, making delivery faster and more accessible for everyone.",
     icon: <FaRocket />,
   },
   {
     title: "Our Vision",
     description:
-      "To become India's most trusted community-based parcel delivery platform.",
+      "To become India's most trusted community-based parcel delivery network, empowering people to send and receive parcels seamlessly through a nationwide network of verified travelers.",
     icon: <FaHandshake />,
   },
   {
     title: "Our Values",
     description:
-      "Trust, transparency, security, and customer satisfaction guide every delivery.",
+      "Trust, transparency, security, reliability, and customer satisfaction are at the heart of every parcel delivery and traveler connection.",
     icon: <FaShieldAlt />,
   },
 ];
@@ -30,8 +29,11 @@ function AboutMission() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "linear-gradient(180deg, #545a5cff 0%, #5C9DF2 139.02%)",
+             background: [
+        "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 50%, #60A5FA 100%)",
+        "linear-gradient(135deg, #2563EB 0%, #60A5FA 50%, #93C5FD 100%)",
+        "linear-gradient(135deg, #1E3A8A 0%, #3B82F6 50%, #60A5FA 100%)",
+      ],
           }}
         />
 
@@ -55,95 +57,105 @@ function AboutMission() {
           </motion.div>
 
           {/* Cards */}
-          <div className="grid md:grid-cols-3 gap-8">
+{/* Cards */}
+<div className="grid md:grid-cols-3 gap-8">
 
-            {values.map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 80 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.7,
-                  delay: index * 0.2,
-                }}
-                animate={{
-                  y: [0, -8, 0],
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  y: -20,
-                }}
-                className="
-            relative
-            overflow-hidden
-            bg-white/10
-            backdrop-blur-xl
-            border border-white/20
-            rounded-3xl
-            p-8
-            shadow-[0_20px_50px_rgba(0,0,0,0.25)]
-            group
-          "
-              >
+  {values.map((item, index) => (
+    <motion.div
+      key={index}
+      initial={{
+        opacity: 0,
+        scale: 0.8,
+        filter: "blur(10px)",
+      }}
+      whileInView={{
+        opacity: 1,
+        scale: 1,
+        filter: "blur(0px)",
+      }}
+      viewport={{ once: true }}
+      transition={{
+        duration: 0.8,
+        delay: index * 0.2,
+        ease: "easeOut",
+      }}
+      animate={{
+        y: [0, -8, 0],
+      }}
+      whileHover={{
+        scale: 1.05,
+        y: -20,
+      }}
+      className="
+        relative
+        overflow-hidden
+        bg-white/10
+        backdrop-blur-xl
+        border border-white/20
+        rounded-3xl
+        p-8
+        shadow-[0_20px_50px_rgba(0,0,0,0.25)]
+        group
+      "
+    >
 
-                {/* Glow Effects */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+      {/* Glow Effects */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
 
-                  <div className="absolute -top-10 -left-10 w-40 h-40 bg-cyan-400 rounded-full blur-3xl opacity-30" />
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-cyan-400 rounded-full blur-3xl opacity-30" />
 
-                  <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-30" />
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-30" />
 
-                </div>
+      </div>
 
-                {/* Animated Icon */}
-                <motion.div
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                    y: [0, -10, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="
-              relative z-10
-              w-20 h-20
-              flex items-center justify-center
-              rounded-2xl
-              bg-white
-              text-blue-600
-              text-4xl
-              shadow-xl
-              mb-6
-            "
-                >
-                  {item.icon}
-                </motion.div>
+      {/* Animated Icon */}
+      <motion.div
+        animate={{
+          rotate: [0, 10, -10, 0],
+          y: [0, -10, 0],
+        }}
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="
+          relative z-10
+          w-20 h-20
+          flex items-center justify-center
+          rounded-2xl
+          bg-white
+          text-blue-600
+          text-4xl
+          shadow-xl
+          mb-6
+        "
+      >
+        {item.icon}
+      </motion.div>
 
-                {/* Title */}
-                <h3 className="relative z-10 text-2xl font-bold text-white mb-4">
-                  {item.title}
-                </h3>
+      {/* Title */}
+      <h3 className="relative z-10 text-2xl font-bold text-white mb-4">
+        {item.title}
+      </h3>
 
-                {/* Description */}
-                <p className="relative z-10 text-blue-100 leading-7">
-                  {item.description}
-                </p>
+      {/* Description */}
+      <p className="relative z-10 text-blue-100 leading-7">
+        {item.description}
+      </p>
 
-                {/* Animated Bottom Border */}
-                <motion.div
-                  className="absolute bottom-0 left-0 h-1 bg-white"
-                  initial={{ width: 0 }}
-                  whileHover={{ width: "100%" }}
-                  transition={{ duration: 0.4 }}
-                />
+      {/* Animated Bottom Border */}
+      <motion.div
+        className="absolute bottom-0 left-0 h-1 bg-white"
+        initial={{ width: 0 }}
+        whileHover={{ width: "100%" }}
+        transition={{ duration: 0.4 }}
+      />
 
-              </motion.div>
-            ))}
+    </motion.div>
+  ))}
 
-          </div>
+</div>
 
         </div>
 

@@ -10,19 +10,19 @@ import {
 const journey = [
   {
     icon: <FaLightbulb className="text-yellow-500 text-xl" />,
-    text: "Idea Created",
+    text: "Identified the need for a faster, affordable, and community-driven parcel delivery solution.",
   },
   {
     icon: <FaTools className="text-blue-500 text-xl" />,
-    text: "Platform Developed",
+    text: "Developed a secure platform connecting parcel senders with verified travelers.",
   },
   {
     icon: <FaBox className="text-green-500 text-xl" />,
-    text: "First Parcel Delivered",
+    text: "Enabled reliable parcel deliveries by utilizing existing travel routes between cities.",
   },
   {
     icon: <FaRocket className="text-red-500 text-xl" />,
-    text: "Expanding Across India",
+    text: "Expanding across India to build the nation's most trusted traveler-powered delivery network.",
   },
 ];
 
@@ -60,7 +60,7 @@ function AboutJourney() {
             viewport={{ once: true }}
             className="text-center mb-20"
           >
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white font-semibold text-sm mb-5">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white font-semibold text-sm mb-4">
               <FaRocket className="text-sm" /> Our Journey
             </div>
 
@@ -85,10 +85,11 @@ function AboutJourney() {
                   key={index}
                   initial={{ opacity: 0, y: 80 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  transition={{ duration: 0.8, delay: index * 0.4 }}
                   viewport={{ once: true }}
                   whileHover={{ y: -12, scale: 1.03 }}
                   className="relative"
+                  
                 >
 
                   {/* Animated Circle on timeline */}
@@ -120,20 +121,18 @@ function AboutJourney() {
                       {step.icon}
                     </div>
 
-                    <h3 className="relative z-10 text-lg font-bold text-center text-white mb-2">
+                    <h3 className="relative z-10 text-lg  text-center text-white mb-2">
                       {step.text}
                     </h3>
 
-                    <p className="relative z-10 text-center text-blue-100 text-sm leading-relaxed">
-                      Milestone achieved in our growth journey.
-                    </p>
+                  
 
                     {/* Animated bottom border */}
                     <motion.div
                       className="absolute bottom-0 left-0 h-0.5 bg-white/60 rounded-b-3xl"
                       initial={{ width: 0 }}
                       whileInView={{ width: "100%" }}
-                      transition={{ duration: 0.8, delay: index * 0.15 }}
+                      transition={{ duration: 0.8, delay: index * 0.19 }}
                       viewport={{ once: true }}
                     />
                   </div>

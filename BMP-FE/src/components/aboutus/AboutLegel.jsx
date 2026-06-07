@@ -11,7 +11,7 @@ import {
 
 function AboutLegel() {
   return (
-    <section className="py-24 bg-gradient-to-b from-white to-blue-50">
+    <section className="py-20 bg-gradient-to-b from-white to-blue-50 mt-0">
         <div className="max-w-7xl mx-auto px-6">
 
           <motion.div
@@ -23,7 +23,7 @@ function AboutLegel() {
             <span className="bg-blue-100 text-blue-600 px-5 py-2 rounded-full text-sm font-semibold">
               Legal Information
             </span>
-            <h2 className="text-4xl md:text-5xl font-black text-slate-800 mt-5">
+            <h2 className="text-5xl md:text-5xl font-black text-blue-600 mt-5">
               Company Details
             </h2>
             <p className="text-gray-500 mt-3 text-base max-w-xl mx-auto">
@@ -103,14 +103,15 @@ function AboutLegel() {
                   <div>
                     <p className="text-xs uppercase tracking-widest text-blue-500 font-bold mb-1">Registered Office</p>
                     <p className="text-slate-600 text-sm leading-relaxed">
-                      Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A,
-                      Dhanori, Near Dhanori Police Station, Pune City,
+                      Flat No. 303, Sai Enclave-B, Tushar Park, Survey No.
+                     <br/>17/1A,Dhanori, Near Dhanori Police Station, Pune City,<br/>
                       Pune – 411015, Maharashtra, India
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 pt-4 border-t border-slate-100">
+                <div className="flex items-start gap-3 pt-4 border-t border-slate-400">
+                  
                   <div className="shrink-0 w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center mt-0.5 text-blue-500">
                     <FaEnvelope className="text-sm" />
                   </div>
@@ -119,8 +120,7 @@ function AboutLegel() {
                     <p className="text-slate-700 text-sm font-semibold">support@bookmyparcel.com</p>
                   </div>
                 </div>
-
-                <div className="flex items-start gap-3 pt-4 border-t border-slate-100">
+                <div className="flex items-start gap-3 pt-4 border-t border-slate-400">
                   <div className="shrink-0 w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center mt-0.5 text-blue-500">
                     <FaPhone className="text-sm" />
                   </div>
