@@ -1,0 +1,29 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+      - stage
+      - testing
+    paths:
+      - 'BMP-Backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into VPS and deploy Backend
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            BRANCH=${GITHUB_REF##*/}
+            echo "Deploying branch $BRANCH to Backend on VPS..."
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            bash /var/www/bmp/BMP-Backend/scripts/deploy.sh "$BRANCH"

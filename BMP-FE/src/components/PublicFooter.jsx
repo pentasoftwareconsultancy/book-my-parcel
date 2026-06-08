@@ -9,7 +9,7 @@ const CONFIGS = {
     quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"]],
     supportTitle: "Support",
     supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],],
-    bottomLinks: [["/termsandcondition","Terms"],["/policy","Privacy"],["/refund-policy","Refund Policy"]],
+    
     badge: false, stats: false, verified: false,
   },
   traveler: {
@@ -17,7 +17,7 @@ const CONFIGS = {
     quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-benefits","Traveler Benefits"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],],
     supportTitle: "Support and help",
     supportLinks: [["/traveler-guidelines","Traveler Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
-    bottomLinks: [["/policy","Privacy Policy"],["/termsandcondition","Terms & Conditions"],["/refund-policy","Refund Policy"]],
+    
     badge: true, stats: true, verified: true,
   },
 };
@@ -28,7 +28,7 @@ const SharedFooter = ({ type }) => {
 
   return (
     <footer className="text-white" style={{ background: bg, fontFamily: "Arial, sans-serif", fontSize: "14px" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-6 pt-4 pb-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-6 pt-4 pb-4">
 
         {/* LOGO */}
         <div className="mb-6"><img src={whitelogo} alt="BookMyParcel Logo" className="h-16 object-contain" /></div>
@@ -100,11 +100,13 @@ const SharedFooter = ({ type }) => {
         </div>
 
         {/* BOTTOM BAR */}
-        <div className="border-t border-white/30 pt-2 flex flex-col sm:flex-row justify-between items-center gap-0 text-xs">
+        <div className="border-t border-white/30 pt-2 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
           <p className="opacity-90 text-center sm:text-left m-0 leading-relaxed">
   © 2025 BOOK MY PERCEL LLP. All Rights Reserved. Developed and Maintained by SmartMatrix Digital Services Pvt. Ltd.
 </p>
-          <div className="flex gap-6 opacity-90">{bottomLinks.map(([to, label]) => <span key={label}>{lnk(to, label)}</span>)}</div>
+         
+
+
           <div className="flex gap-3">
             {[FaLinkedinIn, FaFacebookF, FaTwitter].map((Icon, i) => (
               <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/60 flex items-center justify-center hover:bg-white/20 transition text-white no-underline"><Icon size={14} /></a>

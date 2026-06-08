@@ -3,7 +3,7 @@ import { MdEmail, MdLocationOn, MdPhone, MdSend } from "react-icons/md";
 import { FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 import leftImg from "../../assets/contact.png";
 import rightImg from "../../assets/contact1.png";
-import emailjs from "@emailjs/browser";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
 
 const ContactUs = () => {
   const [form, setForm] = useState({
@@ -21,39 +21,31 @@ const ContactUs = () => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-
   setLoading(true);
 
-  const templateParams = {
-    first_name: form.firstName,
-    last_name: form.lastName,
-    user_email: form.email,
-    phone: form.phone,
-    message: form.message,
-  };
-
   try {
-    await emailjs.send(
-      "service_rh1pcea",
-      "template_gwazvug",
-      templateParams,
-      "p_3bCQ_ULuwRZ4zU7"
-    );
-
-    setSubmitted(true);
-
-    setForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      message: "",
+    const res = await fetch(`${API_BASE}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: form.firstName,
+        lastName:  form.lastName,
+        email:     form.email,
+        phone:     form.phone,
+        message:   form.message,
+      }),
     });
 
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to send message");
+
+    setSubmitted(true);
+    setForm({ firstName: "", lastName: "", email: "", phone: "", message: "" });
     setTimeout(() => setSubmitted(false), 3000);
   } catch (error) {
     console.error(error);
-    alert("Failed to send message");
+    alert(error.message || "Failed to send message");
   } finally {
     setLoading(false);
   }
@@ -108,6 +100,16 @@ const handleSubmit = async (e) => {
             </div>
 
             <div className="space-y-6">
+              <div className="relative overflow-hidden rounded-2xl border border-white/30 bg-white/10 backdrop-blur-sm p-4">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1.5">
+                  Registered Legal Name
+                </p>
+                <p className="font-black text-white text-lg tracking-wide leading-tight">
+                  BOOK MY PERCEL LLP
+                </p>
+                <p className="text-white/50 text-xs mt-1">Limited Liability Partnership · India</p>
+              </div>
               <InfoItem icon={<MdEmail size={20} />} text="support@bookmyparcel.com" />
               <InfoItem icon={<MdPhone size={20} />} text="+91 9545444591" />
               <InfoItem
