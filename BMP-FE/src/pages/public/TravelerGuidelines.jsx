@@ -1,6 +1,6 @@
 import React from "react";
 import RoutePath from "../../core/constants/routes.constant";
-import { guidelines} from "../datafiles/ServiceData";
+import { guidelines} from "../datafiles/TermsData";
 
 const TravelerGuidelines = () => {
   return (

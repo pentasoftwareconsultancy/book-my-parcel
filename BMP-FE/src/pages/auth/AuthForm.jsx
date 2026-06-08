@@ -16,6 +16,8 @@ import {
   validateOnlyCharacters,
 } from "../../core/utils/validation";
 import RoutePath from "../../core/constants/routes.constant";
+import TermModel from  "../../components/modals/TerrmModel";
+import PrivacyModel from "../../components/modals/PolicyModel";
 
 const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
 
@@ -49,6 +51,9 @@ const AuthForm = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordHint, setShowPasswordHint] = useState(false);
   const lastAutofillRef = React.useRef(0);
+const [termsOpen, setTermsOpen] = useState(false);
+const [policyOpen, setPolicyOpen] = useState(false);
+const [agreed, setAgreed] = useState(false);
 
   const password = formData.password || "";
 
@@ -287,7 +292,7 @@ const AuthForm = ({
       </div>
 
       {/* Terms */}
-      {isSignupPage && (
+      {/* {isSignupPage && (
         <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
           <input
             type="checkbox"
@@ -306,7 +311,39 @@ const AuthForm = ({
 
           </span>
         </label>
-      )}
+      )} */}
+      {isSignupPage && (
+  <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
+
+    <input
+      type="checkbox"
+      checked={agreed}
+      onChange={(e) => setAgreed(e.target.checked)}
+      className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
+    />
+
+    <span>
+      I agree to the{" "}
+
+      <span
+        onClick={() => setTermsOpen(true)}
+        className="text-blue-600 hover:underline cursor-pointer"
+      >
+        Terms & Conditions
+      </span>
+
+      {" "}and{" "}
+
+      <span
+        onClick={() => setPolicyOpen(true)}
+        className="text-blue-600 hover:underline cursor-pointer"
+      >
+        Privacy Policy
+      </span>
+    </span>
+
+  </label>
+)}
 
       {isLoginPage && (
         <div className="flex justify-between">
@@ -364,6 +401,18 @@ const AuthForm = ({
           <FaApple />
         </Button>
 
+<TermModel
+  open={termsOpen}
+  onClose={() => setTermsOpen(false)}
+  onAccept={() => {
+    setAgreed(true);
+    setTermsOpen(false);
+  }}
+/>
+<PrivacyModel
+  open={policyOpen}
+  onClose={() => setPolicyOpen(false)}
+/>
       </div>
     </form>
   );

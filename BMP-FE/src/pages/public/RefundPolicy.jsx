@@ -75,14 +75,14 @@ export default function RefundPolicy() {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-200">
+          {/* <div className="pt-6 border-t border-gray-200">
             <button
               onClick={() => navigate(-1)}
               className="px-6 py-2.5 border rounded-md text-gray-700 hover:bg-gray-100 text-sm"
             >
               Back
             </button>
-          </div>
+          </div> */}
         </section>
       </div>
     </main>

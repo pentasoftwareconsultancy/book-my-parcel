@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from "framer-motion";
-import parcel from "../../assets/homeimage/aboutparcel2.jpg";
+import parcel from "../../assets/homeimage/aboutparcel.jpg";
 
 function AboutusStory() {
   return (
@@ -36,7 +36,7 @@ function AboutusStory() {
               viewport={{ once: true }}
             >
               <span className="bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-semibold">
-                OUR JOURNEY
+                SMART DELIVERY, REDEFINED
               </span>
 
               <h2 className="text-5xl lg:text-6xl font-black text-slate-800 mt-6 mb-6 leading-tight">
@@ -55,22 +55,7 @@ function AboutusStory() {
               </p>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <h3 className="text-3xl font-bold text-slate-800">10K+</h3>
-                  <p className="text-gray-500">Deliveries</p>
-                </div>
-
-                <div>
-                  <h3 className="text-3xl font-bold text-slate-800">5K+</h3>
-                  <p className="text-gray-500">Travelers</p>
-                </div>
-
-                <div>
-                  <h3 className="text-3xl font-bold text-slate-800">100+</h3>
-                  <p className="text-gray-500">Cities</p>
-                </div>
-              </div>
+              
             </motion.div>
 
           </div>
