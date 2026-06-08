@@ -345,7 +345,7 @@ const [agreed, setAgreed] = useState(false);
   </label>
 )}
 
-      {isLoginPage && (
+      {/* {isLoginPage && (
         <div className="flex justify-between">
           <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
             <input
@@ -361,7 +361,7 @@ const [agreed, setAgreed] = useState(false);
           </Link>
         </div>
 
-      )}
+      )} */}
 
       {/* Submit */}
       <Button fullWidth disabled={disabled}>
