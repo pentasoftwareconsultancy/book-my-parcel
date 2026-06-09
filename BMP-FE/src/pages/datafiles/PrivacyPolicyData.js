@@ -8,9 +8,10 @@ import {
   Info,
   Lock,
 } from "lucide-react";
+
 export const privacyPolicyData = {
   intro:
-    "By registering as a traveler, you agree to all privacy policies.",
+    "At Book My Parcel, we respect your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, share, and safeguard your data when you use our platform.",
 
   sections: [
     {
@@ -18,9 +19,9 @@ export const privacyPolicyData = {
       iconClass: "text-green-600",
       title: "1. Information We Collect",
       list: [
-        "Personal info: Name, Phone, Email, Routes",
-        "Delivery info: Parcel details and status",
-        "Technical data: IP, device, usage data",
+        "Personal Information: Name, Phone Number, Email Address, Pickup and Drop Addresses",
+        "Parcel Information: Parcel Type, Description, Size or Weight (if applicable)",
+        "Usage & Technical Data: Device Information, Browser Type, IP Address, Platform Usage Data",
       ],
     },
     {
@@ -28,11 +29,12 @@ export const privacyPolicyData = {
       iconClass: "text-blue-600",
       title: "2. How We Use Information",
       list: [
-        "Parcel matching",
-        "Communication",
-        "Payments",
-        "Platform improvement",
-        "Legal compliance",
+        "Facilitate parcel pickup and delivery",
+        "Connect users with suitable travelers",
+        "Enable communication between users and travelers",
+        "Provide tracking updates",
+        "Improve platform functionality and user experience",
+        "Ensure safety, prevent misuse, and comply with legal requirements",
       ],
     },
     {
@@ -40,60 +42,71 @@ export const privacyPolicyData = {
       iconClass: "text-purple-600",
       title: "3. Information Sharing",
       text:
-        "Shared only with users and authorized partners. We never sell traveler data.",
-    },
-    {
-      icon: Lock,
-      iconClass: "text-teal-600",
-      title: "4. Data Security",
-      text:
-        "Reasonable safeguards are used but no system is 100% secure.",
+        "We share user information only when necessary, including with selected travelers for pickup and delivery coordination, recipients for parcel handover, and service providers supporting platform operations. We do not sell or rent your personal data to third parties.",
     },
     {
       icon: User,
       iconClass: "text-orange-600",
-      title: "5. Data Retention",
+      title: "4. Traveler & Third-Party Disclosure",
       text:
-        "Data stored only as required by law. Travelers may request deletion.",
+        "Travelers on Book My Parcel are independent individuals and not employees. Necessary delivery-related information may be shared with a third person involved in parcel handover, depending on the traveler’s mode of transport. Users acknowledge and consent to this limited data sharing for delivery purposes.",
     },
     {
-      icon: UserX,
-      iconClass: "text-red-600",
-      title: "6. Traveler Rights",
-      list: [
-        "Access personal data",
-        "Correct data",
-        "Request deletion",
-        "Withdraw consent",
-      ],
+      icon: Lock,
+      iconClass: "text-teal-600",
+      title: "5. Data Security",
+      text:
+        "We implement reasonable security measures to protect your data from unauthorized access, loss, or misuse. However, no online platform can guarantee 100% security, and users share information at their own risk.",
     },
     {
       icon: Activity,
       iconClass: "text-green-600",
-      title: "7. Cookies & Tracking",
+      title: "6. Data Retention",
       text:
-        "Used for login and analytics. Manage via browser settings.",
+        "We retain personal data only as long as necessary to provide services or meet legal obligations. Users may request data deletion, subject to regulatory requirements.",
     },
     {
-      icon: AlertTriangle,
+      icon: UserX,
+      iconClass: "text-red-600",
+      title: "7. User Rights",
+      list: [
+        "Access your personal data",
+        "Request correction of inaccurate information",
+        "Request deletion of your account and data",
+        "Withdraw consent where applicable",
+      ],
+    },
+    {
+      icon: Activity,
       iconClass: "text-yellow-600",
-      title: "8. Children's Privacy",
-      text: "Travelers must be 18+ years old.",
+      title: "8. Cookies & Tracking",
+      text:
+        "Book My Parcel may use cookies or similar technologies to enhance user experience, analyze platform performance, and improve usability. You can control cookie preferences through your browser settings.",
     },
     {
-      icon: Edit,
-      iconClass: "text-gray-600",
-      title: "9. Policy Updates",
-      text: "Policy may be updated periodically.",
-    },
-    {
-      icon: Info,
-      iconClass: "text-blue-600",
-      title: "10. Contact Us",
-      text: "Contact official support for privacy concerns.",
-    },
+  icon: AlertTriangle,
+  iconClass: "text-orange-600",
+  title: "9. Children's Privacy",
+  text:
+    "Book My Parcel is intended only for individuals who are 18 years of age or older. We do not knowingly collect, store, or process personal information from children under 18. If we become aware that a minor has provided personal information through our platform, we will take appropriate steps to remove such information and terminate the associated account where necessary.",
+},
+{
+  icon: Edit,
+  iconClass: "text-gray-600",
+  title: "10. Policy Updates",
+  text:
+    "Book My Parcel reserves the right to modify or update this Privacy Policy at any time to reflect changes in our services, legal requirements, or business practices. Any updates will be posted on the platform with a revised effective date. Continued use of the platform after such updates constitutes your acceptance of the revised Privacy Policy.",
+},
+{
+  icon: Info,
+  iconClass: "text-blue-600",
+  title: "11. Contact Us",
+  text:
+    "If you have any questions, concerns, requests, or complaints regarding this Privacy Policy or the handling of your personal information, you may contact the Book My Parcel support team through our official communication channels. We will make reasonable efforts to respond to privacy-related inquiries in a timely manner.",
+},
   ],
 };
+
 
 import {
   Shield,

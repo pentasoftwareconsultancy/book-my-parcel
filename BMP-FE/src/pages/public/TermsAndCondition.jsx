@@ -12,7 +12,7 @@ import {
   Edit,
   Info,
   Download,
-  CheckCircle,
+ 
   FileText,
 } from "lucide-react";
 import { FaFileAlt } from "react-icons/fa";
@@ -127,7 +127,9 @@ export default function TermsAndCondition() {
   return (
     <Section
       key={index}
-      icon={<Icon size={20} className={item.iconClass} />}
+      icon={ <div className="w-14 h-9 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
+    <Icon size={22} className="text-white" />
+  </div>}
       title={item.title}
       text={item.text}
       list={item.list}

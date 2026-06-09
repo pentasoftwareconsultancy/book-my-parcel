@@ -1,7 +1,5 @@
 import {
-
   FileText,
- 
   Info,
   Ban,
 } from "lucide-react";
@@ -30,59 +28,55 @@ export default function RefundPolicy() {
             <p>{introText}</p>
           </div>
 
-          {refundSections.map((section, index) => {
-            const Icon = section.icon;
+{refundSections.map((section, index) => {
+  const Icon = section.icon;
 
-            return (
-              <Section
-                key={index}
-                icon={<Icon size={20} className={section.iconColor} />}
-                title={section.title}
-                text={section.text}
-                list={section.list}
-              />
-            );
-          })}
+  return (
+    <Section
+      key={index}
+      icon={
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-sm shrink-0">
+          <Icon size={22} className="text-white" />
+        </div>
+      }
+      title={section.title}
+      text={section.text}
+      list={section.list}
+    />
+  );
+})}
 
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <Ban
-                size={20}
-                className="text-orange-600 shrink-0 mt-0.5"
-              />
-              <h3 className="text-base font-semibold text-gray-900">
-                5. Cancellation Policy
-              </h3>
-            </div>
+          <div className="flex gap-4 items-start">
+  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-sm shrink-0">
+    <Ban size={22} className="text-white" />
+  </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-gray-50 border rounded-md p-4">
-                <p className="font-semibold mb-2">Sender Cancellation</p>
-                <ul className="space-y-2 text-sm">
-                  <li>✓ Before traveler confirmation → Eligible for refund</li>
-                  <li>⚠ After traveler confirmation → Refund may not apply</li>
-                  <li>✕ After parcel handover → No refund</li>
-                </ul>
-              </div>
+  <div className="flex-1">
+    <h3 className="text-lg font-semibold text-gray-900 mb-3">
+      5. Cancellation Policy
+    </h3>
 
-              <div className="bg-gray-50 border rounded-md p-4">
-                <p className="font-semibold mb-2">Traveler Cancellation</p>
-                <ul className="space-y-2 text-sm">
-                  <li>✓ Sender may choose another traveler</li>
-                  <li>✓ Sender may request refund if no alternative is selected</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+    <div className="grid sm:grid-cols-2 gap-4">
+      <div className="bg-gray-50 border rounded-xl p-4">
+        <p className="font-semibold mb-2">Sender Cancellation</p>
+        <ul className="space-y-2 text-sm text-gray-600">
+          <li>✓ Before traveler confirmation → Eligible for refund</li>
+          <li>⚠ After traveler confirmation → Refund may not apply</li>
+          <li>✕ After parcel handover → No refund</li>
+        </ul>
+      </div>
 
-          {/* <div className="pt-6 border-t border-gray-200">
-            <button
-              onClick={() => navigate(-1)}
-              className="px-6 py-2.5 border rounded-md text-gray-700 hover:bg-gray-100 text-sm"
-            >
-              Back
-            </button>
-          </div> */}
+      <div className="bg-gray-50 border rounded-xl p-4">
+        <p className="font-semibold mb-2">Traveler Cancellation</p>
+        <ul className="space-y-2 text-sm text-gray-600">
+          <li>✓ Sender may choose another traveler</li>
+          <li>✓ Sender may request refund if no alternative is selected</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
         </section>
       </div>
     </main>
@@ -91,27 +85,32 @@ export default function RefundPolicy() {
 
 function Section({ icon, title, text, list }) {
   return (
-    <div className="space-y-3">
-      <div className="flex items-start gap-3">
-        <span>{icon}</span>
-        <h3 className="text-base font-semibold text-gray-900">
-          {title}
-        </h3>
+    <div className="flex gap-4 items-start">
+      {/* Icon */}
+      <div className="shrink-0">
+        {icon}
       </div>
 
-      {text && (
-        <p className="text-sm text-gray-600 leading-relaxed pl-8">
-          {text}
-        </p>
-      )}
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {title}
+        </h3>
 
-      {list && (
-        <ul className="list-disc pl-14 text-sm text-gray-600 space-y-1">
-          {list.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      )}
+        {text && (
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {text}
+          </p>
+        )}
+
+        {list && (
+          <ul className="list-disc pl-5 mt-3 text-sm text-gray-600 space-y-2">
+            {list.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

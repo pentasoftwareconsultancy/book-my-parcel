@@ -14,71 +14,6 @@ import {
   
 } from "lucide-react";
 
-// Terms and Conditions Content for Travelers
-
-    const content = `
-TERMS & CONDITIONS FOR TRAVELERS
-
-1. Platform Role
-Book My Parcel is a technology platform connecting users with travelers.
-Travelers are independent individuals, not employees, agents, or partners.
-Book My Parcel does not provide courier or transportation services.
-
-2. Eligibility
-- Must be 18 years or older
-- Provide accurate and updated profile information
-- Must have valid travel plans for accepted routes
-
-3. Acceptance of Parcels
-- Travelers may accept or reject parcel requests
-- Must review parcel details before acceptance
-- Must not accept illegal, hazardous, or restricted items
-- After acceptance, must complete delivery responsibly
-
-4. Parcel Handling & Delivery
-- Handle parcels with due care
-- Do not open, inspect, tamper, or misuse parcels
-- Deliver only to intended recipient or authorized third party
-- Third-party involvement only for delivery purposes
-
-5. Payments
-- Travelers paid only after successful delivery
-- Payments processed through the platform
-- Platform/service fees may be deducted
-
-6. Cancellations
-- Avoid canceling after accepting parcels
-- Frequent cancellations may impact ratings or account
-- In emergencies, notify user and platform support immediately
-
-7. Ratings & Performance
-- Rated on punctuality, communication, and delivery success
-- Poor ratings may lead to suspension or termination
-
-8. Legal Compliance & Safety
-- Must follow local laws and transport rules
-- Traveler responsible for actions during transit
-- Platform not liable for traveler violations
-
-9. Prohibited Conduct
-- Carrying illegal or undisclosed items
-- Fraud, harassment, unsafe behavior
-- Misuse of user data
-- False delivery confirmations
-
-10. Limitation of Liability
-- Platform not responsible for loss, delay, damage, or disputes
-- Travelers indemnify the platform against claims
-
-11. Account Suspension or Termination
-- Accounts may be suspended or terminated for policy violations
-
-12. Governing Law
-- Governed by laws of India
-- Disputes subject to Indian courts
-`;
-
-export { content };
 
 //  TravelerGuidelines Page Content
 
@@ -166,100 +101,124 @@ const guidelines = [
 export { guidelines };
 
 
+// Terms and Conditions Content for Travelers
+
 export const termsSections = [
   {
     icon: ShieldCheck,
     iconClass: "text-green-600",
-    title: "1. Platform Role",
-    text: "Book My Parcel is a technology platform connecting users with travelers. Travelers are independent individuals and the platform does not provide courier services.",
+     bgClass: "bg-green-100",
+    title: "1. Platform Overview",
+    text: "Book My Parcel is a technology platform that connects users who wish to send parcels with independent travelers who are already traveling along a similar route. Book My Parcel does not employ, hire, or manage travelers. Travelers participate voluntarily and independently. By creating an account or using our services, you confirm that you are at least 18 years of age and have the legal capacity to enter into this agreement.",
   },
   {
     icon: User,
     iconClass: "text-blue-600",
-    title: "2. Eligibility",
+    title: "2. User Responsibilities",
     list: [
-      "Must be 18 years or older",
-      "Provide accurate and updated profile information",
-      "Must have valid travel plans for accepted routes",
+      "Provide accurate pickup address, drop location, parcel details, and contact information",
+      "Ensure parcels are properly packed, sealed, and safe for transport",
+      "Hand over parcels only to travelers confirmed through the platform",
+      "Ensure the recipient is available to collect the parcel at the destination",
     ],
+  },
+  {
+    icon: AlertTriangle,
+    iconClass: "text-red-600",
+    title: "3. Prohibited Items",
+    list: [
+      "Illegal, prohibited, or restricted items",
+      "Drugs, weapons, or contraband",
+      "Live animals or perishable food items",
+      "Pornographic or obscene materials",
+      "Hazardous, flammable, or explosive materials",
+      "Valuable items such as cash, jewelry, or confidential documents",
+      "Currency, precious stones, or jewelry without insurance",
+    ],
+  },
+  {
+    icon: Activity,
+    iconClass: "text-purple-600",
+    title: "4. Traveler Interaction & Selection",
+    text: "Travelers listed on the platform are independent individuals and not employees of Book My Parcel. Users may receive multiple traveler requests and are solely responsible for selecting a traveler based on the information provided.",
   },
   {
     icon: Truck,
     iconClass: "text-orange-600",
-    title: "3. Acceptance of Parcels",
-    list: [
-      "Accept or reject parcel requests",
-      "Review parcel details before accepting",
-      "Do not accept illegal or hazardous items",
-      "Must complete delivery after acceptance",
-    ],
+    title: "5. Delivery & Third-Party Handover",
+    text: "Depending on the traveler’s mode of transport (public or private), parcels may be handed over to a third person such as a co-traveler, transport staff, or recipient. Users acknowledge and accept this delivery method and its associated risks.",
   },
   {
     icon: MapPin,
     iconClass: "text-teal-600",
-    title: "4. Parcel Handling & Delivery",
+    title: "6. Tracking & Updates",
+    text: "Parcel tracking and status updates are provided for informational purposes only and depend on traveler inputs. Delays may occur due to travel changes, traffic conditions, weather, or other unforeseen circumstances.",
+  },
+  {
+    icon: UserX,
+    iconClass: "text-red-600",
+    title: "7. Liability Disclaimer",
     list: [
-      "Handle parcels with care",
-      "Do not open or tamper",
-      "Deliver only to intended recipient",
-      "Third party only for delivery",
+      "Book My Parcel is not responsible for loss, damage, delay, or theft of parcels",
+      "Insurance is not provided unless explicitly stated",
+      "The platform acts only as an intermediary facilitating communication",
+      "Users agree to use the platform at their own risk",
+      "Maximum liability per parcel is capped at ₹10,000 unless otherwise specified",
+      "Users are advised to obtain insurance for high-value items",
+      "We are not responsible for incorrect address or contact information provided by users",
     ],
   },
   {
     icon: CreditCard,
     iconClass: "text-yellow-600",
-    title: "5. Payments",
-    list: [
-      "Payment after successful delivery",
-      "Payments processed via platform",
-      "Service fees may be deducted",
-    ],
+    title: "8. Payments & Charges",
+    text: "Any charges displayed on the platform are facilitation or service charges only. Payments, where applicable, must be completed through the platform. Book My Parcel is not responsible for any offline transactions between users and travelers.",
   },
   {
     icon: XCircle,
     iconClass: "text-purple-600",
-    title: "6. Cancellations",
-    text: "Avoid canceling after accepting parcels. Frequent cancellations may impact ratings or account suspension.",
+    title: "9. Cancellation & Disputes",
+    text: "Users may cancel parcel requests before a traveler is confirmed. Book My Parcel does not mediate disputes between users and travelers but may assist by reviewing available platform records and data when appropriate.",
   },
   {
-    icon: Activity,
-    iconClass: "text-green-600",
-    title: "7. Ratings & Performance",
-    text: "Travelers are rated on punctuality, communication, and delivery success. Poor ratings may lead to termination.",
-  },
-  {
-    icon: AlertTriangle,
-    iconClass: "text-red-600",
-    title: "8. Legal Compliance & Safety",
-    text: "Travelers must follow all local laws and are responsible for actions during transit.",
-  },
-  {
-    icon: Info,
-    iconClass: "text-red-600",
-    title: "9. Prohibited Conduct",
+    icon: Lock,
+    iconClass: "text-blue-600",
+    title: "10. Privacy & Data Usage",
     list: [
-      "Carrying illegal items",
-      "Fraud or harassment",
-      "Misuse of user data",
-      "False delivery confirmations",
+      "User data is collected only to facilitate parcel delivery and improve services",
+      "Personal information is shared with travelers only when necessary for delivery purposes",
+      "GPS tracking data is used solely for delivery-related functionality",
+      "Payment information is encrypted and processed through secure payment gateways",
+      "Users may request deletion of their data by contacting support",
     ],
   },
   {
     icon: UserX,
     iconClass: "text-red-600",
-    title: "10. Limitation of Liability",
-    text: "Platform is not responsible for loss, delay, or disputes. Travelers indemnify the platform.",
-  },
-  {
-    icon: Lock,
-    iconClass: "text-blue-600",
-    title: "11. Account Suspension or Termination",
-    text: "Accounts may be suspended or terminated for violations of policies.",
+    title: "11. Account Misuse",
+    text: "Book My Parcel reserves the right to suspend or terminate accounts involved in fraud, misuse, unlawful activities, or violations of these Terms and Conditions. Access may be restricted without prior notice if platform safety or security is compromised.",
   },
   {
     icon: Edit,
     iconClass: "text-green-600",
-    title: "12. Governing Law",
-    text: "These terms are governed by the laws of India and disputes handled in Indian courts.",
+    title: "12. Amendments",
+    text: "Book My Parcel may update these Terms and Conditions at any time. Continued use of the platform following any updates constitutes acceptance of the revised terms.",
+  },
+  {
+    icon: Info,
+    iconClass: "text-blue-600",
+    title: "13. Contact Information",
+    list: [
+      "Email: support@bookmyparcel.com",
+      "Legal: legal@bookmyparcel.com",
+      "Phone: +91 1800-123-4567",
+      "Support Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST",
+    ],
+  },
+  {
+    icon: ShieldCheck,
+    iconClass: "text-green-600",
+    title: "14. Agreement Acknowledgment",
+    text: "By using Book My Parcel, you acknowledge that you have read, understood, and agreed to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must discontinue use of the platform immediately.",
   },
 ];
