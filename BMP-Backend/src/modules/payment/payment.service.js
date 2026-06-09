@@ -1,6 +1,3 @@
-import Razorpay from "razorpay";
-import crypto from "crypto";
-
 import sequelize from "../../config/database.config.js";
 import Payment from "./payment.model.js";
 import Booking from "../booking/booking.model.js";
@@ -10,6 +7,7 @@ import Address from "../parcel/address.model.js";
 import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
+import { getCashfree } from "../../config/cashfree.client.js";
 
 import {
   BOOKING_STATUS,
@@ -17,23 +15,6 @@ import {
   PAYMENT_STATUS,
   assertValidTransition,
 } from "../../utils/constants.js";
-
-let _razorpay = null;
-
-function getRazorpay() {
-  if (!_razorpay) {
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      throw new Error(
-        "Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your .env file."
-      );
-    }
-    _razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
-  }
-  return _razorpay;
-}
 
 /* ================= CREATE ORDER ================= */
 
@@ -46,112 +27,137 @@ function getRazorpay() {
  *     trusted from the client. A client-supplied amount is ignored entirely.
  */
 export const createOrderService = async (parcel_id, requestingUserId) => {
-  // Fetch parcel — include price_quote and owner for server-side amount + ownership check
   const parcel = await Parcel.findByPk(parcel_id);
+
+  console.log("CASHFREE_APP_ID:", process.env.CASHFREE_APP_ID);
+  console.log("CASHFREE_SECRET_KEY:", process.env.CASHFREE_SECRET_KEY);
+  console.log("CASHFREE_ENV:", process.env.CASHFREE_ENV);
 
   if (!parcel) {
     throw new Error("Parcel not found");
   }
 
-  // SECURITY: Verify the requesting user owns this parcel
   if (String(parcel.user_id) !== String(requestingUserId)) {
     const err = new Error("Forbidden: you do not own this parcel");
     err.statusCode = 403;
     throw err;
   }
 
-  // SECURITY: Amount is always taken from the server-side price_quote — never from client input
   const amount = Number(parcel.price_quote);
+
   if (!amount || amount <= 0) {
-    throw new Error("Parcel does not have a valid price quote. Cannot create payment order.");
+    throw new Error(
+      "Parcel does not have a valid price quote."
+    );
   }
 
-  // Check for an existing pending payment — return it to avoid duplicate orders
   const existingPayment = await Payment.findOne({
     where: {
-      parcel_id: parcel_id,
+      parcel_id,
       status: PAYMENT_STATUS.PENDING,
     },
   });
 
-  if (existingPayment) {
-    return {
-      id: existingPayment.razorpay_order_id,
-      amount: existingPayment.amount * 100,
-      currency: "INR",
-    };
-  }
+  const user = await User.findByPk(parcel.user_id);
 
-  const shortReceipt = `p_${parcel_id.replace(/-/g, "").substring(0, 30)}`;
+  const orderId = `ORDER_${Date.now()}_${parcel.id}`;
 
-  console.log("PARCEL:", parcel.toJSON());
-  console.log("AMOUNT:", amount);
-  console.log("TYPE:", typeof amount);
-  console.log("RECEIPT:", shortReceipt);
-  console.log("KEY:", process.env.RAZORPAY_KEY_ID);
+  const cashfree = getCashfree();
 
-  const order = await getRazorpay().orders.create({
-    amount: Math.round(amount * 100), // Razorpay uses paise
-    currency: "INR",
-    receipt: shortReceipt,
+  console.log("🔥 CASHFREE REQUEST:", {
+    orderId,
+    amount,
+    user: user?.id,
   });
+
+  const request = {
+    order_id: orderId,
+    order_amount: amount,
+    order_currency: "INR",
+
+    customer_details: {
+      customer_id: String(user.id),
+      customer_name: user.name || "Customer",
+      customer_email: user.email || "test@example.com",
+      customer_phone: user.phone_number || "9999999999",
+    },
+
+    order_meta: {
+      return_url: `${process.env.FRONTEND_URL}/payment-success?order_id={order_id}`,
+    },
+  };
+
+  const response = await cashfree.PGCreateOrder(request);
+
+  console.log("🔥 CASHFREE RAW RESPONSE:", response);
 
   await Payment.create({
-    parcel_id: parcel_id,
+    parcel_id,
     amount,
     currency: "INR",
-    razorpay_order_id: order.id,
+
+    cashfree_order_id: orderId,
+
     status: PAYMENT_STATUS.PENDING,
   });
+  
+  const orderData = response?.data || response;
 
-  return order;
+  const paymentSessionId =
+    orderData.payment_session_id ||
+    orderData?.payment_session_id;
+
+  return {
+    order_id: response.data.order_id,
+    payment_session_id: paymentSessionId,
+    amount,
+    currency: "INR",
+  };
 };
 
 /* ================= VERIFY PAYMENT ================= */
 
 export const verifyPaymentService = async (data, req = null) => {
   const {
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature,
+    order_id,
     parcel_id,
   } = data;
 
-  // ── 1. Verify Razorpay signature BEFORE touching the DB ──────────────────
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-    .digest("hex");
+  const cashfree = getCashfree();
 
-  const signatureValid = expectedSignature === razorpay_signature;
+  let orderResponse;
 
-  if (!signatureValid) {
-    // Mark payment as failed — no booking created
-    await Payment.update(
-      { status: PAYMENT_STATUS.FAILED },
-      { where: { razorpay_order_id } }
-    );
+  try {
+    orderResponse = await cashfree.PGFetchOrder(order_id);
+  } catch (error) {
+    console.error("Cashfree fetch order failed:", error);
     return { success: false };
   }
 
-  // ── 2. Idempotency check — has this order already been processed? ─────────
-  // Razorpay can fire the same webhook more than once. If a payment record
-  // for this order is already SUCCESS and linked to a booking, return
-  // immediately without creating a duplicate.
-  const existingPayment = await Payment.findOne({
-    where: { razorpay_order_id, status: PAYMENT_STATUS.SUCCESS },
-  });
+  const orderData = orderResponse.data;
 
-  if (existingPayment?.booking_id) {
-    console.log(
-      `[Payment] Duplicate callback for order ${razorpay_order_id} — booking ${existingPayment.booking_id} already exists. Skipping.`
+  if (
+    orderData.order_status !== "PAID" &&
+    orderData.order_status !== "SUCCESS"
+  ) {
+    await Payment.update(
+      {
+        status: PAYMENT_STATUS.FAILED,
+      },
+      {
+        where: {
+          cashfree_order_id: order_id,
+        },
+      }
     );
-    return {
-      success: true,
-      booking_id: existingPayment.booking_id,
-      duplicate: true,
-    };
+
+    return { success: false };
   }
+
+  const cashfreePaymentId =
+    orderData.cf_order_id ||
+    orderData.payment_id ||
+    null;
 
   // ── 3. Wrap all DB writes in a single transaction ─────────────────────────
   // This guarantees that the Payment update, Booking creation, and Parcel
@@ -171,16 +177,15 @@ export const verifyPaymentService = async (data, req = null) => {
       // 3b. Mark payment as SUCCESS and capture payment details
       const [updatedCount] = await Payment.update(
         {
-          razorpay_payment_id,
-          razorpay_signature,
+          cashfree_payment_id: cashfreePaymentId,
           status: PAYMENT_STATUS.SUCCESS,
         },
-        { where: { razorpay_order_id }, transaction: t }
+        { where: { cashfree_order_id: order_id }, transaction: t }
       );
 
       if (updatedCount === 0) {
         throw new Error(
-          `Payment record not found for order ${razorpay_order_id}`
+          `Payment record not found for order ${cashfree_order_id}`
         );
       }
 
@@ -208,7 +213,12 @@ export const verifyPaymentService = async (data, req = null) => {
       // 3e. Link payment → booking
       await Payment.update(
         { booking_id: booking.id },
-        { where: { razorpay_order_id }, transaction: t }
+        {
+          where: {
+            cashfree_order_id: order_id,
+          },
+          transaction: t,
+        }
       );
 
       // 3f. Update parcel status — guard the transition
@@ -296,7 +306,7 @@ export const verifyPaymentService = async (data, req = null) => {
     actorId: parcel.user_id,
     actorRole: "user",
     resourceType: "payment",
-    resourceId: razorpay_order_id,
+    resourceId: order_id,
     meta: { parcel_id, booking_id: booking.id, amount: parcel.price_quote },
     req,
   });
@@ -324,7 +334,7 @@ export async function refundPaymentForParcel(parcelId, reason = "Parcel cancelle
     // Find the successful payment for this parcel
     const payment = await Payment.findOne({
       where: {
-        parcel_id: parcelId,
+        cashfree_order_id: order_id,
         status: PAYMENT_STATUS.SUCCESS,
       },
     });

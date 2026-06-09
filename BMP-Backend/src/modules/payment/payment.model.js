@@ -57,11 +57,32 @@ const Payment = sequelize.define(
       allowNull: true,
     },
 
+    cashfree_order_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    cashfree_payment_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     status: {
       type: DataTypes.ENUM(
         ...Object.values(PAYMENT_STATUS)
       ),
       defaultValue: PAYMENT_STATUS.PENDING,
+    },
+
+    wallet_credit_released: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+
+    wallet_txn_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      unique: "uq_payments_wallet_txn_id",
     },
 
     released_at: {
@@ -82,6 +103,7 @@ const Payment = sequelize.define(
       { name: "idx_payments_status_released_at", fields: ["status", "released_at"] },
       { name: "idx_payments_razorpay_order_id", fields: ["razorpay_order_id"] },
       { name: "idx_payments_razorpay_payment_id", fields: ["razorpay_payment_id"] },
+      { name: "uq_payments_wallet_txn_id", unique: true, fields: ["wallet_txn_id"], },
     ],
   }
 );

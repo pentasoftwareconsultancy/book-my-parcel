@@ -5,7 +5,6 @@ import Booking from "../booking/booking.model.js";
 import Parcel from "../parcel/parcel.model.js";
 import User from "../user/user.model.js";
 import { refundPaymentForParcel } from "../payment/payment.service.js";
-import { creditWalletService } from "../payment/wallet.service.js";
 import { createNotification } from "../notification/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
 import app from "../../app.js";
@@ -190,11 +189,6 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   } else if (resolution === "RELEASE_TRAVELLER") {
     // Credit traveller wallet with partner amount (after platform fee)
     if (partnerAmount > 0 && travellerId) {
-      await creditWalletService(
-        travellerId,
-        partnerAmount,
-        `Dispute ${disputeId} resolved - payment released (Amount: ₹${bookingAmount}, Platform fee: ₹${platformFee})`
-      );
       financialSummary = { action: "wallet_credit_traveller", amount: partnerAmount, platformFee };
     } else {
       financialSummary = { action: "no_amount_to_release" };

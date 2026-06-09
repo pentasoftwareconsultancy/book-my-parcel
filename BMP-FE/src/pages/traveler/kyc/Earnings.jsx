@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Wallet, TrendingUp, Download, DollarSign, AlertCircle, Loader, RefreshCw } from "lucide-react";
+import { Plus, Wallet, TrendingUp, Download, IndianRupee, AlertCircle, Loader, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import RoutePath from "../../../core/constants/routes.constant";
 import WithdrawalModal from "../../../components/modals/WithdrawalModal";
@@ -31,21 +31,21 @@ const Earnings = () => {
 
       // Fetch traveller stats for earnings data (includes all deliveries)
       try {
-        console.log("📊 [Earnings] Fetching traveller stats...");
+        console.log("[Earnings] Fetching traveller stats...");
         const statsData = await paymentService.getTravellerStats();
-        console.log("📊 [Earnings] Stats data:", statsData);
+        console.log("[Earnings] Stats data:", statsData);
         
         if (statsData.data?.stats) {
           const stats = statsData.data.stats;
           // Use stats for total and today's earnings (all PAY_NOW, platform fee already deducted)
           setTotalEarnings(stats.totalEarnings || 0);
           setTodayEarnings(stats.todayEarnings || 0);
-          console.log(`📊 [Earnings] Total: ₹${stats.totalEarnings}, Today: ₹${stats.todayEarnings}`);
+          console.log(`[Earnings] Total: ₹${stats.totalEarnings}, Today: ₹${stats.todayEarnings}`);
         } else {
           throw new Error("Invalid stats response");
         }
       } catch (statsErr) {
-        console.warn("⚠️ [Earnings] Could not fetch stats, falling back to transactions:", statsErr);
+        console.warn("[Earnings] Could not fetch stats, falling back to transactions:", statsErr);
         // Fallback to wallet transactions if stats endpoint fails
         const transactionsData = await paymentService.getWalletTransactions(50, 0);
         if (transactionsData.data && transactionsData.data.transactions) {
@@ -95,7 +95,7 @@ const Earnings = () => {
       if (kycStatus?.status !== 'APPROVED') {
         // PAN KYC not approved - redirect to PAN verification
         const confirmPAN = window.confirm(
-          `⚠️ PAN KYC Required\n\n${kycStatus?.message || "Your PAN verification is pending."}\n\nClick OK to complete PAN verification now.`
+          `PAN KYC Required\n\n${kycStatus?.message || "Your PAN verification is pending."}\n\nClick OK to complete PAN verification now.`
         );
         if (confirmPAN) {
           navigate(RoutePath.KYC_PAN, { state: { from: RoutePath.TRAVELLER_EARNINGS } });
@@ -103,7 +103,7 @@ const Earnings = () => {
       } else if (!kycStatus?.bank_verified) {
         // Bank not verified - redirect to Bank verification
         const confirmBank = window.confirm(
-          `⚠️ Bank Verification Required\n\nYour bank account is not verified. You need to verify your bank account to withdraw funds.\n\nClick OK to complete bank verification now.`
+          `Bank Verification Required\n\nYour bank account is not verified. You need to verify your bank account to withdraw funds.\n\nClick OK to complete bank verification now.`
         );
         if (confirmBank) {
           navigate(RoutePath.KYC_BANK, { state: { from: RoutePath.TRAVELLER_EARNINGS } });
@@ -213,7 +213,7 @@ const Earnings = () => {
         <div className="bg-white border-l-4 border-green-500 p-5 rounded-lg shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-600">Total Earnings</p>
-            <DollarSign size={20} className="text-green-600" />
+            <IndianRupee size={20} className="text-green-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">₹{totalEarnings.toFixed(2)}</h2>
           <p className="text-xs text-gray-500 mt-2">Lifetime earnings (after platform fee)</p>
@@ -275,7 +275,7 @@ const Earnings = () => {
                     }`}
                   >
                     {item.type === "CREDIT" ? (
-                      <DollarSign size={18} />
+                      <IndianRupee size={18} />
                     ) : (
                       <Download size={18} />
                     )}
