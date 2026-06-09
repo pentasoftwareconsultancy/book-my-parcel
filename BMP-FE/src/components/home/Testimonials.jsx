@@ -25,7 +25,7 @@ export default function Testimonials() {
             {testimonials.map((testimonial, i) => (
               <div
                 key={i}
-                className="group bg-white rounded-2xl p-6 sm:p-8 pb-10 md:pb-12 lg:pb-8 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden min-w-[320px] max-w-[320px] sm:min-w-[350px]"
+                className="group bg-white rounded-2xl p-6 sm:p-8 pb-10 md:pb-12 lg:pb-8   transform hover:scale-105 transition-all duration-300 relative overflow-hidden min-w-[320px] max-w-[320px] sm:min-w-[350px]"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
 

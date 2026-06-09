@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export const introText =
-  "This policy outlines refund eligibility conditions for users of the Book My Parcel platform, created to comply with payment gateway requirements such as Razorpay.";
+  "This policy outlines refund eligibility conditions for users of the Book My Parcel platform, created to comply with payment gateway requirements.";
 
 
 export const refundSections = [

@@ -22,6 +22,7 @@ class RoutePath {
   static TravelerGuidelinese = "/traveler-guidelines"
   static PUBLIC_POLICY = "/policy"
   static PUBLIC_REFUND_POLICY = "/refund-policy"
+  static PUBLIC_COMPANY_PRIVACY = "/company-privacy"
   // static ADMIN_USERDETAILS ="/userdetails";
 
   // ==================== AUTH ROUTES ====================

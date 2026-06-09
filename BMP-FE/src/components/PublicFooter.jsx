@@ -8,7 +8,7 @@ const CONFIGS = {
     bg: "linear-gradient(177.15deg, #1F2AFF -7.03%, #5C9DF2 105.42%)",
     quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"]],
     supportTitle: "Support",
-    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],],
+    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/company-privacy","Company Privacy Policy"]],
     
     badge: false, stats: false, verified: false,
   },
@@ -44,7 +44,7 @@ const SharedFooter = ({ type }) => {
 
           {/* Support */}
           <div>
-            <h4 className="text-base font-bold mb-7">{supportTitle}</h4>
+            <h4 className="text-base font-bold mb-5">{supportTitle}</h4>
             <ul className="list-none p-0 m-0 space-y-2 mb-6">{supportLinks.map(([to, label]) => <li key={label}>{lnk(to, label)}</li>)}</ul>
             {badge && (
               <div style={{ border: "2px solid #1cff8a", borderRadius: "10px", padding: "10px 16px", display: "inline-flex", alignItems: "center", gap: "12px", cursor: "pointer" }}>
