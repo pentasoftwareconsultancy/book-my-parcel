@@ -13,7 +13,7 @@ const journey = [
     text: "Identified the need for a faster, affordable, and community-driven parcel delivery solution.",
   },
   {
-    icon: <FaTools className="text-blue-500 text-xl" />,
+    icon: <FaTools className="text-blue-800 text-xl" />,
     text: "Developed a secure platform connecting parcel senders with verified travelers.",
   },
   {
@@ -35,7 +35,6 @@ function AboutJourney() {
           className="absolute inset-0"
           style={{ background: "linear-gradient(180deg, #1F2AFF 0%, #5C9DF2 139.02%)" }}
         />
-
         {/* Pattern overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
@@ -51,9 +50,7 @@ function AboutJourney() {
         {/* Decorative blurs */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
-
         <div className="relative z-10 max-w-7xl mx-auto px-6">
-
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -63,22 +60,17 @@ function AboutJourney() {
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-5 py-2 rounded-full text-white font-semibold text-sm mb-4">
               <FaRocket className="text-sm" /> Our Journey
             </div>
-
             <h2 className="text-5xl md:text-6xl font-black text-white">
               How We Grew
             </h2>
-
             <p className="text-blue-100 mt-4 max-w-2xl mx-auto text-lg">
               From a simple idea to a growing parcel delivery platform connecting
               travelers and senders across India.
             </p>
           </motion.div>
-
           <div className="relative">
-
             {/* Timeline Line */}
             <div className="hidden md:block absolute top-16 left-0 w-full h-0.5 bg-white/30 rounded-full" />
-
             <div className="grid md:grid-cols-4 gap-8 relative">
               {journey.map((step, index) => (
                 <motion.div
@@ -89,9 +81,7 @@ function AboutJourney() {
                   viewport={{ once: true }}
                   whileHover={{ y: -12, scale: 1.03 }}
                   className="relative"
-                  
                 >
-
                   {/* Animated Circle on timeline */}
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
@@ -102,7 +92,6 @@ function AboutJourney() {
                       {step.icon}
                     </div>
                   </motion.div>
-
                   {/* Card — glassmorphism matching mission cards */}
                   <div className="relative overflow-hidden bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-7 shadow-[0_20px_50px_rgba(0,0,0,0.2)] group hover:bg-white/15 transition-all duration-500 mt-10 md:mt-12">
 
@@ -124,9 +113,6 @@ function AboutJourney() {
                     <h3 className="relative z-10 text-lg  text-center text-white mb-2">
                       {step.text}
                     </h3>
-
-                  
-
                     {/* Animated bottom border */}
                     <motion.div
                       className="absolute bottom-0 left-0 h-0.5 bg-white/60 rounded-b-3xl"
@@ -136,7 +122,6 @@ function AboutJourney() {
                       viewport={{ once: true }}
                     />
                   </div>
-
                 </motion.div>
               ))}
             </div>
@@ -145,5 +130,4 @@ function AboutJourney() {
       </section>
   )
 }
-
 export default AboutJourney
