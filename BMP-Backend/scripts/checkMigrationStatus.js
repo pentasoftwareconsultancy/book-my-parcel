@@ -17,10 +17,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const migrationsDir = path.join(__dirname, "../backend/migrations");
+const migrationsDir = path.join(__dirname, "../migrations");
 
 const checkMigrationStatus = async () => {
   let sequelize;
+  let pendingMigrations = [];
 
   try {
     console.log("\n" + "=".repeat(70));
@@ -104,9 +105,23 @@ const checkMigrationStatus = async () => {
 
       // Find pending migrations
       const executedNames = executedMigrations.map((m) => m.name);
-      const pendingMigrations = migrationFiles.filter(
+      pendingMigrations = migrationFiles.filter(
         (file) => !executedNames.includes(file)
       );
+
+      const missingFiles = executedNames.filter(
+        name => !migrationFiles.includes(name)
+      );
+
+      console.log(
+        `🚨 MISSING MIGRATION FILES (${missingFiles.length}):\n`
+      );
+
+      missingFiles.forEach((m, idx) => {
+        console.log(`   ${idx + 1}. ${m}`);
+      });
+
+      console.log();
 
       console.log(`⏳ PENDING MIGRATIONS (${pendingMigrations.length}):\n`);
 
