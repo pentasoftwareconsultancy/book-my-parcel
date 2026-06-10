@@ -210,8 +210,7 @@ export const termsSections = [
     title: "13. Contact Information",
     list: [
       "Email: support@bookmyparcel.com",
-      "Legal: legal@bookmyparcel.com",
-      "Phone: +91 1800-123-4567",
+      "Phone: +91 9545444591",
       "Support Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST",
     ],
   },
@@ -222,3 +221,4 @@ export const termsSections = [
     text: "By using Book My Parcel, you acknowledge that you have read, understood, and agreed to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must discontinue use of the platform immediately.",
   },
 ];
+

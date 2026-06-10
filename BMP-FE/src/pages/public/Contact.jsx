@@ -129,15 +129,15 @@ const handleSubmit = async (e) => {
             {/* Social */}
             <div>
               <p className="text-blue-200 text-xs uppercase tracking-widest mb-3">Follow Us</p>
-              <div className="flex gap-4">
-                <SocialLink href="https://twitter.com" icon={<FaTwitter />} label="Twitter" />
-                <SocialLink href="https://instagram.com" icon={<FaInstagram />} label="Instagram" />
-                <SocialLink href="https://linkedin.com" icon={<FaLinkedin />} label="LinkedIn" />
-              </div>
+             <div className="flex items-center justify-center md:justify-start gap-3 md:gap-4">
+  <SocialLink href="https://twitter.com" icon={<FaTwitter />} label="Twitter" />
+  <SocialLink href="https://instagram.com" icon={<FaInstagram />} label="Instagram" />
+  <SocialLink href="https://linkedin.com" icon={<FaLinkedin />} label="LinkedIn" />
+</div>
             </div>
 
             {/* Decorative circle */}
-            <div className="absolute bottom-0 right-0 w-40 h-40 bg-white opacity-5 rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
+            
           </div>
 
           {/* Right form panel */}
@@ -252,7 +252,16 @@ const SocialLink = ({ href, icon, label }) => (
     target="_blank"
     rel="noopener noreferrer"
     aria-label={label}
-    className="bg-white/20 hover:bg-white/30 p-2.5 rounded-lg text-white transition hover:scale-110 text-lg"
+    className="
+      flex items-center justify-center
+      w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12
+      bg-white/20 hover:bg-white/30
+      rounded-lg
+      text-white
+      transition-all duration-300
+      hover:scale-110
+      text-base sm:text-lg
+    "
   >
     {icon}
   </a>
