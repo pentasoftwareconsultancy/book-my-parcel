@@ -260,7 +260,7 @@ export const BookingModal = ({ booking, onClose }) => {
               </div>
               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 text-sm text-indigo-700">
                 <p className="font-semibold mb-1">Need Help?</p>
-                <p className="text-xs">For escalations contact: <span className="font-bold">support@bookmyparcel.com</span></p>
+                <p className="text-xs">For escalations contact: <span className="font-bold">support@bookmyparcel.co.in</span></p>
               </div>
             </div>
           )}

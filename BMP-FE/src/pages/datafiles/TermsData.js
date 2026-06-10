@@ -209,7 +209,7 @@ export const termsSections = [
     iconClass: "text-blue-600",
     title: "13. Contact Information",
     list: [
-      "Email: support@bookmyparcel.com",
+      "Email: support@bookmyparcel.co.in",
       "Phone: +91 9545444591",
       "Support Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST",
     ],

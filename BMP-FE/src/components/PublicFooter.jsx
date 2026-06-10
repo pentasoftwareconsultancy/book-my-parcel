@@ -67,7 +67,7 @@ const SharedFooter = ({ type }) => {
   Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A, Dhanori, Near Dhanori Police Station, Pune - 411015, Maharashtra, India
 </span>],
                 [FaPhoneAlt, "Phone Number", "+91 9545444591"],
-                [FaEnvelope, "Email Address", "support@bookmyparcel.com"]
+                [FaEnvelope, "Email Address", "support@bookmyparcel.co.in"]
               ].map(([Icon, title, value]) => (
                 <div key={title} className="flex gap-3 items-start">
                   <Icon className="mt-1 shrink-0" size={15} />

@@ -71,7 +71,7 @@ const SettingGeneral = () => {
             type="email"
             value={form.support_email}
             onChange={(e) => handleChange("support_email", e.target.value)}
-            placeholder="support@bookmyparcel.com"
+            placeholder="support@bookmyparcel.co.in"
             className="w-full mt-1 border rounded-md px-4 py-2 text-sm"
           />
         </div>

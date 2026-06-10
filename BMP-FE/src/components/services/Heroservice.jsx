@@ -1,7 +1,7 @@
 import React from "react";
 import { services } from "../../pages/datafiles/ServiceData";
 
-function Herosevice() {
+function HeroService() {
   return (
     <>
       <div
@@ -75,4 +75,4 @@ function Herosevice() {
   );
 }
 
-export default Herosevice;
+export default HeroService;

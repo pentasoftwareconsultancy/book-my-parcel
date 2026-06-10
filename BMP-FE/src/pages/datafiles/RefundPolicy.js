@@ -113,8 +113,8 @@ export const refundSections = [
     iconColor: "text-green-600",
     title: "11. Contact Information",
     list: [
-      "Support Email: support@bookmyparcel.com",
-      "Legal Email: support@bookmyparcel.com",
+      "Support Email: support@bookmyparcel.co.in",
+      "Legal Email: support@bookmyparcel.co.in",
       "Phone: +91 9545444591",
       "Support Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST",
     ],

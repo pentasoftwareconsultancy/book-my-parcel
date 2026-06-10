@@ -9,7 +9,7 @@ import {
   FaPhone,
 } from "react-icons/fa";
 
-function AboutLegel() {
+function AboutLegal() {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-blue-50 mt-0">
         <div className="max-w-7xl mx-auto px-6">
@@ -117,7 +117,7 @@ function AboutLegel() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-widest text-blue-500 font-bold mb-1">Email</p>
-                    <p className="text-slate-700 text-sm font-semibold">support@bookmyparcel.com</p>
+                    <p className="text-slate-700 text-sm font-semibold">support@bookmyparcel.co.in</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 pt-4 border-t border-slate-400">
@@ -139,4 +139,4 @@ function AboutLegel() {
   )
 }
 
-export default AboutLegel
+export default AboutLegal

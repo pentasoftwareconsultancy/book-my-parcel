@@ -28,7 +28,7 @@ export default function FloatingChat() {
       return "💰 Pricing depends on distance, weight & delivery mode.";
     }
     if (text.includes("support") || text.includes("help")) {
-      return "📞 Call: +91 1800 123 4567\n✉ support@bookmyparcel.com";
+      return "📞 Call: +91 1800 123 4567\n✉ support@bookmyparcel.co.in";
     }
     if (text.includes("hi") || text.includes("hello")) {
       return "Hello! 👋 How can I assist you?";

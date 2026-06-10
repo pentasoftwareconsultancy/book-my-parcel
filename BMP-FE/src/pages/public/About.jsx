@@ -1,5 +1,5 @@
 import AboutHero from "../../components/aboutus/AboutHero";
-import AboutLegel from "../../components/aboutus/AboutLegel";
+import AboutLegal from "../../components/aboutus/AboutLegal";
 import AboutJourney from "../../components/aboutus/AboutJourney";
 import AboutMission from "../../components/aboutus/AboutMission";
 import AboutusStory from "../../components/aboutus/AboutusStory";
@@ -10,6 +10,6 @@ export default function About() {
       <AboutusStory />
       <AboutMission/>
       <AboutJourney />
-      <AboutLegel />
+      <AboutLegal />
     </div>
   );}
