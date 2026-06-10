@@ -86,12 +86,7 @@ export default function TermsAndCondition() {
             </p>
           </div>
 
-          <button
-            onClick={handleDownloadPDF}
-            className="relative z-10 flex items-center gap-2 bg-white text-blue-700 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-50 shadow-md transition-all duration-200 shrink-0"
-          >
-            <Download size={16} /> Download PDF
-          </button>
+          
         </header>
 
         {/* BODY */}

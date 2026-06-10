@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { FiPackage } from "react-icons/fi";
+import aboutushero from "../../assets/homeimage/aboutushero.jpg"
 
 const AboutHero = () => {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-[80vh] lg:min-h-screen flex items-center overflow-hidden">
       <div
         className="absolute inset-0"
         style={{
@@ -59,7 +60,7 @@ const AboutHero = () => {
             className="flex justify-center"
           >
             <img
-              src="https://i.pinimg.com/736x/1d/24/6e/1d246e5c33c499e76cdc39bae6c3995f.jpg"
+              src={aboutushero}
               alt="Parcel"
               className="w-80 md:w-[450px] rounded-3xl shadow-2xl"
             />
