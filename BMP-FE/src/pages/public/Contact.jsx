@@ -110,7 +110,7 @@ const handleSubmit = async (e) => {
                 </p>
                 <p className="text-white/50 text-xs mt-1">Limited Liability Partnership · India</p>
               </div>
-              <InfoItem icon={<MdEmail size={20} />} text="support@bookmyparcel.com" />
+              <InfoItem icon={<MdEmail size={20} />} text="support@bookmyparcel.co.in" />
               <InfoItem icon={<MdPhone size={20} />} text="+91 9545444591" />
               <InfoItem
                 icon={<MdLocationOn size={20} />}

@@ -20,7 +20,7 @@ export async function up(queryInterface, Sequelize) {
   await queryInterface.sequelize.query(`
     INSERT INTO platform_settings (key, value, category, data_type, updated_at) VALUES
     ('platform_name',               'Book My Parcel',          'GENERAL',       'string',  NOW()),
-    ('support_email',               'support@bookmyparcel.com','GENERAL',       'string',  NOW()),
+    ('support_email',               'support@bookmyparcel.co.in','GENERAL',       'string',  NOW()),
     ('support_phone',               '+91 98765 43210',         'GENERAL',       'string',  NOW()),
     ('max_booking_distance',        '2000',                    'GENERAL',       'number',  NOW()),
     ('min_booking_amount',          '100',                     'GENERAL',       'number',  NOW()),

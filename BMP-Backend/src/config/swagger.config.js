@@ -10,7 +10,7 @@ const options = {
       description: 'Complete API documentation for Book My Parcel - A logistics platform connecting parcel senders with travelers',
       contact: {
         name: 'Book My Parcel Support',
-        email: 'support@bookmyparcel.com',
+        email: 'support@bookmyparcel.co.in',
       },
       license: {
         name: 'ISC',
