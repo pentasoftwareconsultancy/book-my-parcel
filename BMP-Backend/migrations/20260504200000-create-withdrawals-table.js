@@ -28,6 +28,16 @@ export async function up(queryInterface, Sequelize) {
       allowNull: false
     },
 
+    beneficiary_id: {
+      type: Sequelize.STRING,
+      allowNull: true
+    },
+
+    cashfree_transfer_id: {
+      type: Sequelize.STRING,
+      allowNull: true
+    },
+
     bank_name: {
       type: Sequelize.STRING(100),
       allowNull: false

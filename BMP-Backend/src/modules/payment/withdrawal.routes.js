@@ -288,7 +288,7 @@ router.post("/kyc/bypass", authMiddleware, sensitiveLimiter, async (req, res) =>
     }
 
     const userId = req.user.id;
-    const TravellerKYC = (await import("../traveller/travellerKYC.model.js")).default;
+    const TravellerKYC = (await import("../kyc/travellerKyc.model.js")).default;
 
     // Find existing KYC or create new one
     let kyc = await TravellerKYC.findOne({

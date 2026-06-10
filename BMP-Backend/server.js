@@ -96,14 +96,35 @@ const startServer = async () => {
     setupSocketHandlers(io);
     await setupRealtimeSubscriber(io);
 
-    server.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n${"=".repeat(60)}`);
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🔌 WebSocket server ready`);
-      const smsEnabled = process.env.TWILIO_SMS_ENABLED !== "false";
-      console.log(`📱 SMS: ${smsEnabled ? "ENABLED — OTPs sent via Twilio" : "DISABLED — OTPs logged to console"}`);
-      console.log(`${"=".repeat(60)}\n`);
-    });
+    // ── Auto-handle port conflicts ────────────────────────────────────────────
+    const startServerWithFallback = (port, maxAttempts = 10) => {
+      return new Promise((resolve, reject) => {
+        const attemptStart = (currentPort, attemptsLeft) => {
+          const serverInstance = server.listen(currentPort, "0.0.0.0", () => {
+            console.log(`\n${"=".repeat(60)}`);
+            console.log(`🚀 Server running on port ${currentPort}`);
+            console.log(`🔌 WebSocket server ready`);
+            const smsEnabled = process.env.TWILIO_SMS_ENABLED !== "false";
+            console.log(`📱 SMS: ${smsEnabled ? "ENABLED — OTPs sent via Twilio" : "DISABLED — OTPs logged to console"}`);
+            console.log(`${"=".repeat(60)}\n`);
+            resolve(currentPort);
+          });
+
+          serverInstance.on('error', (err) => {
+            if (err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+              console.log(`⚠️  Port ${currentPort} in use, trying ${currentPort + 1}...`);
+              attemptStart(currentPort + 1, attemptsLeft - 1);
+            } else {
+              reject(err);
+            }
+          });
+        };
+
+        attemptStart(port, maxAttempts);
+      });
+    };
+
+    await startServerWithFallback(PORT);
 
     // ── Background jobs ──────────────────────────────────────────────────────
     const AUTO_CANCEL_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes

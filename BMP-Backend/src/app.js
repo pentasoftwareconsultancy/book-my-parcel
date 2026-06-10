@@ -109,7 +109,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // ── API routes ────────────────────────────────────────────────────────────────
 // Single versioned mount — /api/v1 is the canonical path.
 // /api (legacy) is kept for backward compatibility during migration.
-app.use("/api/v1", routes);
+// app.use("/api/v1", routes);
 app.use("/api",    routes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
