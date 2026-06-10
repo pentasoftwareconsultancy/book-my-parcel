@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export const introText =
-  "This policy outlines refund eligibility conditions for users of the Book My Parcel platform, created to comply with payment gateway requirements such as Razorpay.";
+  "This policy outlines refund eligibility conditions for users of the Book My Parcel platform, created to comply with payment gateway requirements.";
 
 
 export const refundSections = [
@@ -114,8 +114,8 @@ export const refundSections = [
     title: "11. Contact Information",
     list: [
       "Support Email: support@bookmyparcel.com",
-      "Legal Email: legal@bookmyparcel.com",
-      "Phone: +91 1800-123-4567",
+      "Legal Email: support@bookmyparcel.com",
+      "Phone: +91 9545444591",
       "Support Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST",
     ],
   },
