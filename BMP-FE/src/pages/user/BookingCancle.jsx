@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   XCircle,
   AlertTriangle,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import ApiService from "../../core/services/api.service";
 import { showSuccess, showError } from "../../core/utils/toast.util";
+import RoutePath from "../../core/constants/routes.constant";
 
 // Cancel Reasons
 const reasons = [
@@ -27,6 +29,10 @@ const reasons = [
 ];
 
 const BookingCancel = ({ parcelId, onClose }) => {
+  const navigate = useNavigate();
+  // Support both modal usage (onClose prop) and standalone route usage (navigate back)
+  const handleClose = onClose ?? (() => navigate(RoutePath.USER_ALL_ORDERS, { replace: true }));
+
   const [selected, setSelected] = useState("address");
   const [text, setText] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -59,11 +65,11 @@ const BookingCancel = ({ parcelId, onClose }) => {
   useEffect(() => {
     if (showModal) {
       const timer = setTimeout(() => {
-        onClose();
+        handleClose();
       }, 2500);
       return () => clearTimeout(timer);
     }
-  }, [showModal, onClose]);
+  }, [showModal]);
 
   return (
     <>
@@ -137,7 +143,7 @@ const BookingCancel = ({ parcelId, onClose }) => {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <button
               className="border border-gray-900 text-gray-700 px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={loading}
             >
               Keep Booking
@@ -173,7 +179,7 @@ const BookingCancel = ({ parcelId, onClose }) => {
             <button
               onClick={() => {
                 setShowModal(false);
-                onClose();
+                handleClose();
               }}
               className="absolute top-8 right-4 text-gray-400 hover:text-gray-600"
             >
@@ -202,7 +208,7 @@ const BookingCancel = ({ parcelId, onClose }) => {
             <button
               onClick={() => {
                 setShowModal(false);
-                onClose();
+                handleClose();
               }}
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium w-full"
             >

@@ -14,23 +14,46 @@ export async function up(queryInterface, Sequelize) {
     return;
   }
 
-  // Check if already has default
+  // Check existing id column type and default
   const [result] = await queryInterface.sequelize.query(`
-    SELECT column_default 
+    SELECT data_type, column_default 
     FROM information_schema.columns 
     WHERE table_name = 'traveller_kyc' 
       AND column_name = 'id'
   `);
 
-  const hasDefault = result[0]?.column_default;
+  const column = result[0];
+  const currentType = column?.data_type?.toLowerCase();
+  const currentDefault = column?.column_default;
 
-  if (hasDefault && (hasDefault.includes('gen_random_uuid') || hasDefault.includes('uuid_generate'))) {
+  if (currentType === 'uuid' && currentDefault && (currentDefault.includes('gen_random_uuid') || currentDefault.includes('uuid_generate'))) {
     console.log('✅ traveller_kyc.id already has UUID default — skipping');
     return;
   }
 
-  console.log('🔧 Adding UUID default to traveller_kyc.id...');
+  if (currentType === 'uuid') {
+    console.log('🔧 traveller_kyc.id is already UUID; setting default...');
+    await queryInterface.sequelize.query(`
+      ALTER TABLE traveller_kyc
+      ALTER COLUMN id SET DEFAULT gen_random_uuid();
+    `);
+    console.log('✅ Fixed traveller_kyc.id — now has UUID default');
+    return;
+  }
 
+  if (currentType === 'integer') {
+    console.log('🔧 Converting traveller_kyc.id from integer to UUID and setting default...');
+    await queryInterface.sequelize.query(`
+      ALTER TABLE traveller_kyc
+      ALTER COLUMN id DROP DEFAULT,
+      ALTER COLUMN id TYPE uuid USING gen_random_uuid(),
+      ALTER COLUMN id SET DEFAULT gen_random_uuid();
+    `);
+    console.log('✅ Converted traveller_kyc.id to UUID and set default');
+    return;
+  }
+
+  console.log(`⚠️ traveller_kyc.id has unexpected data type: ${currentType}. Attempting to set UUID default anyway.`);
   await queryInterface.sequelize.query(`
     ALTER TABLE traveller_kyc 
     ALTER COLUMN id SET DEFAULT gen_random_uuid();

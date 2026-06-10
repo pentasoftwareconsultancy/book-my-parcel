@@ -16,10 +16,14 @@ import {
   Box,
   Typography,
   Stack,
+  useMediaQuery,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
+
+// Unified mobile breakpoint — matches Tailwind sm: and DashboardLayout
+const MOBILE_BREAKPOINT = "(max-width: 639px)";
 
 const withMaterialTable = (WrappedComponent, tableConfig) => {
   return () => {
@@ -32,7 +36,20 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
     const [currentRow, setCurrentRow] = useState(null);
     const navigate = useNavigate();
 
-    // Fetch data on loadf
+    // ── Responsive column visibility ─────────────────────────────────────────
+    // Each tableConfig can declare `mobileHiddenColumns: ["col1", "col2"]`
+    // to automatically hide non-essential columns on small screens.
+    const isMobile = useMediaQuery(MOBILE_BREAKPOINT);
+
+    const columnVisibility = useMemo(() => {
+      if (!tableConfig.mobileHiddenColumns?.length) return {};
+      return tableConfig.mobileHiddenColumns.reduce((acc, col) => {
+        acc[col] = !isMobile; // hidden when mobile, visible otherwise
+        return acc;
+      }, {});
+    }, [isMobile]);
+
+    // Fetch data on load
     useEffect(() => {
       const fetchData = async () => {
         try {
@@ -107,7 +124,6 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
     };
 
     // Render form fields dynamically
-
     const renderFormFields = () => {
       if (typeof tableConfig.customFormFields === "function") {
         return tableConfig.customFormFields(selectedRow, setSelectedRow);
@@ -180,17 +196,6 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
                 open={Boolean(anchorEl) && currentRow?.id === row.original.id}
                 onClose={() => setAnchorEl(null)}
               >
-
-                {/* <MenuItem
-                  onClick={() => {
-                    navigate(`${RoutePath.ADMIN_USERDETAILS.replace(':id', currentRow.id)}`, {
-                      state: { user: currentRow }
-                    });
-                    setAnchorEl(null);
-                  }}
-                >
-                  View
-                </MenuItem> */}
                 <MenuItem
                   onClick={() => {
                     if (tableConfig.onView) {
@@ -251,6 +256,15 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
           enablePagination
           enableRowSelection={false}
           enableGlobalFilter
+          // ── Column visibility — secondary columns hidden on mobile ──────────
+          // Users can still toggle them via the column visibility menu (MRT built-in)
+          initialState={{
+            columnVisibility,
+          }}
+          // Keep visibility in sync when screen resizes
+          state={{
+            columnVisibility,
+          }}
           muiTableHeadRowProps={{ sx: { backgroundColor: "#f0fdf4" } }}
           muiTableHeadCellProps={{ sx: { color: "gray900", fontWeight: "bold", whiteSpace: "nowrap" } }}
           muiTableBodyCellProps={{ sx: { whiteSpace: "nowrap", fontSize: "0.8rem" } }}
@@ -290,4 +304,3 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
 };
 
 export default withMaterialTable;
-

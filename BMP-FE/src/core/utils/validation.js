@@ -71,6 +71,20 @@ export const validateOnlyCharacters = (value, fieldName) => {
   return "";
 };
 
+export const validateMaxLength = (value, maxLength, fieldName) => {
+  if (!value) return "";
+  if (value.toString().trim().length > maxLength) return `${fieldName} cannot exceed ${maxLength} characters`;
+  return "";
+};
+
+export const validatePositiveNumber = (value, fieldName = "Value", max = null) => {
+  if (value === null || value === undefined || value === "") return `${fieldName} is required`;
+  const num = Number(value);
+  if (Number.isNaN(num) || num <= 0) return `${fieldName} must be a positive number`;
+  if (max !== null && num > max) return `${fieldName} cannot exceed ${max}`;
+  return "";
+};
+
 // Name typing pattern (for blocking invalid typing)
 export const nameTypingPattern = /^[A-Za-z\s]*$/;
 

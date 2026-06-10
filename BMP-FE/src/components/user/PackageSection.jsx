@@ -16,12 +16,12 @@ const PARCEL_TYPES = [
 const VEHICLE_TYPES = ["bike", "car", "suv", "van", "tempo", "truck", "bus", "train", "plane"];
 
 const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) => (
-  <div className="px-6 py-6 bg-white border shadow-2xl rounded-3xl border-primary/20">
+  <div className="px-4 sm:px-6 py-4 sm:py-6 bg-white border shadow-2xl rounded-3xl border-primary/20">
     <h3 className="mb-4 text-xl font-semibold text-primary">Package Details</h3>
 
-    {/* Size selector */}
+    {/* Size selector — 2-col on mobile, 4-col from sm */}
     <p className="mb-2 text-xs font-semibold text-gray-700">Select Package Size <span className="text-red-500">*</span></p>
-    <div className="grid gap-3 mb-4 md:grid-cols-4">
+    <div className="grid gap-3 mb-4 grid-cols-2 sm:grid-cols-4">
       {SIZE_OPTIONS.map((opt) => {
         const active = data.packageSize === opt.id;
         return (
@@ -39,9 +39,9 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
       })}
     </div>
 
-    {/* Weight + Dimensions */}
+    {/* Weight + Dimensions — side-by-side from sm */}
     <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Details</p>
-    <div className="grid gap-4 md:grid-cols-[1fr,2fr] mb-4">
+    <div className="grid gap-4 sm:grid-cols-[1fr,2fr] mb-4">
       <div>
         <p className="mb-1 text-xs font-medium text-gray-600">
           Weight (kg) <span className="text-red-500">*</span>
@@ -68,22 +68,25 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
     </div>
 
     <TextInput label="Package Description (optional)" name="parcelContents" value={data.parcelContents}
+      maxLength={250}
       onChange={(e) => updateFields({ parcelContents: e.target.value })}
       placeholder="Describe your package contents" className="h-20 mb-4 text-sm text-black" />
 
-    {/* Photos + Value + Type */}
+    {/* Photos + Value + Type — 3-col from sm */}
     <p className="mb-2 text-xs font-semibold text-gray-700">Parcel Photos <span className="text-red-500">*</span> <span className="text-gray-400 font-normal">(at least 1)</span></p>
     <div>
-      <div className="grid gap-3 md:grid-cols-3 col-span-2">
+      <div className="grid gap-3 sm:grid-cols-3 col-span-2">
         {[1, 2, 3].map((i) => (
           <UploadImage key={i} label={`Parcel photo ${i}`} value={data[`parcelPhoto${i}`]}
           onChange={(file) => updateFields({ [`parcelPhoto${i}`]: file })} />
         ))}
       </div>
-      <div className="space-y-3 grid gap-3 md:grid-cols-3">
+      <div className="space-y-3 grid gap-3 sm:grid-cols-3">
         <div className="my-2">
           <TextInput label="Parcel Value (₹)" name="parcelValue" type="number" value={data.parcelValue}
             required={true}
+            max={10000000}
+            min={1}
             onChange={(e) => updateFields({ parcelValue: e.target.value })} />
         </div>
         <div>
@@ -106,6 +109,7 @@ const PackageSection = ({ data, updateFields, selectedSize, setSelectedSize }) =
     </div>
 
     <TextInput label="Additional Note" name="parcelNotes" value={data.parcelNotes}
+      maxLength={250}
       onChange={(e) => updateFields({ parcelNotes: e.target.value })}
       placeholder="Write note as per your preferences" className="h-16 text-sm" />
   </div>

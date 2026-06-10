@@ -8,6 +8,8 @@ import {
   validateRequired,
   validateOnlyCharacters,
   validatePincode,
+  validateMaxLength,
+  validatePositiveNumber,
 } from "../utils/validation.js";
 
 const VEHICLE_MULTIPLIERS = {
@@ -142,22 +144,69 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
   };
 
   const validate = () => {
+    const MAX_ADDRESS_LENGTH = 250;
+    const MAX_TEXT_FIELD_LENGTH = 100;
+    const MAX_NOTE_LENGTH = 250;
+
     for (const field of REQUIRED_FIELDS) {
       const err = validateRequired(data[field.key], field.label);
       if (err) { showError(err); return false; }
+
       if (field.key === "senderName" || field.key === "receiverName") {
         const err2 = validateOnlyCharacters(data[field.key], field.label);
         if (err2) { showError(err2); return false; }
+        const err3 = validateMaxLength(data[field.key], MAX_TEXT_FIELD_LENGTH, field.label);
+        if (err3) { showError(err3); return false; }
       }
+
       if (field.key === "pickupPhone" || field.key === "deliveryPhNo") {
         const err3 = validatePhone(data[field.key]);
         if (err3) { showError(err3); return false; }
       }
+
+      if (field.key === "pickupPincode" || field.key === "deliveryPincode") {
+        const err4 = validatePincode(data[field.key]);
+        if (err4) { showError(err4); return false; }
+      }
     }
+
+    let err = validateMaxLength(data.pickupAddress, MAX_ADDRESS_LENGTH, "Pickup address");
+    if (err) { showError(err); return false; }
+
+    err = validateMaxLength(data.deliveryAddress, MAX_ADDRESS_LENGTH, "Delivery address");
+    if (err) { showError(err); return false; }
+
+    err = validateMaxLength(data.parcelContents, MAX_NOTE_LENGTH, "Package description");
+    if (err) { showError(err); return false; }
+
+    err = validateMaxLength(data.parcelNotes, MAX_NOTE_LENGTH, "Additional note");
+    if (err) { showError(err); return false; }
+
+    err = validatePositiveNumber(data.parcelWeight, "Parcel weight", 1000);
+    if (err) { showError(err); return false; }
+
+    err = validatePositiveNumber(data.parcelLength, "Parcel length", 500);
+    if (err) { showError(err); return false; }
+
+    err = validatePositiveNumber(data.parcelWidth, "Parcel width", 500);
+    if (err) { showError(err); return false; }
+
+    err = validatePositiveNumber(data.parcelHeight, "Parcel height", 500);
+    if (err) { showError(err); return false; }
+
+    err = validatePositiveNumber(data.parcelValue, "Parcel value", 10000000);
+    if (err) { showError(err); return false; }
+
+    if (!data.parcelType) {
+      showError("Parcel type is required.");
+      return false;
+    }
+
     if (!data.parcelPhoto1 && !data.parcelPhoto2 && !data.parcelPhoto3) {
       showError("Please upload at least one parcel photo.");
       return false;
     }
+
     const MAX_PHOTO_SIZE = 6 * 1024 * 1024; // 6 MB
     const photos = [
       { file: data.parcelPhoto1, label: "Parcel photo 1" },
@@ -206,6 +255,10 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
 
       // Photos
       [data.parcelPhoto1, data.parcelPhoto2, data.parcelPhoto3].forEach((f) => { if (f) fd.append("parcel_photos", f); });
+
+      // Optional pickup scheduling
+      if (data.pickupDate) fd.append("pickup_date", data.pickupDate);
+      if (data.pickupTime) fd.append("pickup_time", data.pickupTime);
 
       if (data.selectedPartnerId) fd.append("selected_partner_id", data.selectedPartnerId);
       if (estimatedPrice) fd.append("price_quote", estimatedPrice);

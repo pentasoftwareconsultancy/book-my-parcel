@@ -187,13 +187,15 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
   };
 
   // Trigger matching on first mount, then just re-fetch on sort change
-  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+  // Re-trigger matching whenever parcelId changes (e.g. navigating back)
+  const [lastMatchedParcelId, setLastMatchedParcelId] = useState(null);
   useEffect(() => {
-    if (!hasFetchedOnce) {
-      setHasFetchedOnce(true);
-      fetchTravellers(true); // trigger matching engine on first load
+    const shouldTriggerMatching = parcelId && parcelId !== lastMatchedParcelId;
+    if (shouldTriggerMatching) {
+      setLastMatchedParcelId(parcelId);
+      fetchTravellers(true); // trigger matching engine
     } else {
-      fetchTravellers(false);
+      fetchTravellers(false); // just re-fetch on sort change
     }
   }, [parcelId, sortBy]);
 

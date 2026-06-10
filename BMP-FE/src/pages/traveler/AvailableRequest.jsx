@@ -259,7 +259,11 @@ const AvailableRequest = () => {
 
       {/* ── NOTIFICATION ────────────────────────────────────────────────── */}
       {notification && (
-        <NotificationCard type={notification.type} message={notification.message} />
+        <NotificationCard
+          type={notification.type}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
       )}
 
       {/* ── NO REQUESTS ─────────────────────────────────────────────────── */}

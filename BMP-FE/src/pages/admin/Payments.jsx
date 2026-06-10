@@ -317,6 +317,8 @@ const Payments = () => {
   const PaymentTable = useMemo(() => withMaterialTable(null, {
     title: "Payment Transactions",
     columns,
+    // Hide secondary columns on mobile — transactionId, amount, status, actions stay visible
+    mobileHiddenColumns: ["user", "description", "method", "date"],
     getData: async () => filtered,
     onView: (row) => setModalPayment(row),
   }), [filtered]);

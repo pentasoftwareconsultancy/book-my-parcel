@@ -57,7 +57,8 @@ export default function FloatingChat() {
       {/* FLOATING BUTTON */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-1 z-50
+        aria-label="Open chat support"
+        className="fixed bottom-5 right-4 z-50
                    w-14 h-14 rounded-full
                    bg-blue-600 text-white shadow-xl
                    flex items-center justify-center
@@ -71,25 +72,32 @@ export default function FloatingChat() {
         <div
           className="
             fixed z-50 bg-white shadow-2xl rounded-2xl
-            bottom-20 right-5
-            w-[92vw] max-w-[380px]
+            bottom-24 right-4
+            w-[calc(100vw-2rem)] max-w-[380px]
             h-[70vh] max-h-[520px]
             flex flex-col overflow-hidden
           "
+          role="dialog"
+          aria-label="Chat with Book My Parcel support"
+          aria-modal="true"
         >
           {/* HEADER */}
-          <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center">
+          <div className="bg-blue-600 text-white px-4 py-3 flex justify-between items-center flex-shrink-0">
             <div>
               <p className="font-semibold text-sm">Book My Parcel Bot</p>
               <p className="text-xs opacity-80">Online • Replies instantly</p>
             </div>
-            <button onClick={() => setOpen(false)}>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Close chat"
+              className="p-1 hover:bg-white/20 rounded-full transition"
+            >
               <X size={18} />
             </button>
           </div>
 
           {/* MESSAGES */}
-          <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-gray-50">
+          <div className="flex-1 p-3 sm:p-4 space-y-3 overflow-y-auto bg-gray-50">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -107,17 +115,19 @@ export default function FloatingChat() {
           </div>
 
           {/* INPUT */}
-          <div className="border-t p-3 flex gap-2">
+          <div className="border-t p-3 flex gap-2 flex-shrink-0">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Type your message..."
-              className="flex-1 text-sm px-3 py-2 border rounded-lg focus:outline-none"
+              aria-label="Chat message input"
+              className="flex-1 text-sm px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[44px]"
             />
             <button
               onClick={sendMessage}
-              className="bg-blue-600 text-white px-3 rounded-lg"
+              aria-label="Send message"
+              className="bg-blue-600 text-white px-3 rounded-lg hover:bg-blue-700 transition min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <Send size={16} />
             </button>

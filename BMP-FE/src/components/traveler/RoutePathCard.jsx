@@ -1,5 +1,5 @@
 import { FaLocationArrow, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
-import AddressAutocomplete from "../../core/common/AddressAutocomplete";
+import AddressAutoComplete from "../../core/common/AddressAutoComplete";
 
 export default function RoutePathCard({ d, isEditing, setField, setOriginAddressChange, setDestAddressChange, updateStop, addStop, removeStop }) {
   const makeAddrObj = (text, placeId) => ({ address: text, place_id: placeId, city: "", state: "", pincode: "", country: "India" });
@@ -35,7 +35,7 @@ export default function RoutePathCard({ d, isEditing, setField, setOriginAddress
                 </p>
                 {isEditing ? (
                   <div className="flex items-center gap-2 mt-0.5">
-                    <AddressAutocomplete
+                    <AddressAutoComplete
                       value={stop.location}
                       onChange={(val) => updateStop(index, val)}
                       onSelect={(text, placeId) => {
@@ -73,7 +73,7 @@ export default function RoutePathCard({ d, isEditing, setField, setOriginAddress
               <div className="flex-1">
                 <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase">{type}</p>
                 {isEditing ? (
-                  <AddressAutocomplete
+                  <AddressAutoComplete
                     value={d[field]}
                     onChange={(val) => setField(field, val)}
                     onSelect={(text, placeId) => {

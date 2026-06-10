@@ -7,7 +7,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../../core/services/api.service";
 import { showToast } from "../../../core/utils/toast.util";
-import AddressAutocomplete from "../../../core/common/AddressAutocomplete";
+import AddressAutoComplete from "../../../core/common/AddressAutoComplete";
 import RoutePathCard from "../../../components/traveler/RoutePathCard";
 import VehicleDetailsCard from "../../../components/traveler/VehicleDetailsCard";
 import TimePicker12h from "../../../components/common/TimePicker12h";
@@ -298,11 +298,11 @@ const RouteDetails = () => {
             <div>
               {isEditing ? (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <AddressAutocomplete value={d.origin} onChange={(val) => setField("origin", val)}
+                  <AddressAutoComplete value={d.origin} onChange={(val) => setField("origin", val)}
                     onSelect={(text, placeId) => { setField("origin", text); setOriginAddressChange({ address: text, place_id: placeId, city: "", state: "", pincode: "", country: "India" }); }}
                     placeholder="Origin" className="w-44" />
                   <span className="text-gray-400 font-bold">→</span>
-                  <AddressAutocomplete value={d.destination} onChange={(val) => setField("destination", val)}
+                  <AddressAutoComplete value={d.destination} onChange={(val) => setField("destination", val)}
                     onSelect={(text, placeId) => { setField("destination", text); setDestAddressChange({ address: text, place_id: placeId, city: "", state: "", pincode: "", country: "India" }); }}
                     placeholder="Destination" className="w-44" />
                 </div>

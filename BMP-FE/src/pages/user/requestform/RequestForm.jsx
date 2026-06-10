@@ -48,7 +48,8 @@ const RequestForm = () => {
     pickupPhone: "",
     pickupAltPhone: "",
     pickupAadhaar: "",
-    pickupDateTime: "",
+    pickupDate: "",
+    pickupTime: "",
     pickupLat: null,
     pickupLng: null,
     pickupPlaceId: "",     // Google Place ID captured from geocode response
@@ -157,6 +158,8 @@ const RequestForm = () => {
             pickupPhone: parcel.pickupAddress?.phone || "",
             pickupAltPhone: parcel.pickupAddress?.alt_phone || "",
             pickupAadhaar: parcel.pickupAddress?.aadhar_no || "",
+            pickupDate: parcel.pickup_date || "",
+            pickupTime: parcel.pickup_time || "",
             pickupLat: parcel.pickupAddress?.latitude || null,
             pickupLng: parcel.pickupAddress?.longitude || null,
             pickupPlaceId: parcel.pickupAddress?.place_id || "",
@@ -244,6 +247,8 @@ const RequestForm = () => {
             pickupPhone: parcelData.pickupAddress?.phone || "",
             pickupAltPhone: parcelData.pickupAddress?.alt_phone || "",
             pickupAadhaar: parcelData.pickupAddress?.aadhar_no || "",
+            pickupDate: parcelData.pickup_date || "",
+            pickupTime: parcelData.pickup_time || "",
             pickupLat: parcelData.pickupAddress?.latitude || null,
             pickupLng: parcelData.pickupAddress?.longitude || null,
             pickupPlaceId: parcelData.pickupAddress?.place_id || "",
@@ -298,31 +303,35 @@ const RequestForm = () => {
 
 
 
+  const stepLabels = [
+    "Pickup Package & Delivery Details",
+    "Select Traveler",
+    "Review",
+  ];
+
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-5">
         {/* PAGE TITLE */}
-        <h1 className="text-3xl md:text-4xl font-bold text-[#294CFF] mb-4 ml-5">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#294CFF] mb-1 sm:mb-2">
           Send Parcel
         </h1>
 
-        {/* STEPPER */}
-        {/* STEPPER */}
-        <div className="flex overflow-x-auto pb-2 mb-6 ml-3 md:ml-5 scrollbar-hide">
-          {[1, 2, 3].map((num) => {
-            const labels = [
-              "Pickup Package & Delivery Details",
-              "Select Traveler",
-              "Review",
-            ];
+        {/* MOBILE STEP INDICATOR — shown only on mobile instead of label-less circles */}
+        <p className="text-xs text-gray-500 mb-3 sm:hidden">
+          Step {step} of {steps.length} — {stepLabels[step - 1]}
+        </p>
 
+        {/* STEPPER */}
+        <div className="flex items-center overflow-x-auto pb-2 mb-6 scrollbar-hide">
+          {[1, 2, 3].map((num) => {
             const isActive = step === num;
             const isDone = step > num;
             const isClickable = existingParcelData
-              ? true // Allow all steps when viewing existing parcel
+              ? true
               : createdParcelId
-                ? num >= 2 // Only allow step 2+ if parcel exists but no existing data loaded
-                : num === 1; // Only allow step 1 for new parcels
+                ? num >= 2
+                : num === 1;
 
             return (
               <div
@@ -332,8 +341,8 @@ const RequestForm = () => {
               >
                 {/* Circle */}
                 <div
-                  className={`w-7 h-7 flex items-center justify-center rounded-full border text-[11px] font-semibold
-          ${isActive
+                  className={`w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full border text-[11px] font-semibold
+                    ${isActive
                       ? "bg-[#294CFF] text-white border-[#294CFF]"
                       : isDone
                         ? "bg-white text-[#294CFF] border-[#294CFF]"
@@ -345,18 +354,19 @@ const RequestForm = () => {
                   {num}
                 </div>
 
-                {/* Label */}
+                {/* Label — desktop only */}
                 <span
-                  className={`hidden md:inline-block ${isActive ? "text-[#294CFF]" :
+                  className={`hidden md:inline-block text-sm whitespace-nowrap ${
+                    isActive ? "text-[#294CFF] font-semibold" :
                     isClickable ? "text-gray-500" : "text-gray-300"
-                    }`}
+                  }`}
                 >
-                  {labels[num - 1]}
+                  {stepLabels[num - 1]}
                 </span>
 
-                {/* Line */}
+                {/* Connector line */}
                 {num !== 3 && (
-                  <div className="w-8 sm:w-12 h-[2px] bg-gray-200" />
+                  <div className="w-8 sm:w-12 h-[2px] bg-gray-200 flex-shrink-0" />
                 )}
               </div>
             );
@@ -369,10 +379,7 @@ const RequestForm = () => {
         {step === 3 ? (
           // STEP 3: FULL WIDTH - NO SUMMARY
           <div className="space-y-5">
-            <div className="px-6 py-5 bg-white rounded-2xl">
-              <h2 className="text-[36px] font-semibold text-primary mb-4">
-                {/* Review & Confirm */}
-              </h2>
+            <div className="px-4 sm:px-6 py-5 bg-white rounded-2xl">
               <StepReview
                 data={{ ...formData, createdParcelId }}
                 onBack={back}
@@ -385,11 +392,11 @@ const RequestForm = () => {
           </div>
         ) : (
           // STEPS 1 & 2: WITH SUMMARY SIDEBAR
-          <div className="grid lg:grid-cols-[2fr,1fr] gap-6">
+          <div className="grid lg:grid-cols-[2fr,1fr] gap-6 min-w-0">
             {/* LEFT: FORM */}
-            <div className="space-y-5">
+            <div className="space-y-5 min-w-0">
               {step === 1 && (
-                <div className="px-6 py-5 bg-white rounded-2xl">
+                <div className="px-4 sm:px-6 py-5 bg-white rounded-2xl">
                   {loading ? (
                     // Show loading state
                     <div className="text-center py-8">
@@ -402,7 +409,7 @@ const RequestForm = () => {
                   ) : (
                   // Show normal Step 1 form for new parcel or editing
                   <>
-                    <h2 className="text-[36px] font-semibold text-primary mb-4">
+                    <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold text-primary mb-4">
                       Pickup Details
                     </h2>
                     <StepPickup
@@ -420,8 +427,8 @@ const RequestForm = () => {
               )}
 
               {step === 2 && (
-                <div className="px-6 py-5 bg-white rounded-2xl">
-                  <h2 className="text-[36px] font-semibold text-primary mb-4">
+                <div className="px-4 sm:px-6 py-5 bg-white rounded-2xl">
+                  <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold text-primary mb-4">
                     Select Traveler
                   </h2>
                   <StepPartner
@@ -436,7 +443,7 @@ const RequestForm = () => {
             </div>
 
             {/* RIGHT: OrderSummary (ONLY steps 1 & 2) */}
-            <aside className="px-5 py-5 bg-white shadow-sm rounded-2xl h-fit lg:sticky lg:top-6">
+            <aside className="px-5 py-5 bg-white shadow-sm rounded-2xl h-fit lg:sticky lg:top-6 overflow-hidden min-w-0">
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-pulse">

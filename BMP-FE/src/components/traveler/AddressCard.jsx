@@ -1,6 +1,6 @@
 import React from "react";
 import { Controller } from "react-hook-form";
-import AddressAutocomplete from "../../core/common/AddressAutocomplete";
+import AddressAutoComplete from "../../core/common/AddressAutoComplete";
 import ApiService from "../../core/services/api.service";
 
 const InputField = ({ label, error, helperText, children }) => (
@@ -64,7 +64,7 @@ export default function AddressCard({ fieldName, label, icon, control, errors, o
         defaultValue=""
         render={({ field }) => (
           <div className="mb-4">
-            <AddressAutocomplete
+            <AddressAutoComplete
               label={`Search for ${fieldName} address`}
               value={field.value}
               onChange={field.onChange}

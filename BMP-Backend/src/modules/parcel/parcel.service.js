@@ -167,7 +167,14 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
   if (place_id) {
     const existing = await Address.findOne({ where: { place_id }, transaction });
     if (existing) {
-      await existing.increment("usage_count", { transaction });
+      await existing.update({
+        usage_count: (existing.usage_count || 0) + 1,
+        // Always refresh mutable contact fields with latest submission values
+        name:      enrichedData.name      || existing.name,
+        phone:     enrichedData.phone     || existing.phone,
+        alt_phone: enrichedData.alt_phone != null ? enrichedData.alt_phone : existing.alt_phone,
+        aadhar_no: enrichedData.aadhar_no || existing.aadhar_no,
+      }, { transaction });
       return existing;
     }
   }
@@ -178,7 +185,14 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
     transaction,
   });
   if (existingByFields) {
-    await existingByFields.increment("usage_count", { transaction });
+    await existingByFields.update({
+      usage_count: (existingByFields.usage_count || 0) + 1,
+      // Always refresh mutable contact fields with latest submission values
+      name:      enrichedData.name      || existingByFields.name,
+      phone:     enrichedData.phone     || existingByFields.phone,
+      alt_phone: enrichedData.alt_phone != null ? enrichedData.alt_phone : existingByFields.alt_phone,
+      aadhar_no: enrichedData.aadhar_no || existingByFields.aadhar_no,
+    }, { transaction });
     return existingByFields;
   }
 

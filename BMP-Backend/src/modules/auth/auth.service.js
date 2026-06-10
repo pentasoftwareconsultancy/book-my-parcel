@@ -266,55 +266,52 @@ export async function firebaseLogin(firebaseToken, provider) {
   if (!email) throw new Error("Firebase account email is required");
   validateEmail(email);
 
-  const firebaseUid = decodedToken.uid;
+  const firebaseUid   = decodedToken.uid;
   const firebasePhone = decodedToken.phone_number || null;
-  const firebaseName = decodedToken.name || null;
+  const firebaseName  = decodedToken.name || null;
+
+  // Normalise provider name — store lowercase for consistency
+  const authProvider = provider.toLowerCase();
 
   let user = await User.findOne({
     where: { email },
     include: [
-      {
-        model: Role,
-        as: "roles",
-        through: { attributes: [] },
-      },
-      {
-        model: TravellerKYC,
-        as: "travellerKYC",
-        attributes: ["status"],
-      },
+      { model: Role,        as: "roles",       through: { attributes: [] } },
+      { model: TravellerKYC, as: "travellerKYC", attributes: ["status"] },
     ],
   });
 
   if (!user) {
-    const passwordHash = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
-    const phoneNumber = firebasePhone || `firebase:${firebaseUid}`;
+    // ── New user: auto-create account via transaction ────────────────────────
+    const passwordHash  = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
+    const phoneNumber   = firebasePhone || `firebase:${firebaseUid}`;
 
     await sequelize.transaction(async (t) => {
       user = await User.create({
         email,
-        password: passwordHash,
+        password:     passwordHash,
         phone_number: phoneNumber,
       }, { transaction: t });
 
       await UserProfile.create({
-        user_id: user.id,
-        name: firebaseName,
+        user_id:       user.id,
+        name:          firebaseName,
+        auth_provider: authProvider,   // ← store which provider was used
       }, { transaction: t });
 
       await TravellerProfile.create({
         user_id: user.id,
-        status: "INCOMPLETE",
+        status:  "INCOMPLETE",
       }, { transaction: t });
 
       await TravellerKYC.create({
         user_id: user.id,
-        status: KYC_STATUS.NOT_STARTED,
+        status:  KYC_STATUS.NOT_STARTED,
       }, { transaction: t });
 
       const [individualRole, travellerRole] = await Promise.all([
         Role.findOne({ where: { name: ROLES.INDIVIDUAL }, transaction: t }),
-        Role.findOne({ where: { name: ROLES.TRAVELLER }, transaction: t }),
+        Role.findOne({ where: { name: ROLES.TRAVELLER  }, transaction: t }),
       ]);
       if (!individualRole || !travellerRole) {
         throw new Error("Roles not found. Run seeder first.");
@@ -322,7 +319,7 @@ export async function firebaseLogin(firebaseToken, provider) {
 
       await UserRole.bulkCreate([
         { user_id: user.id, role_id: individualRole.id },
-        { user_id: user.id, role_id: travellerRole.id },
+        { user_id: user.id, role_id: travellerRole.id  },
       ], { transaction: t });
 
       await assignReferralCode(user.id, t);
@@ -331,24 +328,33 @@ export async function firebaseLogin(firebaseToken, provider) {
       }
     });
 
-    user = await User.findOne({
-      where: { email },
-      include: [
-        {
-          model: Role,
-          as: "roles",
-          through: { attributes: [] },
-        },
-        {
-          model: TravellerKYC,
-          as: "travellerKYC",
-          attributes: ["status"],
-        },
-      ],
+    auditLog({
+      action:       "USER_SIGNUP",
+      actorId:      user.id,
+      actorRole:    "user",
+      resourceType: "user",
+      resourceId:   user.id,
+      meta:         { email, authProvider, firebaseUid },
     });
+
+  } else {
+    // ── Existing user: update auth_provider if not already set ───────────────
+    const userProfile = await UserProfile.findOne({ where: { user_id: user.id } });
+    if (userProfile && !userProfile.auth_provider) {
+      await userProfile.update({ auth_provider: authProvider });
+    }
   }
 
-  const dbRoles = user.roles.map((r) => r.name);
+  // Re-fetch with associations after potential creation
+  user = await User.findOne({
+    where: { email },
+    include: [
+      { model: Role,        as: "roles",       through: { attributes: [] } },
+      { model: TravellerKYC, as: "travellerKYC", attributes: ["status"] },
+    ],
+  });
+
+  const dbRoles   = user.roles.map((r) => r.name);
   const activeRole = dbRoles.includes(ROLES.TRAVELLER)
     ? ROLES.TRAVELLER
     : dbRoles.includes(ROLES.INDIVIDUAL)
@@ -363,7 +369,7 @@ export async function firebaseLogin(firebaseToken, provider) {
     actorRole:    activeRole,
     resourceType: "user",
     resourceId:   user.id,
-    meta:         { email: user.email, activeRole },
+    meta:         { email: user.email, activeRole, authProvider },
   });
 
   return {

@@ -140,6 +140,9 @@ const BookingSummary = ({ bookings, onFilter }) => {
 const bookingTableConfig = {
   title: "Booking Management",
 
+  // ── Columns hidden on mobile (< 640px) — booking_id + status + actions always visible ──
+  mobileHiddenColumns: ["user", "partner", "route", "parcel", "amount", "date"],
+
   columns: [
     { accessorKey: "booking_id", header: "BOOKING ID" },
     {

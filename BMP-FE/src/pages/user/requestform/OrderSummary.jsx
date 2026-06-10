@@ -209,17 +209,17 @@ const Section = ({ title, children }) => (
 );
 
 const InfoCard = ({ children }) => (
-  <div className="rounded-xl bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-3 text-xs text-gray-700 space-y-3">
+  <div className="rounded-xl bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-3 text-xs text-gray-700 space-y-3 overflow-hidden min-w-0">
     {children}
   </div>
 );
 
 const Info = ({ icon, label, value }) => (
-  <div className="flex items-start gap-2">
-    <span className="text-blue-600 mt-0.5">{icon}</span>
-    <div>
+  <div className="flex min-w-0 items-start gap-2">
+    <span className="text-blue-600 mt-0.5 shrink-0">{icon}</span>
+    <div className="min-w-0">
       <p className="text-[11px] text-gray-500">{label}</p>
-      <p className="text-xs font-medium text-gray-800 break-words">{value || "—"}</p>
+      <p className="text-xs font-medium text-gray-800 break-all whitespace-pre-wrap">{value || "—"}</p>
     </div>
   </div>
 );

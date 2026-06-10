@@ -1,347 +1,142 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 
 import AuthLayout from "./AuthLayout";
 import AuthForm from "./AuthForm";
 import { loginFields } from "./auth.config";
-
-import ApiService from "../../core/services/api.service";
-import StorageService from "../../core/services/storage.service";
 
 import { USER_ROLES } from "../../core/constants/app.constant";
 import RoutePath from "../../core/constants/routes.constant";
 import ServerUrl from "../../core/constants/serverUrl.constant";
 
 import { useDispatch } from "react-redux";
-import { setAuth } from "../../store/slices/authSlice";
+import { loginWithEmailAndPassword, setAuth } from "../../store/slices/authSlice";
+import ApiService from "../../core/services/api.service";
+import StorageService from "../../core/services/storage.service";
 
-import {
-  signInWithGoogle,
-  signInWithFacebook,
-  signInWithApple,
-} from "../../core/services/firebaseAuth.service";
+import { signInWithGoogle } from "../../core/services/firebaseAuth.service";
+
+// ── Redirect helper ───────────────────────────────────────────────────────────
+function getRedirectPath(activeRole) {
+  if (activeRole === USER_ROLES.ADMIN)      return RoutePath.ADMIN_BASE;
+  if (activeRole === USER_ROLES.TRAVELLER)  return RoutePath.TRAVELER_DASHBOARD;
+  return RoutePath.PUBLIC_HOME;
+}
 
 const Login = () => {
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const dispatch  = useDispatch();
 
-  const navigate = useNavigate();
+  const [error,   setError]   = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch();
+  // Hint injected by Register.jsx when user clicks "Sign in instead"
+  const redirectHint = location.state?.hint || "";
 
-  const [error, setError] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  // =========================
-  // Common Login Success
-  // =========================
-  const handleLoginSuccess = (
-    response
-  ) => {
-
-    const {
-      user,
-      token,
-      activeRole,
-      roles,
-    } = response.data.data;
+  // ── Common post-login handler (used by ALL auth methods) ─────────────────
+  const handleLoginSuccess = (response) => {
+    const { user, token, activeRole, roles } = response.data.data;
 
     const userToStore = {
-      id: user.id,
-      email: user.email,
-      phone_number:
-        user.phone_number,
+      id:           user.id,
+      email:        user.email,
+      name:         user.name,
+      phone_number: user.phone_number,
       activeRole,
       roles,
     };
 
-    StorageService.setData(
-      "token",
-      token
-    );
+    // Persist to storage + Redux — same keys the interceptor looks for
+    StorageService.setData("token", token);
+    StorageService.setData("user",  userToStore);
+    dispatch(setAuth({ user: userToStore, token }));
 
-    StorageService.setData(
-      "user",
-      userToStore
-    );
-
-    dispatch(
-      setAuth({
-        user: userToStore,
-        token,
-      })
-    );
-
-    // Redirect
-    if (
-      activeRole ===
-      USER_ROLES.ADMIN
-    ) {
-
-      navigate(
-        RoutePath.ADMIN_BASE
-      );
-
-      return;
-    }
-
-    if (
-      activeRole ===
-      USER_ROLES.TRAVELLER
-    ) {
-
-      navigate(
-        RoutePath.TRAVELER_DASHBOARD
-      );
-
-      return;
-    }
-
-    navigate(
-      RoutePath.PUBLIC_HOME
-    );
+    navigate(getRedirectPath(activeRole));
   };
 
-  // =========================
-  // Normal Login
-  // =========================
-  const handleLogin = async (
-    data
-  ) => {
-
+  // ── Email / Password login — uses Redux thunk (single code path) ──────────
+  const handleLogin = async (data) => {
     try {
-
       setLoading(true);
-
       setError("");
 
-      const payload = {
-        email: data.email,
-        password: data.password,
-        role: data.role,
-      };
-
-      const response =
-        await ApiService.apipost(
-          ServerUrl.API_LOGIN,
-          payload
-        );
-
-      handleLoginSuccess(
-        response
+      // loginWithEmailAndPassword thunk persists token + user and returns them
+      const result = await dispatch(
+        loginWithEmailAndPassword({
+          email:     data.email,
+          password:  data.password,
+          loginRole: data.role || USER_ROLES.INDIVIDUAL,
+        })
       );
+
+      if (loginWithEmailAndPassword.rejected.match(result)) {
+        // Thunk already called showError(); surface the message locally too
+        setError(result.payload || "Invalid email or password.");
+        return;
+      }
+
+      // Thunk stored token/user — just redirect
+      navigate(getRedirectPath(result.payload.user.activeRole));
 
     } catch (err) {
-
-      console.log(err);
-
-      setError(
-        err?.response?.data
-          ?.message ||
-          "Invalid email or password!"
-      );
-
+      setError(err?.response?.data?.message || "Login failed. Please try again.");
     } finally {
-
       setLoading(false);
     }
   };
 
-  // =========================
-  // Google Login
-  // =========================
-  const handleGoogleLogin =
-    async () => {
+  // ── Firebase social handlers — shared POST to /api/auth/firebase-login ────
+  const handleFirebaseLogin = async (getToken, provider) => {
+    try {
+      setLoading(true);
+      setError("");
+      const firebaseToken = await getToken();
+      const response = await ApiService.apipost(ServerUrl.API_FIREBASE_LOGIN, {
+        token: firebaseToken,
+        provider,
+      });
+      handleLoginSuccess(response);
+    } catch (err) {
+      // firebaseAuth.service.js already translates raw Firebase error codes
+      setError(err?.response?.data?.message || err.message || `${provider} sign-in failed.`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      try {
-
-        setLoading(true);
-
-        setError("");
-
-        const firebaseToken =
-          await signInWithGoogle();
-
-        const response =
-          await ApiService.apipost(
-            ServerUrl.API_FIREBASE_LOGIN,
-            {
-              token:
-                firebaseToken,
-              provider:
-                "google",
-            }
-          );
-
-        handleLoginSuccess(
-          response
-        );
-
-      } catch (err) {
-
-        console.log(err);
-
-        setError(
-          err?.response?.data?.message ||
-            err.message ||
-            "Google login failed"
-        );
-
-      } finally {
-
-        setLoading(false);
-      }
-    };
-
-  // =========================
-  // Facebook Login
-  // =========================
-  const handleFacebookLogin =
-    async () => {
-
-      try {
-
-        setLoading(true);
-
-        setError("");
-
-        const firebaseToken =
-          await signInWithFacebook();
-
-        const response =
-          await ApiService.apipost(
-            ServerUrl.API_FIREBASE_LOGIN,
-            {
-              token:
-                firebaseToken,
-              provider:
-                "facebook",
-            }
-          );
-
-        handleLoginSuccess(
-          response
-        );
-
-      } catch (err) {
-
-        console.log(err);
-
-        setError(
-          err?.response?.data?.message ||
-            err.message ||
-            "Facebook login failed"
-        );
-
-      } finally {
-
-        setLoading(false);
-      }
-    };
-
-  // =========================
-  // Apple Login
-  // =========================
-  const handleAppleLogin =
-    async () => {
-
-      try {
-
-        setLoading(true);
-
-        setError("");
-
-        const firebaseToken =
-          await signInWithApple();
-
-        const response =
-          await ApiService.apipost(
-            ServerUrl.API_FIREBASE_LOGIN,
-            {
-              token:
-                firebaseToken,
-              provider:
-                "apple",
-            }
-          );
-
-        handleLoginSuccess(
-          response
-        );
-
-      } catch (err) {
-
-        console.log(err);
-
-        setError(
-          err?.response?.data?.message ||
-            err.message ||
-            "Apple login failed"
-        );
-
-      } finally {
-
-        setLoading(false);
-      }
-    };
+  const handleGoogleLogin = () => handleFirebaseLogin(signInWithGoogle, "google");
 
   return (
-
     <AuthLayout title="Welcome Back!">
+      <h2 className="text-2xl font-extrabold text-[#1F2AFF]">Log In</h2>
+      <p className="mb-4 text-[#1A1A1A] text-sm">Choose your account type and login</p>
 
-      <h2 className="text-2xl font-extrabold text-[#1F2AFF]">
-        Log In
-      </h2>
-
-      <p className="mb-4 text-[#1A1A1A] text-sm">
-        Choose your account type and login
-      </p>
-
-      {/* Auth Form */}
-      <AuthForm
-        fields={loginFields}
-        submitText={
-          loading
-            ? "Logging in..."
-            : "Login"
-        }
-        onSubmit={handleLogin}
-        disabled={loading}
-        onGoogleLogin={
-          handleGoogleLogin
-        }
-        onFacebookLogin={
-          handleFacebookLogin
-        }
-        onAppleLogin={
-          handleAppleLogin
-        }
-      />
-
-      {/* Error */}
-      {error && (
-        <p className="mt-3 text-sm text-red-500 text-center">
-          {error}
-        </p>
+      {/* Hint from Register page — shown when user was redirected for social login */}
+      {redirectHint && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-700 text-xs px-3 py-2 rounded-lg">
+          {redirectHint}
+        </div>
       )}
 
-      {/* Signup */}
+      <AuthForm
+        fields={loginFields}
+        submitText={loading ? "Logging in..." : "Login"}
+        onSubmit={handleLogin}
+        disabled={loading}
+        onGoogleLogin={handleGoogleLogin}
+      />
+
+      {error && (
+        <p className="mt-3 text-sm text-red-500 text-center">{error}</p>
+      )}
+
       <div className="mt-4 text-sm text-center text-gray-600">
-
         Don't have an account?{" "}
-
-        <Link
-          to={
-            RoutePath.AUTH_REGISTER
-          }
-          className="font-semibold text-blue-600 hover:underline"
-        >
+        <Link to={RoutePath.AUTH_REGISTER} className="font-semibold text-blue-600 hover:underline">
           Sign up
         </Link>
-
       </div>
-
     </AuthLayout>
   );
 };

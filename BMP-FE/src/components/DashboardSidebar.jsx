@@ -63,8 +63,6 @@ const DashboardSidebar = ({ role, expanded, isMobile, onToggle, onClose }) => {
 
   return (
     <>
-      {/* ── Toggle: handle on border when expanded, icon row when collapsed ── */}
-      {expanded ? null : null}
       {isMobile && (
         <div
           className={`fixed inset-0 z-30 bg-black/40 transition-opacity duration-300 ${
@@ -86,7 +84,7 @@ const DashboardSidebar = ({ role, expanded, isMobile, onToggle, onClose }) => {
         "
       >
         {/* ══ MENU ══ */}
-        <nav className={`flex-1 overflow-y-auto overflow-x-hidden pt-3 pb-3 ${ expanded ? "" : "flex flex-col items-center gap-3" }`}>
+        <nav aria-label="Dashboard navigation" className={`flex-1 overflow-y-auto overflow-x-hidden pt-3 pb-3 ${ expanded ? "" : "flex flex-col items-center gap-3" }`}>
           {expanded ? (
             <ul className="space-y-1 px-3">
               {/* Close button as first row */}

@@ -351,7 +351,7 @@ const ProfileLayout = ({ role = "USER" }) => {
     <div className="min-h-screen bg-gray-50">
       <div className="h-1 w-full" style={{ background: "linear-gradient(to right, #a855f7, #6366f1)" }} />
 
-      <div className="max-w-5xl mx-auto px-6 py-8 space-y-5">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             {error}
@@ -378,14 +378,14 @@ const ProfileLayout = ({ role = "USER" }) => {
 
         {/* KYC banner — only for USER role when not approved */}
         {role === "USER" && profileData.personalInfo.kycStatus !== KYC_STATUS.APPROVED && (
-          <div className={`flex items-center justify-between gap-4 rounded-xl px-5 py-4 border ${
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl px-4 sm:px-5 py-4 border ${
             profileData.personalInfo.kycStatus === KYC_STATUS.PENDING
               ? "bg-yellow-50 border-yellow-200"
               : profileData.personalInfo.kycStatus === KYC_STATUS.REJECTED
               ? "bg-red-50 border-red-200"
               : "bg-orange-50 border-orange-200"
           }`}>
-            <div className="flex items-center gap-3">
+            <div className="flex items-start sm:items-center gap-3">
               <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                 profileData.personalInfo.kycStatus === KYC_STATUS.PENDING ? "bg-yellow-400"
                 : profileData.personalInfo.kycStatus === KYC_STATUS.REJECTED ? "bg-red-500"
@@ -424,7 +424,7 @@ const ProfileLayout = ({ role = "USER" }) => {
             </div>
             <button
               onClick={() => navigate(RoutePath.KYC_PAN)}
-              className={`flex-shrink-0 text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-white ${
+              className={`self-start sm:self-auto flex-shrink-0 text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-white ${
                 profileData.personalInfo.kycStatus === KYC_STATUS.PENDING
                   ? "bg-yellow-500 hover:bg-yellow-600"
                   : profileData.personalInfo.kycStatus === KYC_STATUS.REJECTED
@@ -444,7 +444,7 @@ const ProfileLayout = ({ role = "USER" }) => {
             <button
               key={i}
               onClick={() => setActiveTab(i)}
-              className={`min-w-[140px] text-sm px-5 py-2.5 rounded-lg whitespace-nowrap transition-all duration-150 ${
+              className={`flex-1 sm:flex-none sm:min-w-[140px] text-sm px-3 sm:px-5 py-2.5 rounded-lg whitespace-nowrap transition-all duration-150 ${
                 activeTab === i
                   ? "bg-blue-600 text-white font-semibold shadow-sm"
                   : "bg-white border border-gray-200 text-gray-600 font-medium hover:border-blue-300 hover:text-blue-600 shadow-sm"

@@ -10,9 +10,9 @@ const ParcelAcceptanceList = lazy(() => import("../parcel/ParcelAcceptanceList")
 
 /* ── tiny shared components ─────────────────────────────── */
 const InfoBox = ({ title, children }) => (
-  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4">
     <p className="text-xs font-semibold text-blue-700 mb-3 uppercase">{title}</p>
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">{children}</div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">{children}</div>
   </div>
 );
 
@@ -26,14 +26,14 @@ const Info = ({ label, value }) => (
 const Location = ({ title, city, address, variant }) => {
   const styles = variant === "pickup" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600";
   return (
-    <div className="flex items-start gap-3">
-      <span className={`w-10 h-10 rounded-xl flex items-center justify-center ${styles}`}>
-        <MapPin />
+    <div className="flex items-start gap-2 sm:gap-3">
+      <span className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${styles}`}>
+        <MapPin size={16} />
       </span>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-gray-500">{title}</p>
-        <p className="font-semibold">{city}</p>
-        <p className="text-xs text-gray-400">{address}</p>
+        <p className="font-semibold truncate">{city}</p>
+        <p className="text-xs text-gray-400 line-clamp-2">{address}</p>
       </div>
     </div>
   );
@@ -116,49 +116,68 @@ const StatusMessage = ({ order, otpData }) => {
   return (
     <div className="mb-4">
       <p className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">Delivery Status</p>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+
         {order.status === DELIVERY_STATUS.PARTNER_SELECTED && (
-          <p className="text-sm text-blue-700 flex items-center gap-1">
-            <CheckCircle size={14} /> Traveller selected! Please complete payment to confirm the booking.
+          <p className="text-sm text-blue-700 flex items-start gap-1.5">
+            <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
+            Traveller selected! Please complete payment to confirm the booking.
           </p>
         )}
+
         {order.status === DELIVERY_STATUS.CONFIRMED && (
-          <p className="text-sm text-blue-700 flex items-center gap-1">
-            <CheckCircle size={14} /> Traveller assigned and ready for pickup. Waiting for traveller to reach pickup location.
+          <p className="text-sm text-blue-700 flex items-start gap-1.5">
+            <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
+            Traveller assigned and ready for pickup. Waiting for traveller to reach pickup location.
           </p>
         )}
+
         {order.status === DELIVERY_STATUS.PICKUP && (
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-blue-700 flex-1 flex items-center gap-1">
-              <CheckCircle size={14} /> Pickup OTP has been sent to your phone. Share it with the traveller to confirm pickup.
+          /* Stack vertically on mobile, side-by-side on sm+ */
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm text-blue-700 flex items-start gap-1.5 flex-1">
+              <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
+              Pickup OTP has been sent to your phone. Share it with the traveller to confirm pickup.
             </p>
             {(otpData?.pickup_otp || order.pickup_otp) ? (
-              <div className="bg-white border-2 border-blue-300 rounded-lg px-4 py-2 shrink-0 text-center">
-                <p className="text-sm font-bold text-blue-900">OTP: {otpData?.pickup_otp || order.pickup_otp}</p>
-                <p className="text-xs text-gray-600 mt-1">Share with: {otpData?.traveller_name || order.traveler?.name || "Traveller"}</p>
+              <div className="bg-white border-2 border-blue-300 rounded-lg px-4 py-2 sm:flex-shrink-0 text-center self-start sm:self-auto">
+                <p className="text-sm font-bold text-blue-900">
+                  OTP: {otpData?.pickup_otp || order.pickup_otp}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Share with: {otpData?.traveller_name || order.traveler?.name || "Traveller"}
+                </p>
                 <p className="text-xs text-gray-500">Valid 30 mins</p>
               </div>
             ) : (
-              <p className="text-xs text-yellow-700 shrink-0">Waiting for OTP...</p>
+              <p className="text-xs text-yellow-700 sm:flex-shrink-0">Waiting for OTP...</p>
             )}
           </div>
         )}
+
         {order.status === DELIVERY_STATUS.IN_TRANSIT && (
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-sm text-blue-700 flex-1 flex items-center gap-1">
-              <CheckCircle size={14} /> Parcel is in transit. Delivery OTP has been sent to the recipient&apos;s phone.
+          /* Stack vertically on mobile, side-by-side on sm+ */
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm text-blue-700 flex items-start gap-1.5 flex-1">
+              <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
+              Parcel is in transit. Delivery OTP has been sent to the recipient&apos;s phone.
             </p>
             {(otpData?.delivery_otp || order.delivery_otp) ? (
-              <div className="bg-white border-2 border-green-400 rounded-lg px-4 py-2 shrink-0 text-center">
-                <p className="text-sm font-bold text-green-700">OTP: {otpData?.delivery_otp || order.delivery_otp}</p>
-                <p className="text-xs text-gray-600 mt-1">Share with: {order.delivery?.name || "Recipient"}</p>
+              <div className="bg-white border-2 border-green-400 rounded-lg px-4 py-2 sm:flex-shrink-0 text-center self-start sm:self-auto">
+                <p className="text-sm font-bold text-green-700">
+                  OTP: {otpData?.delivery_otp || order.delivery_otp}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Share with: {order.delivery?.name || "Recipient"}
+                </p>
                 <p className="text-xs text-gray-500">Valid 30 mins</p>
               </div>
             ) : (
-              <p className="text-xs text-yellow-700 shrink-0">Waiting for OTP...</p>
+              <p className="text-xs text-yellow-700 sm:flex-shrink-0">Waiting for OTP...</p>
             )}
           </div>
         )}
+
       </div>
     </div>
   );
@@ -254,60 +273,86 @@ const OrderCard = ({ order, navigate, onCancel, onSelectTraveller, onFeedback, o
   if (!primaryAction?.onClick) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow p-6">
+    <div className="bg-white rounded-xl shadow p-4 sm:p-6">
       {/* HEADER */}
-      <div className="flex justify-between mb-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <p className="font-semibold">{order.parcel_ref}</p>
-            <span className={`text-xs px-3 py-1 rounded-full flex items-center gap-1 ${DELIVERY_STATUS_UI[order.status]?.badge || "bg-gray-100 text-gray-600"}`}>
+      <div className="flex justify-between items-start gap-3 mb-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold text-sm sm:text-base truncate">{order.parcel_ref}</p>
+            <span className={`text-xs px-2 sm:px-3 py-1 rounded-full flex items-center gap-1 flex-shrink-0 ${DELIVERY_STATUS_UI[order.status]?.badge || "bg-gray-100 text-gray-600"}`}>
               <Truck size={12} />
               {DELIVERY_STATUS_UI[order.status]?.label || order.status}
             </span>
           </div>
           {order.booking_ref && !["INTERESTED", "AVAILABLE"].includes(order.status) && (
-            <div className="mt-2 inline-block bg-yellow-50 border border-yellow-300 rounded-lg px-3 py-2">
+            <div className="mt-2 inline-block bg-yellow-50 border border-yellow-300 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2">
               <p className="text-xs font-semibold text-yellow-800">
-                Tracking: <span className="font-bold text-yellow-900">
-                  {order.tracking_ref && ["IN_TRANSIT", "DELIVERED"].includes(order.status) ? order.tracking_ref : order.booking_ref}
+                Tracking:{" "}
+                <span className="font-bold text-yellow-900">
+                  {order.tracking_ref && ["IN_TRANSIT", "DELIVERED"].includes(order.status)
+                    ? order.tracking_ref
+                    : order.booking_ref}
                 </span>
               </p>
             </div>
           )}
         </div>
-        <div className="text-right">
-          <p className="text-xl font-bold text-blue-700">₹{order.amount}</p>
+        <div className="text-right flex-shrink-0">
+          <p className="text-lg sm:text-xl font-bold text-blue-700">₹{order.amount}</p>
           <p className="text-xs text-gray-400">Booked on {order.bookedDate}</p>
         </div>
       </div>
 
       {/* ORDER IDENTIFIERS */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-4">
-        <p className="text-blue-600 text-xs font-bold mb-3">ORDER IDENTIFIERS</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div><p className="text-gray-400 text-xs">Parcel ID</p><p className="font-medium text-gray-900">{order.parcel_ref || "—"}</p></div>
-          <div><p className="text-gray-400 text-xs">Booking ID</p><p className="font-medium text-gray-900">{order.booking_ref || "—"}</p></div>
+      <div className="bg-blue-50 rounded-xl p-3 sm:p-4 border border-blue-200 mb-4">
+        <p className="text-blue-600 text-xs font-bold mb-2 sm:mb-3">ORDER IDENTIFIERS</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm">
+          <div>
+            <p className="text-gray-400 text-xs">Parcel ID</p>
+            <p className="font-medium text-gray-900 truncate">{order.parcel_ref || "—"}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 text-xs">Booking ID</p>
+            <p className="font-medium text-gray-900 truncate">{order.booking_ref || "—"}</p>
+          </div>
           <div>
             <p className="text-gray-400 text-xs">Tracking ID</p>
-            <p className="font-medium text-gray-900">
-              {order.tracking_ref && ["IN_TRANSIT", "DELIVERED"].includes(order.status) ? order.tracking_ref : "—"}
+            <p className="font-medium text-gray-900 truncate">
+              {order.tracking_ref && ["IN_TRANSIT", "DELIVERED"].includes(order.status)
+                ? order.tracking_ref
+                : "—"}
             </p>
           </div>
         </div>
       </div>
 
       {/* ROUTE */}
-      <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 mb-4 relative">
-        <Location title="Pickup" city={order.pickup?.city} address={order.pickup?.address} variant="pickup" />
-        <div className="relative flex items-center justify-center">
-          <div className="absolute left-0 right-0 top-1/2 h-[3px] rounded-full bg-gradient-to-r from-green-400 via-blue-400 to-red-400 -translate-y-1/2" />
-          <div className="relative z-10 bg-white px-3"><Truck className="text-blue-600 text-4xl" /></div>
+      <div className="mb-4">
+        {/* Mobile: stacked with a simple arrow divider */}
+        <div className="flex flex-col gap-2 sm:hidden">
+          <Location title="Pickup" city={order.pickup?.city} address={order.pickup?.address} variant="pickup" />
+          <div className="flex items-center gap-2 px-2">
+            <div className="flex-1 h-[2px] bg-gradient-to-r from-green-400 to-blue-400 rounded-full" />
+            <Truck size={16} className="text-blue-500 flex-shrink-0" />
+            <div className="flex-1 h-[2px] bg-gradient-to-r from-blue-400 to-red-400 rounded-full" />
+          </div>
+          <Location title="Delivery" city={order.delivery?.city} address={order.delivery?.address} variant="delivery" />
         </div>
-        <Location title="Delivery" city={order.delivery?.city} address={order.delivery?.address} variant="delivery" />
+        {/* Desktop: 3-column grid with truck in the middle */}
+        <div className="hidden sm:grid sm:grid-cols-3 items-center gap-4 relative">
+          <Location title="Pickup" city={order.pickup?.city} address={order.pickup?.address} variant="pickup" />
+          <div className="relative flex items-center justify-center">
+            <div className="absolute left-0 right-0 top-1/2 h-[3px] rounded-full bg-gradient-to-r from-green-400 via-blue-400 to-red-400 -translate-y-1/2" />
+            <div className="relative z-10 bg-white px-3">
+              <Truck className="text-blue-600 text-4xl" />
+            </div>
+          </div>
+          <Location title="Delivery" city={order.delivery?.city} address={order.delivery?.address} variant="delivery" />
+        </div>
       </div>
 
       {/* PACKAGE + TRAVELER */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         <InfoBox title="Package Details">
           <Info label="Size" value={order.package?.size} />
           <Info label="Weight" value={order.package?.weight} />

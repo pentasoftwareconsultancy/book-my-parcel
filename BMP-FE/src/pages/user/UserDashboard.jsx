@@ -57,31 +57,31 @@ const UserOrdersPage = () => {
 
       {/* STAT CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow p-4 sm:p-5 flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Total Deliveries</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">{orders.length}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1">{orders.length}</p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-            <Package className="text-blue-400 text-xl" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <Package className="text-blue-400" size={20} />
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between">
+        <div className="bg-white rounded-xl shadow p-4 sm:p-5 flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Active Deliveries</p>
-            <p className="text-3xl font-bold text-gray-800 mt-1">{activeCount}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1">{activeCount}</p>
           </div>
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
-            <Truck className="text-blue-400 text-xl" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <Truck className="text-blue-400" size={20} />
           </div>
         </div>
         <button
           onClick={() => navigate(RoutePath.USER_REQUEST_FORM)}
-          className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl shadow p-5 flex items-center gap-4 text-white hover:opacity-90 transition sm:col-span-2 lg:col-span-1"
+          className="bg-gradient-to-r from-blue-500 to-blue-700 rounded-xl shadow p-4 sm:p-5 flex items-center gap-4 text-white hover:opacity-90 transition sm:col-span-2 lg:col-span-1"
         >
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl font-bold flex-shrink-0">+</div>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl font-bold flex-shrink-0">+</div>
           <div className="text-left">
-            <p className="font-bold text-lg leading-tight">Send New Parcel</p>
+            <p className="font-bold text-base sm:text-lg leading-tight">Send New Parcel</p>
             <p className="text-xs text-blue-200 mt-0.5">Book your next delivery now.</p>
           </div>
         </button>
@@ -90,17 +90,21 @@ const UserOrdersPage = () => {
       {/* SEARCH */}
       {!loading && !error && (
         <div className="flex gap-3 mb-6">
-          <div className="flex items-center bg-white rounded-xl shadow px-3 py-1 w-full">
-            <Search className="text-gray-400 flex-shrink-0 text-base" />
+          <div className="flex items-center bg-white rounded-xl shadow px-3 py-2 w-full min-h-[44px]">
+            <Search className="text-gray-400 flex-shrink-0" size={16} />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by tracking number, location, traveler..."
-              className="w-full px-3 py-2 text-sm outline-none bg-transparent"
+              className="w-full px-3 py-1.5 text-sm outline-none bg-transparent"
+              aria-label="Search orders"
             />
           </div>
-          <button className="bg-white shadow rounded-xl px-4 sm:px-5 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition whitespace-nowrap border border-gray-200">
-            <Filter /> Filter
+          <button
+            className="bg-white shadow rounded-xl px-4 sm:px-5 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition whitespace-nowrap border border-gray-200 min-h-[44px]"
+            aria-label="Filter orders"
+          >
+            <Filter size={16} /> Filter
           </button>
         </div>
       )}

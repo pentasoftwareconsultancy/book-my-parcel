@@ -159,6 +159,10 @@ export async function firebaseLoginController(req, res) {
     const result = await authService.firebaseLogin(token, provider);
     return responseSuccess(res, result, "Login successful", 200);
   } catch (err) {
+    // SDK not initialized — this is a server config problem, not a client error
+    if (err.message.includes("Firebase Admin SDK is not initialized")) {
+      return responseError(res, "Social login is temporarily unavailable. Please try email/password login.", 503);
+    }
     return responseError(res, err.message, 400);
   }
 }

@@ -3,7 +3,7 @@ import React from "react";
 import TextInput from "../../core/common/CommonUi";
 import Button from "../../core/common/Button";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaApple,FaEye, FaEyeSlash, FaRoute } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaRoute } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
 import { USER_ROLES } from "../../core/constants/app.constant";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -28,8 +28,6 @@ const AuthForm = ({
   initialRole,
   disabled,
   onGoogleLogin,
-  onFacebookLogin,
-  onAppleLogin,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,6 +104,11 @@ const [agreed, setAgreed] = useState(false);
         if (error) newErrors[key] = error;
       }
     });
+
+    // ── Terms & Conditions must be accepted on signup ──
+    if (isSignupPage && !agreed) {
+      newErrors.agreed = "You must accept the Terms & Conditions to continue.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -313,37 +316,43 @@ const [agreed, setAgreed] = useState(false);
         </label>
       )} */}
       {isSignupPage && (
-  <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
-
-    <input
-      type="checkbox"
-      checked={agreed}
-      onChange={(e) => setAgreed(e.target.checked)}
-      className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
-    />
-
-    <span>
-      I agree to the{" "}
-
-      <span
-        onClick={() => setTermsOpen(true)}
-        className="text-blue-600 hover:underline cursor-pointer"
-      >
-        Terms & Conditions
-      </span>
-
-      {" "}and{" "}
-
-      <span
-        onClick={() => setPolicyOpen(true)}
-        className="text-blue-600 hover:underline cursor-pointer"
-      >
-        Privacy Policy
-      </span>
-    </span>
-
-  </label>
-)}
+        <div className="mt-2">
+          <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => {
+                setAgreed(e.target.checked);
+                // Clear the error as soon as they check the box
+                if (e.target.checked && errors.agreed) {
+                  setErrors((prev) => ({ ...prev, agreed: "" }));
+                }
+              }}
+              className="mt-0.5 w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
+            />
+            <span>
+              I agree to the{" "}
+              <span
+                onClick={() => setTermsOpen(true)}
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Terms & Conditions
+              </span>
+              {" "}and{" "}
+              <span
+                onClick={() => setPolicyOpen(true)}
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Privacy Policy
+              </span>
+            </span>
+          </label>
+          {/* Show validation error if user tries to submit without agreeing */}
+          {errors.agreed && (
+            <p className="text-red-500 text-xs mt-1">{errors.agreed}</p>
+          )}
+        </div>
+      )}
 
       {/* {isLoginPage && (
         <div className="flex justify-between">
@@ -368,52 +377,50 @@ const [agreed, setAgreed] = useState(false);
         {submitText}
       </Button>
 
-      {/* OR */}
-      <div className="text-center text-xs text-gray-400 mt-4">OR</div>
+      {/* Social login — only shown when Google handler is provided (login page) */}
+      {onGoogleLogin && (
+        <>
+          <div className="flex items-center gap-3 my-3">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">or</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
 
-      {/* Social */}
-      <div className="space-x-4 flex flex-row mt-2">
+          {/* Continue with Google — full-width, matches Google brand guidelines */}
+          <button
+            type="button"
+            onClick={onGoogleLogin}
+            disabled={disabled}
+            aria-label="Continue with Google"
+            className="
+              w-full flex items-center justify-center gap-3
+              px-4 py-2.5 rounded-lg border border-gray-300
+              bg-white text-gray-700 text-sm font-medium
+              hover:bg-gray-50 hover:border-gray-400
+              transition-all duration-150
+              disabled:opacity-60 disabled:cursor-not-allowed
+              shadow-sm
+            "
+          >
+            <FcGoogle size={20} />
+            Continue with Google
+          </button>
+        </>
+      )}
 
-        <Button
-          type="button"
-          variant="outline"
-          fullWidth
-          onClick={onGoogleLogin}
-        >
-          <FcGoogle />
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          fullWidth
-          onClick={onFacebookLogin}
-        >
-          <FaFacebookF />
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          fullWidth
-          onClick={onAppleLogin}
-        >
-          <FaApple />
-        </Button>
-
-<TermModel
-  open={termsOpen}
-  onClose={() => setTermsOpen(false)}
-  onAccept={() => {
-    setAgreed(true);
-    setTermsOpen(false);
-  }}
-/>
-<PrivacyModel
-  open={policyOpen}
-  onClose={() => setPolicyOpen(false)}
-/>
-      </div>
+      <TermModel
+        open={termsOpen}
+        onClose={() => setTermsOpen(false)}
+        onAccept={() => {
+          setAgreed(true);
+          if (errors.agreed) setErrors((prev) => ({ ...prev, agreed: "" }));
+          setTermsOpen(false);
+        }}
+      />
+      <PrivacyModel
+        open={policyOpen}
+        onClose={() => setPolicyOpen(false)}
+      />
     </form>
   );
 };
