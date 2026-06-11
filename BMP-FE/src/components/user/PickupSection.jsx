@@ -1,5 +1,5 @@
 import TextInput from "../../core/common/CommonUi";
-import AddressAutoComplete from "../../core/common/AddressAutoComplete.jsx";
+import AddressAutoComplete from "../../core/common/AddressAutocomplete.jsx";
 import TimePicker12h from "../../components/common/TimePicker12h.jsx"
 import { validateFutureDate } from "../../core/utils/validation.js";
 import { Home } from "lucide-react";

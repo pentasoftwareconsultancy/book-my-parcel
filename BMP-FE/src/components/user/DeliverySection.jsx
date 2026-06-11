@@ -1,5 +1,5 @@
 import TextInput from "../../core/common/CommonUi";
-import AddressAutoComplete from "../../core/common/AddressAutoComplete";
+import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 import {
   nameTypingPattern,
   validatePincode,

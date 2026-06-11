@@ -1,6 +1,6 @@
 import React from "react";
 import { Controller } from "react-hook-form";
-import AddressAutoComplete from "../../core/common/AddressAutoComplete";
+import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 import ApiService from "../../core/services/api.service";
 
 const InputField = ({ label, error, helperText, children }) => (
