@@ -1,4 +1,4 @@
-// src/core/common/AddressAutocomplete.jsx
+// src/core/common/AddressAutoComplete.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { IoSearchOutline, IoLocationOutline } from "react-icons/io5";
 import ApiService from "../services/api.service";
@@ -7,7 +7,7 @@ import ApiService from "../services/api.service";
  * Address input with Google Places Autocomplete dropdown.
  * Calls the backend proxy (/api/places/autocomplete) to avoid browser CORS restrictions.
  */
-const AddressAutocomplete = ({
+const AddressAutoComplete = ({
   value,
   onChange,
   onSelect,
@@ -16,6 +16,7 @@ const AddressAutocomplete = ({
   label,
   className = "",
   required = false,
+  maxLength = 250,
 }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -56,14 +57,15 @@ const AddressAutocomplete = ({
   };
 
   const handleInputChange = (e) => {
-    const val = e.target.value;
+    // Slice to maxLength — handles typing, key-hold, and paste in one shot
+    const val = e.target.value.slice(0, maxLength);
     onChange(val);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchSuggestions(val), 350);
   };
 
   const handleSelect = (prediction) => {
-    const text = prediction.description || "";
+    const text = (prediction.description || "").slice(0, maxLength);
     const placeId = prediction.place_id || "";
     onChange(text);
     setSuggestions([]);
@@ -106,6 +108,7 @@ const AddressAutocomplete = ({
           }}
           placeholder={placeholder}
           className="w-full px-3 py-2 pr-9 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+          maxLength={maxLength}
         />
 
         {/* Spinner while loading, search icon otherwise */}
@@ -128,6 +131,13 @@ const AddressAutocomplete = ({
           )}
         </span>
       </div>
+
+      {/* Character counter — shown when approaching/at limit */}
+      {value && value.length > maxLength * 0.8 && (
+        <p className={`text-xs mt-1 text-right ${value.length >= maxLength ? "text-red-500 font-medium" : "text-gray-400"}`}>
+          {value.length}/{maxLength}
+        </p>
+      )}
 
       {/* Dropdown */}
       {showDropdown && suggestions.length > 0 && (
@@ -162,4 +172,4 @@ const AddressAutocomplete = ({
   );
 };
 
-export default AddressAutocomplete;
+export default AddressAutoComplete;

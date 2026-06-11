@@ -8,6 +8,9 @@ import RoutePath from "../core/constants/routes.constant";
 import logo1 from "../assets/logo1.png";
 import { useNotifications } from "../core/hooks/useNotification";
 
+// ─── Breakpoint constant — must match DashboardLayout and Tailwind sm: (640px)
+const MOBILE_BREAKPOINT = 640;
+
 const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,7 +25,7 @@ const Navbar = () => {
 
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
-    const fn = () => setIsMobile(window.innerWidth < 640);
+    const fn = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     fn();
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);

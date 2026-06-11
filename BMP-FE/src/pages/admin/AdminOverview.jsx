@@ -76,17 +76,17 @@ const AdminOverview = () => {
     <div className="space-y-6">
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 mt-4">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Dashboard Overview</h1>
           <p className="text-sm text-gray-500">Welcome back, Super Admin</p>
         </div>
         <button
           onClick={() => navigate(RoutePath.ADMIN_ANALYTICS)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-medium rounded-lg transition"
         >
           <FiBarChart2 size={16} />
-          View Analytics
+          <span>View Analytics</span>
         </button>
       </div>
       <div className="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2 xl:grid-cols-4">

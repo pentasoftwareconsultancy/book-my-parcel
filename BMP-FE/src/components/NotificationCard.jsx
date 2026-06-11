@@ -1,25 +1,35 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { CheckCircle, XCircle, X, Gift, Star, MapPin, Weight, DollarSign } from "lucide-react";
 
 const NotificationCard = ({ type, title, message, details, actions, onClose }) => {
   const isSuccess = type === "success";
   const isAccepted = type === "accepted";
 
+  // Auto-dismiss the full-screen overlay after 4s if no onClose is provided
+  const timerRef = useRef(null);
+  useEffect(() => {
+    if (type === "success" && title?.includes("Congratulations") && !onClose) {
+      // Nothing to call — just silently swallow (caller should handle setNotification(null))
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [type, title, onClose]);
+
   // Enhanced celebration notification for traveller selection
   if (type === "success" && title?.includes("Congratulations")) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
         <div className="bg-white shadow-2xl rounded-2xl max-w-md w-full mx-4 overflow-hidden animate-bounce">
-          {/* Header with close button */}
+          {/* Header with close button — always shown */}
           <div className="relative bg-gradient-to-r from-green-400 to-emerald-500 p-6 text-white">
-            {onClose && (
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
-              >
-                <X size={24} />
-              </button>
-            )}
+            <button
+              onClick={onClose ?? (() => {})}
+              className="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+              aria-label="Close notification"
+            >
+              <X size={24} />
+            </button>
             
             {/* Celebration icon */}
             <div className="flex justify-center mb-4">

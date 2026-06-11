@@ -27,7 +27,7 @@ const SharedFooter = ({ type }) => {
   const lnk = (to, label, cls = "") => <Link to={to} className={`text-white no-underline hover:underline opacity-90 ${cls}`}>{label}</Link>;
 
   return (
-    <footer className="text-white" style={{ background: bg, fontFamily: "Arial, sans-serif", fontSize: "14px" }}>
+    <footer className="text-white" style={{ background: bg, fontFamily: "Montserrat, Arial, sans-serif", fontSize: "14px" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-5 lg:px-6 pt-4 pb-4">
 
         {/* LOGO */}
@@ -63,15 +63,17 @@ const SharedFooter = ({ type }) => {
           <div>
             <h4 className="text-base font-bold mb-5">Contact Us</h4>
             <div className="space-y-4">
-              {[[FaMapMarkerAlt, "Office Address:", <span>
-  Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A, Dhanori, Near Dhanori Police Station, Pune - 411015, Maharashtra, India
-</span>],
-                [FaPhoneAlt, "Phone Number", "+91 9545444591"],
-                [FaEnvelope, "Email Address", "support@bookmyparcel.co.in"]
+              {[
+                [FaMapMarkerAlt, "Office Address:", <span>Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A, Dhanori, Near Dhanori Police Station, Pune - 411015, Maharashtra, India</span>],
+                [FaPhoneAlt,     "Phone Number",   <a href="tel:+919545444591"    className="opacity-90 text-white hover:underline no-underline">+91 9545444591</a>],
+                [FaEnvelope,     "Email Address",  <a href="mailto:support@bookmyparcel.co.in" className="opacity-90 text-white hover:underline no-underline">support@bookmyparcel.co.in</a>],
               ].map(([Icon, title, value]) => (
                 <div key={title} className="flex gap-3 items-start">
-                  <Icon className="mt-1 shrink-0" size={15} />
-                  <div><p className="font-bold text-sm m-0 mb-1">{title}</p><p className="opacity-90 text-sm m-0">{value}</p></div>
+                  <Icon className="mt-1 shrink-0" size={15} aria-hidden="true" />
+                  <div>
+                    <p className="font-bold text-sm m-0 mb-1">{title}</p>
+                    <p className="opacity-90 text-sm m-0">{value}</p>
+                  </div>
                 </div>
               ))}
               {stats && (
@@ -88,28 +90,68 @@ const SharedFooter = ({ type }) => {
           </div>
 
           {/* Subscribe */}
-          <div className="p-7" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "14px" }}>
-            <h4 className="text-base font-normal mb-5 opacity-90">Subscribe</h4>
-            <div className="flex mb-5" style={{ borderRadius: "8px", overflow: "hidden", height: "60px" }}>
-              <input type="email" placeholder="Email address" style={{ flex: 1, minWidth: 0, padding: "0 16px", border: "none", outline: "none", fontSize: "14px", color: "#9ca3af", background: "rgba(255,255,255,0.92)" }} />
-              <button style={{ width: "50px", background: "rgba(28, 85, 224, 0.89)", border: "none", color: "#fff", cursor: "pointer", fontSize: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                onMouseOver={e => e.currentTarget.style.background = "#2563eb"} onMouseOut={e => e.currentTarget.style.background = "#3b82f6"}>→</button>
+          <div className="p-4 sm:p-7" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "14px" }}>
+            <h4 className="text-base font-normal mb-5 opacity-90" id="footer-subscribe-heading">
+              Subscribe
+            </h4>
+            {/* Visually hidden label — links input to heading for screen readers */}
+            <label htmlFor="footer-email-input" className="sr-only">
+              Subscribe to our newsletter — enter your email address
+            </label>
+            <div className="flex mb-5" style={{ borderRadius: "8px", overflow: "hidden", height: "52px" }}>
+              <input
+                id="footer-email-input"
+                type="email"
+                placeholder="Email address"
+                autoComplete="email"
+                aria-describedby="footer-subscribe-heading"
+                style={{
+                  flex: 1, minWidth: 0, padding: "0 16px",
+                  border: "none", outline: "none",
+                  fontSize: "14px", color: "#374151",
+                  background: "rgba(255,255,255,0.92)",
+                }}
+              />
+              <button
+                type="button"
+                aria-label="Subscribe to newsletter"
+                style={{
+                  width: "50px", background: "rgba(28, 85, 224, 0.89)",
+                  border: "none", color: "#fff", cursor: "pointer",
+                  fontSize: "20px", display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                onMouseOver={e => e.currentTarget.style.background = "#2563eb"}
+                onMouseOut={e => e.currentTarget.style.background = "#3b82f6"}
+              >
+                →
+              </button>
             </div>
-            <p className="text-xs opacity-90 leading-relaxed m-0">We're always happy to help! Contact Book My Parcel for quick assistance, guidance, or support. Your delivery experience matters to us — let's get your parcel moving.</p>
+            <p className="text-xs opacity-90 leading-relaxed m-0">
+              We're always happy to help! Contact Book My Parcel for quick assistance, guidance, or support. Your delivery experience matters to us — let's get your parcel moving.
+            </p>
           </div>
         </div>
 
         {/* BOTTOM BAR */}
         <div className="border-t border-white/30 pt-2 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs">
           <p className="opacity-90 text-center sm:text-left m-0 leading-relaxed">
-  © 2025 BOOK MY PERCEL LLP. All Rights Reserved. Developed and Maintained by SmartMatrix Digital Services Pvt. Ltd.
-</p>
-         
-
+            © 2025 BOOK MY PERCEL LLP. All Rights Reserved. Developed and Maintained by SmartMatrix Digital Services Pvt. Ltd.
+          </p>
 
           <div className="flex gap-3">
-            {[FaLinkedinIn, FaFacebookF, FaTwitter].map((Icon, i) => (
-              <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/60 flex items-center justify-center hover:bg-white/20 transition text-white no-underline"><Icon size={14} /></a>
+            {[
+              [FaLinkedinIn, "Visit our LinkedIn page"],
+              [FaFacebookF,  "Visit our Facebook page"],
+              [FaTwitter,    "Visit our Twitter page"],
+            ].map(([Icon, label], i) => (
+              <a
+                key={i}
+                href="#"
+                aria-label={label}
+                className="w-9 h-9 rounded-full border border-white/60 flex items-center justify-center hover:bg-white/20 transition text-white no-underline"
+              >
+                <Icon size={14} aria-hidden="true" />
+              </a>
             ))}
           </div>
         </div>
@@ -117,7 +159,9 @@ const SharedFooter = ({ type }) => {
         {/* VERIFIED BAR — traveler only */}
         {verified && (
           <div className="mt-2 py-2 px-3 flex justify-center items-center gap-2 text-xs" style={{ background: "rgba(255,255,255,0.12)", borderRadius: "30px" }}>
-            <FaCheckCircle size={14} /><span>Verified &amp; Secure Partner Portal</span><span style={{ opacity: 0.8, fontSize: "12px" }}>● SSL Encrypted</span>
+            <FaCheckCircle size={14} aria-hidden="true" />
+            <span>Verified &amp; Secure Partner Portal</span>
+            <span style={{ opacity: 0.8, fontSize: "12px" }}>● SSL Encrypted</span>
           </div>
         )}
 

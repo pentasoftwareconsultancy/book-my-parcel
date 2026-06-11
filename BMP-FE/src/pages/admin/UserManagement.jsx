@@ -109,6 +109,9 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
 const baseTableConfig = {
   title: "User Management",
 
+  // ── Columns hidden on mobile (< 640px) — user + actions always visible ──
+  mobileHiddenColumns: ["contact", "status", "kyc", "bookings", "total", "last_booking"],
+
   columns: [
     {
       accessorKey: "user",

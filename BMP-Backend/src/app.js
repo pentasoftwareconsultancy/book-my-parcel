@@ -8,6 +8,7 @@ import routes from "./routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import { sanitizeBody } from "./middlewares/sanitize.middleware.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.config.js";
+import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
 
 const app = express();
 
@@ -86,6 +87,13 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // ── Input sanitization ────────────────────────────────────────────────────────
 app.use(sanitizeBody);
 
+// ── Global rate limiting ──────────────────────────────────────────────────────
+// Applied after body parsing so Content-Length is known for logging.
+// Baseline: 300 req/15min per IP in production, 2000 in development.
+// Specific routes (auth, OTP, payments) use tighter per-route limiters
+// defined in rateLimit.middleware.js and applied directly in their route files.
+app.use(generalLimiter);
+
 // ── Static uploads ────────────────────────────────────────────────────────────
 // KYC documents are intentionally NOT served here — they require authentication.
 // See /api/kyc/document/:filename for the authenticated route.
@@ -115,13 +123,23 @@ app.use("/api",    routes);
 // ── Health check ──────────────────────────────────────────────────────────────
 // Returns basic server status. Safe to expose publicly — no sensitive data.
 app.get("/api/health", (req, res) => {
+  // Import admin lazily — avoids a hard dependency if firebase-admin isn't installed
+  let firebaseInitialized = false;
+  try {
+    const admin = require("firebase-admin");
+    firebaseInitialized = admin.apps.length > 0;
+  } catch {
+    firebaseInitialized = false;
+  }
+
   res.json({
-    success:     true,
-    message:     "Backend is running",
-    timestamp:   new Date().toISOString(),
-    environment: process.env.NODE_ENV || "development",
-    port:        process.env.PORT || 3000,
-    api_version: "v1",
+    success:              true,
+    message:              "Backend is running",
+    timestamp:            new Date().toISOString(),
+    environment:          process.env.NODE_ENV || "development",
+    port:                 process.env.PORT || 3000,
+    api_version:          "v1",
+    firebase_initialized: firebaseInitialized,
   });
 });
 

@@ -105,6 +105,9 @@ const UserSummary = ({ users, selectedStatus, onStatusClick }) => {
 const userTableConfig = {
   title: "Partners",
 
+  // ── Columns hidden on mobile (< 640px) — partner + actions always visible ──
+  mobileHiddenColumns: ["contact", "kyc"],
+
   columns: [
     {
       accessorKey: "partner",

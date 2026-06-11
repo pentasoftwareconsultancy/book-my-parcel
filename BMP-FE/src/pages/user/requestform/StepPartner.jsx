@@ -94,9 +94,18 @@ const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {
         <section className="p-4 sm:p-6 space-y-4 sm:space-y-6 bg-white rounded-3xl shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-xl sm:text-3xl font-bold text-primary">Select Traveller</h2>
-            <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
-              {filteredTravelers.length} Accepted <span className="text-green-500">•</span>
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                {filteredTravelers.length} Accepted <span className="text-green-500">•</span>
+              </p>
+              <button
+                onClick={() => fetchTravellers(true)}
+                disabled={loading}
+                className="text-xs px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition disabled:opacity-50"
+              >
+                {loading ? "Searching..." : "🔄 Refresh"}
+              </button>
+            </div>
           </div>
 
           {/* Sort & Filter */}
@@ -160,7 +169,7 @@ const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {
                   <p className="text-sm text-gray-400 mt-1">
                     {parcelId ? "Please wait for travellers to accept your parcel request" : "Please complete step 1 first"}
                   </p>
-                  <button onClick={fetchTravellers}
+                  <button onClick={() => fetchTravellers(true)}
                     className="mt-3 px-4 py-2 text-sm bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
                   >
                     Refresh

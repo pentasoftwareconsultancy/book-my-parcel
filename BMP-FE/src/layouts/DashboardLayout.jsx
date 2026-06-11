@@ -15,14 +15,19 @@ const NO_SIDEBAR_ROUTES = [
   RoutePath.TRAVELER_PROFILE,
 ];
 
+// ─── Breakpoint constant — matches Tailwind sm: and PublicHeader ─────────────
+// All three systems (Tailwind CSS, MUI theme, JS resize listeners) now use 640px
+// as the mobile/desktop boundary. Changing this one constant keeps them in sync.
+const MOBILE_BREAKPOINT = 640;
+
 const DashboardLayout = ({ role }) => {
   const location  = useLocation();
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-  const [expanded, setExpanded] = useState(() => window.innerWidth >= 768);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
+  const [expanded, setExpanded] = useState(() => window.innerWidth >= MOBILE_BREAKPOINT);
 
   useEffect(() => {
     const fn = () => {
-      const mobile = window.innerWidth < 768;
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
       setIsMobile(mobile);
       // when resizing to desktop, auto-open; to mobile, auto-close
       setExpanded(!mobile);
@@ -56,8 +61,16 @@ const DashboardLayout = ({ role }) => {
         style={{ marginLeft: contentMargin }}
       >
         <main
-          className="pt-16 pb-8 w-full overflow-x-hidden"
-          style={{ minHeight: "calc(100vh - 64px)", padding: "64px 20px 32px 4px" }}
+          className="w-full overflow-x-hidden"
+          style={{
+            minHeight: "calc(100vh - 64px)",
+            // top: 64px navbar offset, bottom: 32px breathing room
+            // left/right: 16px on mobile, 20px on desktop — no more 4px squeeze
+            paddingTop: "64px",
+            paddingBottom: "32px",
+            paddingLeft: isMobile ? "16px" : "20px",
+            paddingRight: "20px",
+          }}
         >
           <Outlet />
         </main>

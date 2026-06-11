@@ -1129,14 +1129,14 @@ export async function matchRouteWithExistingParcels(routeId) {
     console.log(`[Matching] Checking route ${routeId} (${routeName}) against existing parcels`);
 
     // Find all parcels that are still looking for travellers
-    // Using only valid enum values from the Parcel model
+    // Include all statuses where the user hasn't confirmed a booking yet
     const matchingParcels = await Parcel.findAll({
       where: {
         status: {
-          [Op.in]: ["CREATED", "MATCHING"] // Only use valid enum values
+          [Op.in]: ["CREATED", "MATCHING", "PARTNER_SELECTED"] // Include PARTNER_SELECTED — user may still want more options
         },
         createdAt: {
-          [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days instead of 24 hours
+          [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
         },
       },
       attributes: ["id", "parcel_ref", "status", "createdAt"],
@@ -1193,11 +1193,10 @@ export async function runPeriodicMatching() {
     console.log("[Matching] Starting periodic matching job");
 
     // Find all parcels that are still in MATCHING status from the last 24 hours
-    // Using only valid enum values
     const matchingParcels = await Parcel.findAll({
       where: {
         status: {
-          [Op.in]: ["CREATED", "MATCHING"] // Only valid enum values
+          [Op.in]: ["CREATED", "MATCHING", "PARTNER_SELECTED"]
         },
         createdAt: {
           [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours

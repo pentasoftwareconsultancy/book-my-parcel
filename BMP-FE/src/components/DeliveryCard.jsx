@@ -261,14 +261,14 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
           </div>
         </div>
 
-        {/* Locations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        {/* Locations — stack on mobile, side-by-side from sm */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <LocationBox title="Pickup Location" address={pickupText} date={delivery.pickupDate || "2024-12-25"} accent="blue" />
           <LocationBox title="Drop Location"   address={dropText}   date={delivery.dropDate   || "2024-12-26"} accent="green" />
         </div>
 
-        {/* Parcel Details */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        {/* Parcel Details — 2-col on mobile, 4-col from sm */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
             { label: "Parcel Type",  value: delivery.type || delivery.parcelType || "Documents" },
             { label: "Weight",       value: delivery.weight || "0.5 kg" },
@@ -295,9 +295,9 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
           </div>
         )}
 
-        {/* OTP Section */}
+        {/* OTP Section — stack on mobile, side-by-side from sm */}
         {(showPickupOtp || showDeliveryOtp) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             {showPickupOtp && (
               <OtpBox label="Pickup OTP" otp={delivery.pickup_otp} note="Verified with sender" accent="amber" />
             )}

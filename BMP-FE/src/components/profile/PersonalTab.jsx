@@ -30,7 +30,7 @@ const AdminPersonalView = ({ personalInfo = {} }) => {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-6">
         {fields.map(({ label, value, icon }) => (
           <div key={label} className="space-y-1">
             <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
@@ -118,7 +118,7 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-5 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5 mb-8">
         <TextInput
           label="Full Name"
           name="fullName"
@@ -202,8 +202,8 @@ const AdminPersonalEdit = ({ personalInfo = {}, onSave, onCancel }) => {
 
 // ─── Admin wrapper — owns no hooks, just routes to view or edit ──────────────
 const AdminPersonalTab = ({ personalInfo, isEditing, onSave, onCancel }) => (
-  <div className="p-8">
-    <div className="flex items-center justify-between mb-7">
+  <div className="p-4 sm:p-6 md:p-8">
+    <div className="flex items-center justify-between mb-5 sm:mb-7">
       <h2 className="text-[17px] font-bold text-gray-900">Personal Information</h2>
       {isEditing && (
         <span className="text-xs text-white bg-primary border border-blue-200 px-3 py-1 rounded-full font-medium">
@@ -294,8 +294,8 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
   );
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-7">
+    <div className="p-4 sm:p-6 md:p-8">
+      <div className="flex items-center justify-between mb-5 sm:mb-7">
         <h2 className="text-[17px] font-bold text-gray-900">Personal Information</h2>
         {isEditing && (
           <span className="text-xs text-white bg-primary border border-blue-200 px-3 py-1 rounded-full font-medium">
@@ -304,7 +304,7 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 sm:gap-x-8 gap-y-4 sm:gap-y-5">
         {isEditing ? (
           <>
             <TextInput label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} placeholder="Enter your full name" error={errors.fullName} required />
@@ -324,7 +324,7 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
         )}
 
         {/* KYC Status — always read-only */}
-        <div className="space-y-1 col-span-2 sm:col-span-1">
+        <div className="space-y-1 col-span-1 sm:col-span-2 md:col-span-1">
           <p className="text-[11px] text-gray-500">KYC Status</p>
           {personalInfo.kycStatus === KYC_STATUS.APPROVED ? (
             <div className="flex items-center gap-2 border border-green-300 rounded-md px-3 py-2 bg-green-50 min-h-[38px]">
@@ -375,7 +375,7 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
       </div>
 
       {isEditing && (
-        <div className="flex items-center justify-end gap-3 mt-8">
+        <div className="flex items-center justify-end gap-3 mt-6 sm:mt-8">
           {saved && (
             <span className="flex items-center gap-1.5 text-green-600 text-sm font-medium">
               <CheckCircle size={15} /> Saved successfully!

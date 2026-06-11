@@ -86,11 +86,9 @@ export const verifyOTP = createAsyncThunk(
   async ({ phone, otp, role }, { rejectWithValue }) => {
     try {
       const response = await ApiService.verifyOTP(phone, otp, role);
-      const { user, token, roles, activeRole } = response.data;
+      // Backend wraps response as { success, message, data: { token, user, ... } }
+      const { user, token, roles, activeRole } = response.data.data;
 
-      // FIX: Normalize user with activeRole — same as loginWithEmailAndPassword.
-      // Previously verifyOTP skipped this normalization, causing ProtectedRoute
-      // to fail role mapping and redirect to /unauthorized after OTP login.
       const userWithRoles = normalizeUser(
         { ...user, roles: roles || user?.roles || [] },
         activeRole || role
@@ -113,7 +111,8 @@ export const loginWithEmailAndPassword = createAsyncThunk(
   async ({ email, password, loginRole }, { rejectWithValue }) => {
     try {
       const response = await ApiService.loginWithEmailAndPassword(email, password, loginRole);
-      const { user, token, roles, activeRole } = response.data;
+      // Backend wraps response as { success, message, data: { token, user, ... } }
+      const { user, token, roles, activeRole } = response.data.data;
 
       const userWithRoles = normalizeUser(
         { ...user, roles: roles || user?.roles || [] },
