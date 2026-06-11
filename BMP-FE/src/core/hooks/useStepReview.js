@@ -1,31 +1,21 @@
 import { useState, useEffect, useRef } from "react";
+import { load } from "@cashfreepayments/cashfree-js";
 import ApiService from "../services/api.service";
 import ServerUrl from "../constants/serverUrl.constant";
 import { showToast } from "../utils/toast.util";
 import { DELIVERY_STATUS } from "../constants/app.constant";
-
-function loadRazorpayScript() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) { resolve(true); return; }
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
 
 function normalizePrice(raw) {
   return typeof raw === "string" ? raw.replace(/[^\d.]/g, "") : raw;
 }
 
 export function useStepReview({ data, readOnly }) {
-  const [parcelData, setParcelData]           = useState(null);
+  const [parcelData, setParcelData] = useState(null);
   const [selectedTraveler, setSelectedTraveler] = useState(null);
-  const [loading, setLoading]                 = useState(false);
-  const [showPopup, setShowPopup]             = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [showConfetti, setShowConfetti]       = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const blobUrlsRef = useRef([]);
 
   const trackingId = data.createdParcelId || null;
@@ -43,13 +33,13 @@ export function useStepReview({ data, readOnly }) {
       ...(prev || {}),
       photos: photos.length > 0 ? photos : prev?.photos || [],
       addresses: [
-        { type: "pickup",   name: data.senderName || "",   address: data.pickupAddress || "",   city: data.pickupCity || "",   state: data.pickupState || "",   pincode: data.pickupPincode || "",   country: data.pickupCountry || "India",   phone: data.pickupPhone || "",   alt_phone: data.pickupAltPhone || "" },
-        { type: "delivery", name: data.receiverName || "", address: data.deliveryAddress || "", city: data.deliveryCity || "", state: data.deliveryState || "", pincode: data.deliveryPincode || "", country: data.deliveryCountry || "India", phone: data.deliveryPhNo || "",   alt_phone: data.deliveryAlternatePhNo || "" },
+        { type: "pickup", name: data.senderName || "", address: data.pickupAddress || "", city: data.pickupCity || "", state: data.pickupState || "", pincode: data.pickupPincode || "", country: data.pickupCountry || "India", phone: data.pickupPhone || "", alt_phone: data.pickupAltPhone || "" },
+        { type: "delivery", name: data.receiverName || "", address: data.deliveryAddress || "", city: data.deliveryCity || "", state: data.deliveryState || "", pincode: data.deliveryPincode || "", country: data.deliveryCountry || "India", phone: data.deliveryPhNo || "", alt_phone: data.deliveryAlternatePhNo || "" },
       ],
       package_size: data.packageSize || "",
       weight: data.parcelWeight || "",
       length: data.parcelLength || "",
-      width:  data.parcelWidth  || "",
+      width: data.parcelWidth || "",
       height: data.parcelHeight || "",
       vehicle_type: data.vehicleType || "",
       description: data.parcelContents || "",
@@ -79,16 +69,16 @@ export function useStepReview({ data, readOnly }) {
           const apiPhotos = (d.photos || []).map((p) => p?.startsWith("http") ? p : `${ServerUrl.BASE_URL}${p}`);
           setParcelData((prev) => ({
             ...prev,
-            parcel_ref:  d.parcel_ref  || prev?.parcel_ref,
+            parcel_ref: d.parcel_ref || prev?.parcel_ref,
             price_quote: d.price_quote || prev?.price_quote,
-            status:      d.status      || prev?.status,
-            booking:     d.booking     || prev?.booking,
-            booking_id:  d.booking?.id,
+            status: d.status || prev?.status,
+            booking: d.booking || prev?.booking,
+            booking_id: d.booking?.id,
             photos: apiPhotos.length > 0 ? apiPhotos : prev?.photos || [],
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [data.createdParcelId, data.selectedPartnerId]);
 
   // Fetch selected traveller
@@ -163,13 +153,13 @@ export function useStepReview({ data, readOnly }) {
   const getStatusMessage = () => {
     const hasTraveller = selectedTraveler || data.selectedPartnerId;
     switch (getOrderStatus()) {
-      case DELIVERY_STATUS.CREATED:         return "Order created. Waiting for traveller selection.";
-      case DELIVERY_STATUS.MATCHING:        return "Finding suitable travellers for your parcel.";
+      case DELIVERY_STATUS.CREATED: return "Order created. Waiting for traveller selection.";
+      case DELIVERY_STATUS.MATCHING: return "Finding suitable travellers for your parcel.";
       case DELIVERY_STATUS.PARTNER_SELECTED: return "Traveller selected! Click Pay Now to confirm your booking.";
-      case DELIVERY_STATUS.CONFIRMED:       return hasTraveller ? "Booking confirmed! Your parcel is ready for pickup." : "Traveller selection pending.";
-      case DELIVERY_STATUS.IN_TRANSIT:      return "Your parcel is in transit with the traveller.";
-      case DELIVERY_STATUS.DELIVERED:       return "Your parcel has been successfully delivered.";
-      case DELIVERY_STATUS.CANCELLED:       return "This order has been cancelled.";
+      case DELIVERY_STATUS.CONFIRMED: return hasTraveller ? "Booking confirmed! Your parcel is ready for pickup." : "Traveller selection pending.";
+      case DELIVERY_STATUS.IN_TRANSIT: return "Your parcel is in transit with the traveller.";
+      case DELIVERY_STATUS.DELIVERED: return "Your parcel has been successfully delivered.";
+      case DELIVERY_STATUS.CANCELLED: return "This order has been cancelled.";
       default: return "";
     }
   };
@@ -193,63 +183,123 @@ export function useStepReview({ data, readOnly }) {
 
   const handlePayment = async (pickupAddress) => {
     try {
-      const loaded = await loadRazorpayScript();
-      if (!loaded) { showToast("Razorpay SDK failed to load.", "error"); return; }
-
       const parcelId = data.createdParcelId || parcelData?.id;
-      const amount   = parcelData?.price_quote || data.priceQuote || selectedTraveler?.price;
-      if (!parcelId) { showToast("Parcel ID not available.", "error"); return; }
-      if (!amount)   { showToast("Price not available.", "error"); return; }
 
-      const numericAmount = typeof amount === "string" ? parseFloat(amount.replace(/[^\d.]/g, "")) : Number(amount);
-      if (isNaN(numericAmount) || numericAmount <= 0) { showToast("Invalid price amount.", "error"); return; }
+      if (!parcelId) {
+        showToast("Parcel ID not available.", "error");
+        return;
+      }
 
-      const orderRes = await ApiService.apipost(ServerUrl.API_PAYMENT_CREATE_ORDER, { parcel_id: parcelId, amount: numericAmount });
-      if (!orderRes?.data?.success) { showToast(orderRes?.data?.message || "Order creation failed.", "error"); return; }
+      const orderRes = await ApiService.apipost(
+        ServerUrl.API_PAYMENT_CREATE_ORDER,
+        {
+          parcel_id: parcelId,
+        }
+      );
 
-      const { order, key } = orderRes.data.data;
-      if (!order?.id) { showToast("Invalid order response.", "error"); return; }
+      if (!orderRes?.data?.success) {
+        showToast(
+          orderRes?.data?.message || "Order creation failed.",
+          "error"
+        );
+        return;
+      }
 
-      const options = {
-        key, amount: order.amount, currency: order.currency,
-        name: "Book My Parcel", description: "Parcel Booking Payment", order_id: order.id,
-        handler: async (response) => {
-          const verifyRes = await ApiService.apipost(ServerUrl.API_PAYMENT_VERIFY, {
-            razorpay_order_id:   response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature:  response.razorpay_signature,
-            parcel_id: parcelId,
-          });
-          if (verifyRes?.data?.success) {
-            try {
-              await ApiService.apipatch(ServerUrl.API_UPDATE_PARCEL_STEP(parcelId), {
-                form_step: 3, payment_mode: "PAY_NOW", selected_partner_id: data.selectedPartnerId,
-              });
-              setShowConfetti(true);
-              showToast("Payment successful! Booking confirmed.", "success");
-              await new Promise((r) => setTimeout(r, 1000));
-              const updated = await ApiService.apiget(ServerUrl.API_GET_PARCEL_BY_ID(parcelId));
-              if (updated?.data?.success) {
-                const u = updated.data.data;
-                setParcelData((prev) => ({
-                  ...prev, ...u, booking: u.booking,
-                  photos: (u.photos || []).map((p) => p?.startsWith("http") ? p : `${ServerUrl.BASE_URL}${p}`),
-                }));
-                data.bookingRef = u.booking?.booking_ref;
-                data.bookingId  = u.booking?.id;
-              }
-              setShowPopup(true);
-            } catch { showToast("Payment successful but booking confirmation failed. Please contact support.", "error"); }
-          } else {
-            showToast("Payment verification failed. Please contact support.", "error");
-          }
-        },
-        modal: { ondismiss: () => {} },
-        prefill: { name: pickupAddress?.name || "User", contact: pickupAddress?.phone || "" },
-        theme: { color: "#2563eb" },
+      const order = orderRes.data.data.order;
+
+      const payment_session_id = order.payment_session_id;
+      const order_id = order.id;
+
+      const cashfree = await load({
+        mode: "sandbox", // production later
+      });
+
+      const checkoutOptions = {
+        paymentSessionId: payment_session_id,
+        redirectTarget: "_modal",
       };
-      new window.Razorpay(options).open();
-    } catch { showToast("Payment failed. Please try again.", "error"); }
+
+      const result = await cashfree.checkout(
+        checkoutOptions
+      );
+
+      if (result?.error) {
+        showToast(
+          result.error.message || "Payment failed",
+          "error"
+        );
+        return;
+      }
+
+      const verifyRes = await ApiService.apipost(
+        ServerUrl.API_PAYMENT_VERIFY,
+        {
+          order_id,
+          parcel_id: parcelId,
+        }
+      );
+
+      if (verifyRes?.data?.success) {
+        await ApiService.apipatch(
+          ServerUrl.API_UPDATE_PARCEL_STEP(parcelId),
+          {
+            form_step: 3,
+            payment_mode: "PAY_NOW",
+            selected_partner_id: data.selectedPartnerId,
+          }
+        );
+
+        setShowConfetti(true);
+
+        showToast(
+          "Payment successful! Booking confirmed.",
+          "success"
+        );
+
+        await new Promise((r) =>
+          setTimeout(r, 1000)
+        );
+
+        const updated = await ApiService.apiget(
+          ServerUrl.API_GET_PARCEL_BY_ID(parcelId)
+        );
+
+        if (updated?.data?.success) {
+          const u = updated.data.data;
+
+          setParcelData((prev) => ({
+            ...prev,
+            ...u,
+            booking: u.booking,
+            photos: (u.photos || []).map((p) =>
+              p?.startsWith("http")
+                ? p
+                : `${ServerUrl.BASE_URL}${p}`
+            ),
+          }));
+
+          data.bookingRef =
+            u.booking?.booking_ref;
+
+          data.bookingId =
+            u.booking?.id;
+        }
+
+        setShowPopup(true);
+      } else {
+        showToast(
+          "Payment verification failed.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error(error);
+
+      showToast(
+        "Payment failed. Please try again.",
+        "error"
+      );
+    }
   };
 
   return {

@@ -10,6 +10,7 @@ import User from "../user/user.model.js";
 import UserProfile from "../user/userProfile.model.js";
 import TravellerProfile from "../traveller/travellerProfile.model.js";
 import TravellerRoute from "../traveller/travellerRoute.model.js";
+import { parseArrivalDateTime } from "../../utils/routeExpiry.util.js";
 import { responseSuccess, responseError } from "../../utils/response.util.js";
 import { sendToTraveller, sendToUser } from "../../services/notification.service.js";
 import { matchParcelWithTravellers, runPeriodicMatching } from "../../services/matchingEngine.service.js";
@@ -119,6 +120,20 @@ export async function acceptRequest(req, res) {
     if (!parcel) {
       await t.rollback();
       return responseError(res, "Parcel not found", 404);
+    }
+
+    // Check whether the underlying route has expired before accepting
+    if (request.route_id) {
+      const route = await TravellerRoute.findByPk(request.route_id, { transaction: t });
+      if (!route || route.status !== "ACTIVE") {
+        await t.rollback();
+        return responseError(res, "Route is no longer available", 400);
+      }
+      const arrivalDateTime = parseArrivalDateTime(route);
+      if (arrivalDateTime && arrivalDateTime.getTime() < Date.now()) {
+        await t.rollback();
+        return responseError(res, "Route has expired", 400);
+      }
     }
 
     // Create acceptance
@@ -242,6 +257,20 @@ export async function expressInterest(req, res) {
     if (!parcel) {
       await t.rollback();
       return responseError(res, "Parcel not found", 404);
+    }
+
+    // Check whether the underlying route has expired before expressing interest
+    if (request.route_id) {
+      const route = await TravellerRoute.findByPk(request.route_id, { transaction: t });
+      if (!route || route.status !== "ACTIVE") {
+        await t.rollback();
+        return responseError(res, "Route is no longer available", 400);
+      }
+      const arrivalDateTime = parseArrivalDateTime(route);
+      if (arrivalDateTime && arrivalDateTime.getTime() < Date.now()) {
+        await t.rollback();
+        return responseError(res, "Route has expired", 400);
+      }
     }
 
     // Create acceptance record (same as before, but status is INTERESTED)

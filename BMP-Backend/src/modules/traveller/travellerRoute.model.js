@@ -157,7 +157,7 @@ const TravellerRoute = sequelize.define(
     },
     // Status
     status: {
-      type: DataTypes.ENUM("ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED"),
+      type: DataTypes.ENUM("ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED","EXPIRED"),
       defaultValue: "ACTIVE",
     },
   },

@@ -5,7 +5,7 @@ import sequelize from "../../config/database.config.js";
 import User from "../user/user.model.js";
 import Role from "../user/role.model.js";
 import UserRole from "../user/userRole.model.js";
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import UserProfile from "../user/userProfile.model.js";
 import TravellerProfile from "../traveller/travellerProfile.model.js";
 import { KYC_STATUS, ROLES } from "../../utils/constants.js";

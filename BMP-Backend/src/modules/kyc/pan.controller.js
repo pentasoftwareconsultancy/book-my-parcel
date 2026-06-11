@@ -1,7 +1,7 @@
 // pan.controller.js
 
 import { verifyPanService } from "./pan.service.js";
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import { KYC_STATUS } from "../../utils/constants.js";
 
 export const verifyPan = async (req, res) => {

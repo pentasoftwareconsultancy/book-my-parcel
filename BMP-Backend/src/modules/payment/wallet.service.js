@@ -29,7 +29,7 @@ async function getOrCreateWallet(userId, transaction = null, useLock = false) {
 }
 
 // ─── Credit Wallet (Add Money) ────────────────────────────────────────────
-export async function creditWalletService(userId, amount, reason, externalTransaction = null) {
+export async function creditWalletService(userId, amount, reason, externalTransaction = null, idempotencyKey = null) {
   const t = externalTransaction || await sequelize.transaction();
   const shouldCommit = !externalTransaction; // Only commit if we created the transaction
   
@@ -56,6 +56,7 @@ export async function creditWalletService(userId, amount, reason, externalTransa
         type: "CREDIT",
         amount: creditAmount,
         reason: reason || "Wallet credit",
+        idempotency_key: idempotencyKey, // 👈 ADD THIS
       },
       { transaction: t }
     );
@@ -84,7 +85,7 @@ export async function creditWalletService(userId, amount, reason, externalTransa
 }
 
 // ─── Debit Wallet (Remove Money) ──────────────────────────────────────────
-export async function debitWalletService(userId, amount, reason, externalTransaction = null) {
+export async function debitWalletService(userId, amount, reason, externalTransaction = null, idempotencyKey = null) {
   const t = externalTransaction || await sequelize.transaction();
   const shouldCommit = !externalTransaction; // Only commit if we created the transaction
   
@@ -119,6 +120,7 @@ export async function debitWalletService(userId, amount, reason, externalTransac
         type: "DEBIT",
         amount: debitAmount,
         reason: reason || "Wallet debit",
+        idempotency_key: idempotencyKey, // 👈 ADD THIS
       },
       { transaction: t }
     );

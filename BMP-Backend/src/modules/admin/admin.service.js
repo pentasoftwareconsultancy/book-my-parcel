@@ -1,7 +1,7 @@
 import sequelize from "../../config/database.config.js";
 import { QueryTypes } from "sequelize";
 // Fixed database queries for TravelerApproval page
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import User from "../user/user.model.js";
 import { KYC_STATUS } from "../../utils/constants.js";
 import Role from "../user/role.model.js";
@@ -998,8 +998,8 @@ export const getTravelerPaymentsService = async (userId) => {
       pay.id,
       pay.amount * 0.9 AS amount,
       pay.status,
-      pay.razorpay_payment_id,
-      pay.razorpay_order_id,
+      pay.cashfree_payment_id,
+      pay.cashfree_order_id,
       pay."createdAt",
       b.booking_ref,
       b.payment_mode,
