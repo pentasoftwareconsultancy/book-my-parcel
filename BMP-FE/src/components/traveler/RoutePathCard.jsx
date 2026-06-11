@@ -1,5 +1,5 @@
 import { FaLocationArrow, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
-import AddressAutoComplete from "../../core/common/AddressAutoComplete";
+import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 
 export default function RoutePathCard({ d, isEditing, setField, setOriginAddressChange, setDestAddressChange, updateStop, addStop, removeStop }) {
   const makeAddrObj = (text, placeId) => ({ address: text, place_id: placeId, city: "", state: "", pincode: "", country: "India" });

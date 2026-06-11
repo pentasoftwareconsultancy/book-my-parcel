@@ -7,7 +7,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import ApiService from "../../../core/services/api.service";
 import { showToast } from "../../../core/utils/toast.util";
-import AddressAutoComplete from "../../../core/common/AddressAutoComplete";
+import AddressAutoComplete from "../../../core/common/AddressAutocomplete";
 import RoutePathCard from "../../../components/traveler/RoutePathCard";
 import VehicleDetailsCard from "../../../components/traveler/VehicleDetailsCard";
 import TimePicker12h from "../../../components/common/TimePicker12h";

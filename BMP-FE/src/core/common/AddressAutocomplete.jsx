@@ -1,4 +1,4 @@
-// src/core/common/AddressAutoComplete.jsx
+// src/core/common/AddressAutocomplete.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { IoSearchOutline, IoLocationOutline } from "react-icons/io5";
 import ApiService from "../services/api.service";
