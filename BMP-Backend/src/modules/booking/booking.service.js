@@ -4,13 +4,13 @@ import Parcel from "../parcel/parcel.model.js";
 import Address from "../parcel/address.model.js";
 import User from "../user/user.model.js";
 import TravellerProfile from "../traveller/travellerProfile.model.js";
+import Payment from "../payment/payment.model.js";
 import twilioService from "../../services/twilio.service.js";
 import otpConfig from "../../config/otp.config.js";
 import app from "../../app.js";
 import ParcelTracking from "../tracking/parcelTracking.model.js";
 import TravellerTrip from "../traveller/travellerTrip.model.js";
 import TravellerRoute from "../traveller/travellerRoute.model.js";
-import { creditWalletService } from "../payment/wallet.service.js";
 import { refundPaymentForParcel } from "../payment/payment.service.js";
 import PendingPayment from "./pendingPayment.model.js";
 import { createNotification } from "../notification/notification.service.js";
@@ -19,8 +19,11 @@ import {
   BOOKING_TRANSITIONS,
   PARCEL_TRANSITIONS,
   assertValidTransition,
+  PAYMENT_STATUS,
 } from "../../utils/constants.js";
 import { auditLog } from "../../utils/auditLog.util.js";
+import { getOrCache } from "../../utils/cache.util.js";
+import {  creditWalletService } from "../payment/wallet.service.js";
 
 
 class BookingService {
@@ -45,7 +48,7 @@ class BookingService {
           model: Parcel,
           as: "parcel",
           include: [
-            { model: Address, as: "pickupAddress",  foreignKey: "pickup_address_id" },
+            { model: Address, as: "pickupAddress", foreignKey: "pickup_address_id" },
             { model: Address, as: "deliveryAddress", foreignKey: "delivery_address_id" },
             { model: User, as: "user" },
           ],
@@ -73,7 +76,7 @@ class BookingService {
         },
       ],
     });
-    
+
     return booking;
   }
 
@@ -124,7 +127,7 @@ class BookingService {
     // Get sender phone from pickup address
     const senderPhone = booking.parcel.pickupAddress.phone;
     const senderName = booking.parcel.pickupAddress.name;
-    
+
     // Validate phone number exists
     if (!senderPhone) {
       console.warn(`⚠️ [OTP] Pickup address has no phone number for booking ${booking.booking_ref}`);
@@ -158,7 +161,7 @@ class BookingService {
         message: "OTP has been sent to the sender. Please collect it from them.",
       };
 
-      const senderRoom   = `user_${senderId}`;
+      const senderRoom = `user_${senderId}`;
       const travellerRoom = `user_${travellerId}`;
 
       io.to(senderRoom).emit("pickup_otp_generated", eventData);
@@ -233,7 +236,7 @@ class BookingService {
       pickup_verified_at: new Date(),
       pickup_otp_attempts: 0,
     };
-    
+
     // Generate Tracking ID if not already generated
     if (!booking.tracking_ref) {
       const { generateTrackingId } = await import("../../utils/idGenerator.js");
@@ -241,12 +244,12 @@ class BookingService {
       updateData.tracking_ref = trackingRef;
       console.log(`[Booking] Tracking ID generated: ${trackingRef}`);
     }
-    
+
     await booking.update(updateData);
 
     // ✅ Create ParcelTracking row after OTP verified
     try {
-      const pickupAddress   = booking.parcel.pickupAddress;
+      const pickupAddress = booking.parcel.pickupAddress;
       const deliveryAddress = booking.parcel.deliveryAddress;
 
       // Get vehicle_type from the traveller's active route
@@ -257,20 +260,20 @@ class BookingService {
       const vehicleType = activeRoute?.vehicle_type ?? "bike"; // fallback to bike
 
       const missingCoords =
-        !pickupAddress?.latitude  || !pickupAddress?.longitude ||
+        !pickupAddress?.latitude || !pickupAddress?.longitude ||
         !deliveryAddress?.latitude || !deliveryAddress?.longitude;
 
       if (missingCoords) {
         console.warn("[Tracking] Missing coordinates on addresses — skipping ParcelTracking creation");
       } else {
         await ParcelTracking.create({
-          booking_id:   booking.id,
+          booking_id: booking.id,
           vehicle_type: vehicleType,
-          pickup_lat:   pickupAddress.latitude,
-          pickup_lng:   pickupAddress.longitude,
+          pickup_lat: pickupAddress.latitude,
+          pickup_lng: pickupAddress.longitude,
           delivery_lat: deliveryAddress.latitude,
           delivery_lng: deliveryAddress.longitude,
-          status:       "in_transit",     // matches your ENUM: initiated|picked_up|in_transit|delivered|failed
+          status: "in_transit",     // matches your ENUM: initiated|picked_up|in_transit|delivered|failed
         });
         console.log(`[Tracking] ParcelTracking created for booking ${booking.id}, vehicle: ${vehicleType}`);
       }
@@ -288,7 +291,7 @@ class BookingService {
         status: "IN_TRANSIT",
         pickup_verified_at: booking.pickup_verified_at,
       };
-      
+
       // Log room information for debugging
       const senderRoom = `user_${senderId}`;
       const travellerRoom = `user_${travellerId}`;
@@ -300,21 +303,21 @@ class BookingService {
     const io2 = this.getIO();
     // Notify user: parcel picked up
     await createNotification(io2, {
-      user_id:   booking.parcel.user_id,
-      role:      "user",
+      user_id: booking.parcel.user_id,
+      role: "user",
       type_code: "parcel_picked_up",
-      title:     "Parcel Picked Up",
-      message:   `Your parcel has been picked up by the traveller. Booking ref: ${booking.booking_ref}`,
-      meta:      { booking_id: booking.id, booking_ref: booking.booking_ref },
+      title: "Parcel Picked Up",
+      message: `Your parcel has been picked up by the traveller. Booking ref: ${booking.booking_ref}`,
+      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
     });
     // Notify traveller: delivery started
     await createNotification(io2, {
-      user_id:   travellerId,
-      role:      "traveller",
+      user_id: travellerId,
+      role: "traveller",
       type_code: "delivery_started",
-      title:     "Pickup Verified",
-      message:   `Pickup verified for booking ${booking.booking_ref}. Head to the delivery address.`,
-      meta:      { booking_id: booking.id, booking_ref: booking.booking_ref },
+      title: "Pickup Verified",
+      message: `Pickup verified for booking ${booking.booking_ref}. Head to the delivery address.`,
+      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
     });
 
     // ── Send tracking link via SMS & WhatsApp ──────────────────────────────
@@ -381,7 +384,7 @@ class BookingService {
     // Get recipient phone from delivery address
     const recipientPhone = booking.parcel.deliveryAddress.phone;
     const recipientName = booking.parcel.deliveryAddress.name;
-    
+
     // Validate phone number exists
     if (!recipientPhone) {
       console.warn(`⚠️ [OTP] Delivery address has no phone number for booking ${booking.booking_ref}`);
@@ -415,7 +418,7 @@ class BookingService {
         message: "OTP has been sent to the recipient. Please collect it from them.",
       };
 
-      const senderRoom    = `user_${senderId}`;
+      const senderRoom = `user_${senderId}`;
       const travellerRoom = `user_${travellerId}`;
 
       io.to(senderRoom).emit("delivery_otp_generated", eventData);
@@ -484,38 +487,75 @@ class BookingService {
     // booking stays IN_TRANSIT and the traveller can retry — no "delivered but
     // unpaid" state is ever persisted.
     //
-    // creditWalletService accepts an externalTransaction so it participates in
     // this transaction instead of opening its own.
     const fullAmount = Number(booking.parcel?.price_quote) || 0;
     const deliveredAt = new Date();
 
-    // Calculate platform fee and partner amount
-    const { getPlatformFeePercent } = await import("../../redis/cache/platformSettingsCache.service.js");
-    const platformFeePercent = await getPlatformFeePercent();
-    const platformFee = Math.round(fullAmount * (platformFeePercent / 100));
-    const partnerAmount = fullAmount - platformFee;
+    let partnerAmount = 0;
 
     await sequelize.transaction(async (t) => {
-      // 1. Mark booking as DELIVERED
+
       await booking.update(
         {
           status: "DELIVERED",
-          delivery_otp: null,       // clear OTP for security
+          delivery_otp: null,
           delivered_at: deliveredAt,
           delivery_otp_attempts: 0,
         },
         { transaction: t }
       );
 
-      // 2. Credit traveller wallet with partner amount (after platform fee deduction)
-      if (partnerAmount > 0 && booking.traveller_id) {
+      const payment = await Payment.findOne({
+        where: {
+          booking_id: booking.id,
+          status: PAYMENT_STATUS.SUCCESS,
+        },
+        transaction: t,
+      });
+
+      if (!payment) {
+        throw new Error("Payment not found");
+      }
+
+      if (!payment.wallet_credit_released) {
+        const platformFeePercent = await getOrCache(
+          "platform_settings:platform_fee_percent",
+          async () => {
+            const feeResult = await sequelize.query(
+              `SELECT value FROM platform_settings WHERE key = 'platform_fee_percent'`,
+              { type: sequelize.QueryTypes.SELECT }
+            );
+            return parseFloat(feeResult[0]?.value || 10);
+          },
+          300
+        );
+
+        const fullAmount = Number(booking.parcel?.price_quote || payment.amount || 0);
+
+        const platformFee = Math.round(
+          fullAmount * (platformFeePercent / 100)
+        );
+
+        const partnerAmount = fullAmount - platformFee;
+
         await creditWalletService(
-          booking.traveller_id,
+          travellerId,
           partnerAmount,
           `Delivery payment for booking ${booking.booking_ref} (Amount: ₹${fullAmount}, Platform fee: ₹${platformFee})`,
-          t  // pass the external transaction — wallet service will NOT commit/rollback
+          t,
+          payment.id
+        );
+
+        await payment.update(
+          {
+            wallet_credit_released: true,
+            released_at: new Date(),
+            wallet_txn_id: payment.id,
+          },
+          { transaction: t }
         );
       }
+
     });
 
     // ── Post-transaction side-effects (non-fatal) ─────────────────────────
@@ -555,20 +595,20 @@ class BookingService {
     // Persist notifications
     const io2 = this.getIO();
     await createNotification(io2, {
-      user_id:   booking.parcel.user_id,
-      role:      "user",
+      user_id: booking.parcel.user_id,
+      role: "user",
       type_code: "parcel_delivered",
-      title:     "Parcel Delivered Successfully",
-      message:   `Your parcel has been delivered successfully. Booking ref: ${booking.booking_ref}`,
-      meta:      { booking_id: booking.id, booking_ref: booking.booking_ref },
+      title: "Parcel Delivered Successfully",
+      message: `Your parcel has been delivered successfully. Booking ref: ${booking.booking_ref}`,
+      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
     });
     await createNotification(io2, {
-      user_id:   travellerId,
-      role:      "traveller",
+      user_id: travellerId,
+      role: "traveller",
       type_code: "delivery_completed",
-      title:     "Delivery Completed",
-      message:   `You successfully delivered parcel ${booking.booking_ref}. ₹${partnerAmount} has been credited to your wallet.`,
-      meta:      { booking_id: booking.id, booking_ref: booking.booking_ref, amount_credited: partnerAmount },
+      title: "Delivery Completed",
+      message: `You successfully delivered parcel ${booking.booking_ref}. ₹${partnerAmount} has been credited to your wallet.`,
+      meta: { booking_id: booking.id, booking_ref: booking.booking_ref, amount: partnerAmount },
     });
 
     console.log(`✅ [Delivery] Booking ${booking.booking_ref} marked DELIVERED. ₹${partnerAmount} credited to traveller ${travellerId}.`);
@@ -584,7 +624,7 @@ class BookingService {
   // Traveller cancels booking
   async cancelBooking(bookingId, travellerId, cancellationData = {}) {
     const { reason = "other", details = "" } = cancellationData;
-    
+
     const booking = await this.getBookingWithDetails(bookingId);
 
     if (!booking) {
@@ -609,12 +649,12 @@ class BookingService {
     });
 
     auditLog({
-      action:       "BOOKING_CANCELLED",
-      actorId:      travellerId,
-      actorRole:    "traveller",
+      action: "BOOKING_CANCELLED",
+      actorId: travellerId,
+      actorRole: "traveller",
       resourceType: "booking",
-      resourceId:   booking.id,
-      meta:         { parcel_id: booking.parcel_id, reason, booking_ref: booking.booking_ref },
+      resourceId: booking.id,
+      meta: { parcel_id: booking.parcel_id, reason, booking_ref: booking.booking_ref },
     });
 
     // Restore route capacity when booking is cancelled
@@ -667,7 +707,7 @@ class BookingService {
         cancelled_at: new Date(),
       };
 
-      const senderRoom    = `user_${senderId}`;
+      const senderRoom = `user_${senderId}`;
       const travellerRoom = `user_${travellerId}`;
 
       io.to(senderRoom).emit("booking_cancelled", eventData);
@@ -677,12 +717,12 @@ class BookingService {
     // ── Persist notifications ──────────────────────────────────────────────
     const io2 = this.getIO();
     await createNotification(io2, {
-      user_id:   booking.parcel.user_id,
-      role:      "user",
+      user_id: booking.parcel.user_id,
+      role: "user",
       type_code: "booking_cancelled",
-      title:     "Booking Cancelled",
-      message:   `Your booking ${booking.booking_ref} has been cancelled by the traveller.`,
-      meta:      { booking_id: booking.id, booking_ref: booking.booking_ref, reason },
+      title: "Booking Cancelled",
+      message: `Your booking ${booking.booking_ref} has been cancelled by the traveller.`,
+      meta: { booking_id: booking.id, booking_ref: booking.booking_ref, reason },
     });
 
     return {

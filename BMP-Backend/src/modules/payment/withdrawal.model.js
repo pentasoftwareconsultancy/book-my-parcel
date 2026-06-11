@@ -25,6 +25,12 @@ const Withdrawal = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    beneficiary_id: {
+      type: DataTypes.STRING,
+    },
+    cashfree_transfer_id: {
+      type: DataTypes.STRING,
+    },
     bank_name: {
       type: DataTypes.STRING,
       allowNull: false,

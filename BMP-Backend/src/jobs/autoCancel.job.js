@@ -11,10 +11,55 @@ import { Op } from "sequelize";
 import sequelize from "../config/database.config.js";
 import ParcelRequest from "../modules/matching/parcelRequest.model.js";
 import Parcel from "../modules/parcel/parcel.model.js";
+import TravellerRoute from "../modules/traveller/travellerRoute.model.js";
+import { invalidateActiveRoutesCache } from "../redis/cache/activeRoutesCache.service.js";
+import { parseArrivalDateTime } from "../utils/routeExpiry.util.js";
 
 export async function expireRequestsWithExpiredRoutes() {
-  console.log("[AutoCancel] Route-departure expiry disabled for testing — skipping route-based request expiration");
-  return 0;
+  const now = new Date();
+
+  // Mark active routes as completed once their arrival datetime has passed.
+  const expiredRouteIds = [];
+  const activeRoutes = await TravellerRoute.findAll({
+    where: { status: "ACTIVE" },
+    attributes: ["id", "arrival_date", "arrival_time"],
+  });
+
+  for (const route of activeRoutes) {
+    const arrivalDateTime = parseArrivalDateTime(route);
+    if (arrivalDateTime && arrivalDateTime.getTime() < now.getTime()) {
+      expiredRouteIds.push(route.id);
+    }
+  }
+
+  let updatedRoutesCount = 0;
+  if (expiredRouteIds.length > 0) {
+    const [count] = await TravellerRoute.update(
+      { status: "COMPLETED" },
+      { where: { id: { [Op.in]: expiredRouteIds }, status: "ACTIVE" } }
+    );
+
+    updatedRoutesCount = count;
+    await invalidateActiveRoutesCache();
+    console.log(`[AutoCancel] Marked ${updatedRoutesCount} active route(s) as COMPLETED due to expired arrival datetime`);
+  }
+
+  // Expire parcel requests attached to routes that are now expired.
+  const [expiredRequestsCount] = await ParcelRequest.update(
+    { status: "EXPIRED" },
+    {
+      where: {
+        route_id: { [Op.in]: expiredRouteIds },
+        status: { [Op.in]: ["SENT", "INTERESTED"] },
+      },
+    }
+  );
+
+  if (expiredRequestsCount > 0) {
+    console.log(`[AutoCancel] Expired ${expiredRequestsCount} parcel request(s) attached to expired routes`);
+  }
+
+  return updatedRoutesCount;
 }
 
 /**

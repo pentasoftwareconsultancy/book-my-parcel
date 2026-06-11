@@ -6,7 +6,7 @@ import { verifyBankAccount, addBankRecipient } from "./bank.controller.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { requireAdmin } from "../../middlewares/role.middleware.js";
 import { sensitiveLimiter } from "../../middlewares/rateLimit.middleware.js";
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "./travellerKyc.model.js";
 
 const router = express.Router();
 

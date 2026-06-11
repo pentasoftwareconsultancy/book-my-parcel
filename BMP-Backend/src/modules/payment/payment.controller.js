@@ -13,25 +13,22 @@ export const createOrder = async (req, res) => {
       return responseError(res, "parcel_id is required", 400);
     }
 
-    // SECURITY: amount is no longer accepted from the client.
-    // It is always read from parcel.price_quote on the server side.
-    // requestingUserId is taken from the verified JWT via authMiddleware.
     const order = await createOrderService(parcel_id, req.user.id);
+
+    console.log("FINAL RESPONSE:", JSON.stringify(order, null, 2));
 
     return responseSuccess(res, {
       order: {
-        id:         order.id,
-        amount:     order.amount,
-        currency:   order.currency,
-        receipt:    order.receipt,
-        created_at: order.created_at,
-      },
-      key: process.env.RAZORPAY_KEY_ID,
+        id: order.order_id,
+        payment_session_id: order.payment_session_id, // ✅ THIS is now correct
+        amount: order.amount,
+        currency: order.currency,
+      }
     }, "Order created successfully");
 
   } catch (error) {
-    const status = error.statusCode || 500;
-    return responseError(res, error.message || "Order creation failed", status);
+    console.error(error);
+    return responseError(res, error.message || "Order creation failed", 500);
   }
 };
 
@@ -39,14 +36,16 @@ export const createOrder = async (req, res) => {
 export const verifyPayment = async (req, res) => {
   try {
     const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
+      order_id,
       parcel_id,
     } = req.body;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !parcel_id) {
-      return responseError(res, "Missing required payment verification fields", 400);
+    if (!order_id || !parcel_id) {
+      return responseError(
+        res,
+        "Missing required payment verification fields",
+        400
+      );
     }
 
     const result = await verifyPaymentService(req.body, req);
