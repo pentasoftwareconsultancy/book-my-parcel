@@ -14,7 +14,7 @@ const CONFIGS = {
   },
   traveler: {
     bg: "linear-gradient(105deg, #1F2AFF 0%, #3f7de1 50%, #3393c0 100%)",
-    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-benefits","Traveler Benefits"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],],
+    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],],
     supportTitle: "Support and help",
     supportLinks: [["/traveler-guidelines","Traveler Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
     
@@ -46,17 +46,7 @@ const SharedFooter = ({ type }) => {
           <div>
             <h4 className="text-base font-bold mb-5">{supportTitle}</h4>
             <ul className="list-none p-0 m-0 space-y-2 mb-6">{supportLinks.map(([to, label]) => <li key={label}>{lnk(to, label)}</li>)}</ul>
-            {badge && (
-              <div style={{ border: "2px solid #1cff8a", borderRadius: "10px", padding: "10px 16px", display: "inline-flex", alignItems: "center", gap: "12px", cursor: "pointer" }}>
-                <div style={{ width: "36px", height: "36px", background: "#1cff8a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <FaCommentDots size={16} color="#fff" />
-                </div>
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: "bold" }}>24/7 Support</div>
-                  <div style={{ fontSize: "11px", opacity: 0.85 }}>We're here to help</div>
-                </div>
-              </div>
-            )}
+     
           </div>
 
           {/* Contact */}
@@ -76,16 +66,6 @@ const SharedFooter = ({ type }) => {
                   </div>
                 </div>
               ))}
-              {stats && (
-                <div className="flex gap-3">
-                  {[["50K+", "Active Partners"], ["1M+", "Deliveries Done"]].map(([val, lbl]) => (
-                    <div key={lbl} className="flex-1 text-center py-3 px-4" style={{ background: "rgba(255,255,255,0.15)", borderRadius: "10px" }}>
-                      <div className="font-bold text-lg">{val}</div>
-                      <div className="text-xs opacity-85">{lbl}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 
@@ -157,13 +137,6 @@ const SharedFooter = ({ type }) => {
         </div>
 
         {/* VERIFIED BAR — traveler only */}
-        {verified && (
-          <div className="mt-2 py-2 px-3 flex justify-center items-center gap-2 text-xs" style={{ background: "rgba(255,255,255,0.12)", borderRadius: "30px" }}>
-            <FaCheckCircle size={14} aria-hidden="true" />
-            <span>Verified &amp; Secure Partner Portal</span>
-            <span style={{ opacity: 0.8, fontSize: "12px" }}>● SSL Encrypted</span>
-          </div>
-        )}
 
       </div>
     </footer>
