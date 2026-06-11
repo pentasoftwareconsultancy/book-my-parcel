@@ -20,6 +20,7 @@
   "license": "ISC",
   "description": "Book My Parcel — Backend API",
   "dependencies": {
+    "@cashfreepayments/cashfree-js": "^1.0.7",
     "@mapbox/polyline": "^1.2.1",
     "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.13.6",
