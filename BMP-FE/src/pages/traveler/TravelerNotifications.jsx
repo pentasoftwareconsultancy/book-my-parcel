@@ -5,7 +5,7 @@ import {
   FiPackage, FiDollarSign, FiClock,
 } from "react-icons/fi";
 import { CiUnread } from "react-icons/ci";
-import { RiDeleteBin6Line } from "react-icons/ri";
+// import { RiDeleteBin6Line } from "react-icons/ri";
 import { MdNotificationsNone } from "react-icons/md";
 import { useNotifications } from "../../core/hooks/useNotification";
 import { notificationConfig } from "../../core/constants/Notification.constants";

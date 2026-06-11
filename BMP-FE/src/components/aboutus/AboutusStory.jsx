@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from "framer-motion";
-import parcel from "../../assets/homeimage/aboutparcel.jpg";
+import story from "../../assets/homeimage/aboutstory.jpg";
 
 function AboutusStory() {
   return (
@@ -17,7 +17,7 @@ function AboutusStory() {
               className="relative"
             >
               <img
-                src={parcel}
+                src={story}
                 alt="Our Story"
                 className="w-[600px] h-[500px] rounded-3xl shadow-2xl object-cover"
               />
