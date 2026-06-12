@@ -34,7 +34,7 @@ const testimonials = [
     highlight: "Reduced delivery costs!"
   },
   {
-    name: "Komal kadam",
+    name: "Komal Kadam",
     role: "Frequent User",
     image: komal,
     rating: 4,
@@ -42,7 +42,7 @@ const testimonials = [
     highlight: "Reduced delivery costs!"
   },
   {
-    name: "Ajinkya Sasane ",
+    name: "Ajinkya Sasne ",
     role: "Startup Founder",
     image: ajinkya,
     rating: 5,
@@ -50,7 +50,7 @@ const testimonials = [
     highlight: "Easy and reliable platform!"
   },
   {
-    name: "Saideep gopale",
+    name: "Saideep Gopale",
     role: "Student",
     image: saideep,
     rating: 5,
