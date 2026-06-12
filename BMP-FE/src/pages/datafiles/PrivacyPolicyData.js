@@ -298,7 +298,7 @@ export const companyPrivacyPolicyData = {
       iconClass: "text-cyan-600",
       title: "11. Legal Compliance",
       text:
-        "We may disclose personal information where required by applicable law, regulation, court order, or governmental authority, or where necessary to protect our legal rights, users, or the public.",
+        "We may disclose your personal information if required by applicable law, regulation, court order, or an Indian governmental authority, or if necessary to protect our legal rights, our users, or the public.",
     },
 
     {
