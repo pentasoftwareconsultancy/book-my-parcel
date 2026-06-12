@@ -6,55 +6,137 @@ const TravellerKyc = sequelize.define(
   {
     id: {
       type: DataTypes.UUID,
-      primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
     },
+
     user_id: {
       type: DataTypes.UUID,
       allowNull: false,
     },
+
+    first_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    last_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    dob: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    address: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    aadhar_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
     pan_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    aadhaar_number: {
+
+    driving_number: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    driving_license: {
+
+    aadhar_front: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    bank_account_number: {
+
+    aadhar_back: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    bank_ifsc: {
+
+    pan_front: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+    pan_back: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    driving_photo: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    selfie: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    account_number: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    account_holder: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    ifsc: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    bank_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    bank_verified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+
     status: {
-      type: DataTypes.ENUM('NOT_STARTED', 'PENDING', 'APPROVED', 'REJECTED'),
-      defaultValue: 'NOT_STARTED',
-    },
-    verified_by: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
-    verification_notes: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+      type: DataTypes.STRING(50),
+      defaultValue: "NOT_STARTED",
     },
   },
   {
     timestamps: true,
-    underscored: true, // Uses created_at, updated_at
+    underscored: true,
     indexes: [
-      { name: "idx_traveller_kyc_status", fields: ["status"] },
       { name: "idx_traveller_kyc_user_id", fields: ["user_id"] },
+      { name: "idx_traveller_kyc_status", fields: ["status"] },
       { name: "idx_traveller_kyc_created_at", fields: ["created_at"] },
     ],
-  },
+  }
 );
+
+// Mask Aadhaar (show only last 4) and PAN (show only last 4) before persisting
+function maskSensitiveFields(instance) {
+  if (instance.aadhar_number && instance.aadhar_number.length === 12 && !instance.aadhar_number.includes("X")) {
+    instance.aadhar_number = "X".repeat(8) + instance.aadhar_number.slice(-4);
+  }
+  if (instance.pan_number && instance.pan_number.length === 10 && !instance.pan_number.includes("X")) {
+    instance.pan_number = "X".repeat(6) + instance.pan_number.slice(-4);
+  }
+}
+
+TravellerKyc.addHook("beforeCreate", maskSensitiveFields);
+TravellerKyc.addHook("beforeUpdate", maskSensitiveFields);
 
 export default TravellerKyc;

@@ -1,6 +1,6 @@
 import sequelize from "../../config/database.config.js";
 import Withdrawal from "./withdrawal.model.js";
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import { debitWalletService, getWalletBalanceService } from "./wallet.service.js";
 import { createBeneficiary } from "../../services/cashfreePayout.service.js";
 import { transferToBank } from "../../services/cashfreePayout.service.js";
