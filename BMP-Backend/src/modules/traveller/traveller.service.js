@@ -1,7 +1,9 @@
 
 import { Op } from "sequelize";
-import TravellerKYC from "./travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import TravellerRoute from "./travellerRoute.model.js";
+import TravellerProfile from "./travellerProfile.model.js";
+import TravellerTrip from "./travellerTrip.model.js";
 import User from "../user/user.model.js";
 import UserProfile from "../user/userProfile.model.js";
 import Booking from "../booking/booking.model.js";
