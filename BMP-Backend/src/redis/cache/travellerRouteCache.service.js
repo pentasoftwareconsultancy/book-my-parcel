@@ -51,8 +51,8 @@ export async function cacheRoute(routeId, routeData) {
     const key = getRouteCacheKey(routeId);
     await redis.set(key, JSON.stringify(routeData), "EX", CACHE_TTL_SECONDS);
     
-    // Add to active routes set if status is active
-    if (routeData.status === "active") {
+    // Add to active routes set if status is ACTIVE
+    if ((routeData.status || "").toString().toUpperCase() === "ACTIVE") {
       await redis.sadd(getActiveRoutesKey(), routeId);
       await redis.expire(getActiveRoutesKey(), CACHE_TTL_SECONDS);
       
@@ -188,7 +188,7 @@ export async function getActiveRoutes() {
       `SELECT tr.*, tp.user_id as traveller_user_id
        FROM traveller_routes tr
        LEFT JOIN traveller_profiles tp ON tr.traveller_id = tp.id
-       WHERE tr.status = 'active'
+       WHERE tr.status = 'ACTIVE'
        ORDER BY tr.created_at DESC`,
       { type: sequelize.QueryTypes.SELECT }
     );

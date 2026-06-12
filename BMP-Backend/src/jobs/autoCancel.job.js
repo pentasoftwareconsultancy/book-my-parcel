@@ -11,10 +11,71 @@ import { Op } from "sequelize";
 import sequelize from "../config/database.config.js";
 import ParcelRequest from "../modules/matching/parcelRequest.model.js";
 import Parcel from "../modules/parcel/parcel.model.js";
+import TravellerRoute from "../modules/traveller/travellerRoute.model.js";
+import { invalidateRouteCache } from "../redis/cache/travellerRouteCache.service.js";
+
+function buildIsoDateTime(date, time) {
+  if (!date || !time) return null;
+  const normalizedTime = time.length === 5 ? `${time}:00` : time;
+  return new Date(`${date}T${normalizedTime}`);
+}
+
+function isRouteExpired(route) {
+  if (!route || route.status !== "ACTIVE" || route.is_recurring) return false;
+
+  const arrivalDateTime = buildIsoDateTime(route.arrival_date, route.arrival_time);
+  if (arrivalDateTime) {
+    return new Date() > arrivalDateTime;
+  }
+
+  const departureDateTime = buildIsoDateTime(route.departure_date, route.departure_time);
+  return departureDateTime ? new Date() > departureDateTime : false;
+}
 
 export async function expireRequestsWithExpiredRoutes() {
-  console.log("[AutoCancel] Route-departure expiry disabled for testing — skipping route-based request expiration");
-  return 0;
+  const routes = await TravellerRoute.findAll({
+    where: {
+      status: "ACTIVE",
+      is_recurring: false,
+    },
+    attributes: [
+      "id",
+      "traveller_profile_id",
+      "departure_date",
+      "departure_time",
+      "arrival_date",
+      "arrival_time",
+      "status",
+      "is_recurring",
+    ],
+  });
+
+  const expiredRoutes = routes.filter(isRouteExpired);
+
+  if (expiredRoutes.length === 0) {
+    console.log("[AutoCancel] No expired routes found");
+    return 0;
+  }
+
+  const updatePromises = expiredRoutes.map(async (route) => {
+    try {
+      await route.update({ status: "COMPLETED" });
+      await invalidateRouteCache(route.id, route.traveller_profile_id);
+      return route.id;
+    } catch (error) {
+      console.warn(`[AutoCancel] Failed to expire route ${route.id}:`, error.message);
+      return null;
+    }
+  });
+
+  const updated = await Promise.all(updatePromises);
+  const successful = updated.filter(Boolean);
+
+  if (successful.length > 0) {
+    console.log(`[AutoCancel] Marked ${successful.length} expired route(s) as COMPLETED: ${successful.join(", ")}`);
+  }
+
+  return successful.length;
 }
 
 /**

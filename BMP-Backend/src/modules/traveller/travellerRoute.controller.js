@@ -8,6 +8,8 @@ import {
 import { responseSuccess, responseError } from "../../utils/response.util.js";
 import { enqueueAsyncTask } from "../../jobs/asyncTasks.queue.js";
 import { to12h } from "../../utils/time.util.js";
+import { searchTravellerRoutes } from "./travellerRoute.service.js";
+
 
 // Create a new traveller route
 export async function createRoute(req, res) {
@@ -135,5 +137,47 @@ export async function deleteRoute(req, res) {
     console.error("[TravellerRoute] Delete route error:", error);
     const status = error.message.includes("not found") || error.message.includes("unauthorized") ? 404 : 500;
     return responseError(res, error.message, status);
+  }
+}
+
+
+
+export async function searchRoutes(req, res) {
+  try {
+    const {
+      origin_lat,
+      origin_lng,
+      destination_lat,
+      destination_lng,
+    } = req.query;
+
+    if (
+      !origin_lat ||
+      !origin_lng ||
+      !destination_lat ||
+      !destination_lng
+    ) {
+      return responseError(
+        res,
+        "Origin and destination coordinates are required",
+        400
+      );
+    }
+
+    const routes = await searchTravellerRoutes(
+      Number(origin_lat),
+      Number(origin_lng),
+      Number(destination_lat),
+      Number(destination_lng)
+    );
+
+    return responseSuccess(
+      res,
+      routes,
+      "Matching travellers retrieved successfully"
+    );
+  } catch (error) {
+    console.error("[SearchRoutes] error:", error);
+    return responseError(res, "Failed to search routes", 500);
   }
 }
