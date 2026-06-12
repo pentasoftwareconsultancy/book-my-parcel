@@ -93,8 +93,7 @@ class ServerUrl {
   static API_TRAVELER_DASHBOARD_REQUESTS = ServerUrl.API_MODULE_TRAVELER + "/dashboard/requests";
   static API_TRAVELER_DASHBOARD_PENDING_PAYMENTS = ServerUrl.API_MODULE_TRAVELER + "/dashboard/pending-payments";
   static API_TRAVELER_ROUTES = ServerUrl.API_MODULE_TRAVELER + "/routes";
-  static API_TRAVELER_ROUTE_SEARCH =
-  ServerUrl.API_MODULE_TRAVELER + "/routes/search";
+  static API_TRAVELER_ROUTE_SEARCH =ServerUrl.API_MODULE_TRAVELER + "/routes/search";
   static API_TRAVELER_ROUTE_BY_ID = (id) => `${ServerUrl.API_MODULE_TRAVELER}/routes/${id}`;
 
   static API_TRAVELER_KYC = ServerUrl.API_MODULE_TRAVELER + "/kyc";

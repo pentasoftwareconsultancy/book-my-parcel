@@ -103,10 +103,10 @@ export default function TravellerSearchPage() {
             console.error("Route search error:", err);
 
             setRoutes([]);
-            
+
             // Provide more specific error messages
             let errorMessage = "Server error. Please try again.";
-            
+
             if (err.response?.status === 400) {
                 errorMessage = "Invalid location coordinates. Please try different locations.";
             } else if (err.response?.status === 404) {
@@ -116,7 +116,7 @@ export default function TravellerSearchPage() {
             } else if (err.message) {
                 errorMessage = err.message;
             }
-            
+
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -127,14 +127,21 @@ export default function TravellerSearchPage() {
             <div className="h-18" />
             <div className="max-w-5xl mx-auto px-4 py-8">
                 <div className="flex items-center gap-4 mb-6">
-                    <button
-                        onClick={() => navigate(RoutePath.PUBLIC_HOME)}
-                        className="text-sm text-gray-600 hover:text-gray-900 font-medium px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                        ← Back to Home
-                    </button>
+                   <button
+  onClick={() => navigate(RoutePath.PUBLIC_HOME)}
+  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
+             bg-gradient-to-r from-blue-600 to-indigo-600
+             text-white text-sm font-semibold
+             shadow-md hover:shadow-lg
+             hover:from-blue-700 hover:to-indigo-700
+             transform hover:-translate-y-0.5 hover:scale-105
+             transition-all duration-300 ease-in-out"
+>
+  <span className="text-base">←</span>
+  Back to Home
+</button>
                 </div>
-                
+
                 <h1 className="text-xl font-bold mb-1">Find Travellers</h1>
                 <p className="text-gray-500 mb-6 text-sm">
                     Search for verified travellers on your route and get your parcels delivered
