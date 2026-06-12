@@ -814,9 +814,28 @@ export async function deleteTravellerRoute(routeId, userId) {
   // Invalidate route cache
   await invalidateRouteCache(routeId, travellerProfile.id);
 
+
   return { message: "Route deleted successfully" };
 }
 
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
 
 export async function searchTravellerRoutes(
   originLat,
@@ -850,7 +869,13 @@ export async function searchTravellerRoutes(
   );
 
   return refreshedRoutes.filter((route) => {
+  try {
+    console.log("Route ID:", route.id);
+
     if (route.status !== "ACTIVE") return false;
+
+    console.log("Origin Address:", route.originAddress);
+    console.log("Dest Address:", route.destAddress);
 
     const routeOriginLat = Number(route.originAddress?.latitude);
     const routeOriginLng = Number(route.originAddress?.longitude);
@@ -858,11 +883,18 @@ export async function searchTravellerRoutes(
     const routeDestLat = Number(route.destAddress?.latitude);
     const routeDestLng = Number(route.destAddress?.longitude);
 
+    console.log({
+      routeOriginLat,
+      routeOriginLng,
+      routeDestLat,
+      routeDestLng,
+    });
+
     if (
-      !routeOriginLat ||
-      !routeOriginLng ||
-      !routeDestLat ||
-      !routeDestLng
+      Number.isNaN(routeOriginLat) ||
+      Number.isNaN(routeOriginLng) ||
+      Number.isNaN(routeDestLat) ||
+      Number.isNaN(routeDestLng)
     ) {
       return false;
     }
@@ -881,6 +913,15 @@ export async function searchTravellerRoutes(
       routeDestLng
     );
 
+    console.log({
+      originDistance,
+      destinationDistance,
+    });
+
     return originDistance <= 3 && destinationDistance <= 3;
-  });
+  } catch (err) {
+    console.error("FILTER ERROR:", err);
+    throw err;
+  }
+});
 }
