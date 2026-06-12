@@ -31,23 +31,57 @@ export default function TravellerSearchPage() {
         console.log("Destination Selected:", destination);
 
         try {
-            const getCity = (address) => {
-                const parts = address.split(",");
+            // First, geocode the addresses to get coordinates
+            const [originGeocode, destinationGeocode] = await Promise.all([
+                ApiService.geocodeAddress(origin),
+                ApiService.geocodeAddress(destination)
+            ]);
 
-                return parts[parts.length - 3]?.trim() || address;
-            };
+            console.log("Origin Geocode:", originGeocode);
+            console.log("Destination Geocode:", destinationGeocode);
 
-            const originCity = getCity(origin);
-            const destinationCity = getCity(destination);
+            // Debug the actual structure
+            console.log("Origin data structure:", {
+                data: originGeocode.data,
+                lat: originGeocode.data?.data?.lat,
+                lng: originGeocode.data?.data?.lng,
+                fullStructure: JSON.stringify(originGeocode.data, null, 2)
+            });
 
-            console.log("Origin City:", originCity);
-            console.log("Destination City:", destinationCity);
+            // Extract coordinates from Google Maps API response format
+            const originResult = originGeocode.data?.results?.[0];
+            const destResult = destinationGeocode.data?.results?.[0];
 
+            const originLat = originResult?.geometry?.location?.lat;
+            const originLng = originResult?.geometry?.location?.lng;
+            const destLat = destResult?.geometry?.location?.lat;
+            const destLng = destResult?.geometry?.location?.lng;
+
+            console.log("Extracted coordinates:", {
+                origin: { lat: originLat, lng: originLng },
+                destination: { lat: destLat, lng: destLng }
+            });
+
+            if (!originLat || !originLng) {
+                console.error("Missing origin coordinates:", { originLat, originLng, originResult });
+                setError("Could not find coordinates for origin location");
+                return;
+            }
+
+            if (!destLat || !destLng) {
+                console.error("Missing destination coordinates:", { destLat, destLng, destResult });
+                setError("Could not find coordinates for destination location");
+                return;
+            }
+
+            // Now search for routes using coordinates
             const response = await ApiService.apiget(
                 ServerUrl.API_TRAVELER_ROUTE_SEARCH,
                 {
-                    origin: originCity,
-                    destination: destinationCity,
+                    origin_lat: originLat,
+                    origin_lng: originLng,
+                    destination_lat: destLat,
+                    destination_lng: destLng,
                 }
             );
 
@@ -69,11 +103,21 @@ export default function TravellerSearchPage() {
             console.error("Route search error:", err);
 
             setRoutes([]);
-            setError(
-                err.response?.data?.message ||
-                err.message ||
-                "Server error. Please try again."
-            );
+            
+            // Provide more specific error messages
+            let errorMessage = "Server error. Please try again.";
+            
+            if (err.response?.status === 400) {
+                errorMessage = "Invalid location coordinates. Please try different locations.";
+            } else if (err.response?.status === 404) {
+                errorMessage = "No routes found for the selected locations.";
+            } else if (err.response?.data?.message) {
+                errorMessage = err.response.data.message;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -129,7 +173,7 @@ export default function TravellerSearchPage() {
                         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                         <FiSearch className="text-sm" />
-                        {loading ? "Searching..." : "Search Travellers"}
+                        {loading ? "Finding routes..." : "Search Travellers"}
                     </button>
 
                     {error && (
