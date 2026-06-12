@@ -60,10 +60,25 @@ const Navbar = () => {
 
   const handleDashboardRedirect = () => {
     const activeRole = user?.activeRole;
-    if (activeRole === "TRAVELLER") navigate(RoutePath.TRAVELER_DASHBOARD);
-    else if (activeRole === "INDIVIDUAL") navigate(RoutePath.USER_ALL_ORDERS);
-    else if (activeRole === "ADMIN") navigate(RoutePath.ADMIN_BASE);
-    else navigate(RoutePath.PUBLIC_HOME);
+
+    switch (activeRole) {
+      case "TRAVELLER":
+        navigate(RoutePath.TRAVELER_DASHBOARD);
+        break;
+
+      case "INDIVIDUAL":
+        navigate(RoutePath.USER_ALL_ORDERS);
+        break;
+
+      case "ADMIN":
+        navigate(RoutePath.ADMIN_BASE);
+        break;
+
+      default:
+        navigate(RoutePath.PUBLIC_HOME);
+        break;
+    }
+
     setOpen(false);
   };
 
@@ -310,7 +325,17 @@ const Navbar = () => {
 
             {/* ── LEFT ── */}
             <div style={{ display: "flex", alignItems: "center", gap: 20, minWidth: 0 }}>
-              <Link to={RoutePath.PUBLIC_HOME} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+              <Link to={
+                          !isAuthenticated
+                            ? RoutePath.PUBLIC_HOME
+                            : user?.activeRole === "TRAVELLER"
+                              ? RoutePath.TRAVELER_DASHBOARD
+                              : user?.activeRole === "INDIVIDUAL"
+                                ? RoutePath.PUBLIC_HOME
+                                : user?.activeRole === "ADMIN"
+                                  ? RoutePath.ADMIN_BASE
+                                  : RoutePath.PUBLIC_HOME
+                        } style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
                 <img src={logo1} alt="Book My Parcel" className={isAuthenticated ? "bmp-logo-auth" : "bmp-logo"} style={{ display: "block" }} />
               </Link>
 
