@@ -1,27 +1,46 @@
 import axios from "axios";
 
-const BASE_URL =
-  process.env.CASHFREE_ENV === "sandbox"
-    ? "https://sandbox.cashfree.com/payout"
-    : "https://api.cashfree.com/payout"; // ✅ FIX: production fallback
+const getCashfreeBaseUrl = () =>
+  process.env.CASHFREE_ENV === "production"
+    ? "https://api.cashfree.com/payout"
+    : "https://sandbox.cashfree.com/payout";
 
-const headers = {
-  "X-Client-Id": process.env.CASHFREE_P_SECRET_ID.trim(),
-  "X-Client-Secret": process.env.CASHFREE_P_SECRET_KEY.trim(),
-  "X-Api-Version": "2024-01-01",
-  "Content-Type": "application/json",
+const getCashfreeHeaders = () => {
+  const clientId = process.env.CASHFREE_P_SECRET_ID?.trim();
+  const clientSecret = process.env.CASHFREE_P_SECRET_KEY?.trim();
+  const missingKeys = [];
+
+  if (!clientId) missingKeys.push("CASHFREE_P_SECRET_ID");
+  if (!clientSecret) missingKeys.push("CASHFREE_P_SECRET_KEY");
+
+  if (missingKeys.length > 0) {
+    throw new Error(
+      `Missing required Cashfree payout environment variable(s): ${missingKeys.join(", ")}. ` +
+        "Add them to .env or set them in the runtime environment."
+    );
+  }
+
+  return {
+    "X-Client-Id": clientId,
+    "X-Client-Secret": clientSecret,
+    "X-Api-Version": "2024-01-01",
+    "Content-Type": "application/json",
+  };
 };
 
-console.log("Cashfree Env:", process.env.CASHFREE_ENV);
-console.log(
-  "Client ID:",
-  `[${process.env.CASHFREE_P_SECRET_ID}]`
-);
+const logCashfreeConfig = () => {
+  console.log("Cashfree Env:", process.env.CASHFREE_ENV || "sandbox");
+  console.log(
+    "Client ID:",
+    `[${process.env.CASHFREE_P_SECRET_ID ?? "MISSING"}]`
+  );
+  console.log(
+    "Client Secret:",
+    process.env.CASHFREE_P_SECRET_KEY ? "[SET]" : "[MISSING]"
+  );
+};
 
-console.log(
-  "Client Secret:",
-  `[${process.env.CASHFREE_P_SECRET_KEY}]`
-);
+logCashfreeConfig();
 
 // ─────────────────────────────────────────────
 // CREATE BENEFICIARY
@@ -46,9 +65,9 @@ export async function createBeneficiary(kyc) {
     };
 
     const response = await axios.post(
-      `${BASE_URL}/beneficiary`,
+      `${getCashfreeBaseUrl()}/beneficiary`,
       payload,
-      { headers }
+      { headers: getCashfreeHeaders() }
     );
 
     const data = response.data;
@@ -85,9 +104,9 @@ export async function transferToBank(beneficiaryId, amount, transferId) {
     console.log("💰 Transfer Payload:", payload);
 
     const response = await axios.post(
-      `${BASE_URL}/transfers`,
+      `${getCashfreeBaseUrl()}/transfers`,
       payload,
-      { headers }
+      { headers: getCashfreeHeaders() }
     );
 
     console.log("🟢 Cashfree Transfer Response:", response.data);

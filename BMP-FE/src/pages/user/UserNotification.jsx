@@ -6,7 +6,7 @@ import {
 } from "react-icons/fi";
 import { IoGiftOutline } from "react-icons/io5";
 import { CiUnread } from "react-icons/ci";
-import { RiDeleteBin6Line } from "react-icons/ri";
+// import { RiDeleteBin6Line } from "react-icons/ri";
 import { MdNotificationsNone } from "react-icons/md";
 
 import { useNotifications } from "../../core/hooks/useNotification";

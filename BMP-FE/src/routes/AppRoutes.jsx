@@ -4,6 +4,7 @@ import RoutePath from "../core/constants/routes.constant";
 import ProtectedRoute from "./ProtectedRoute";
 import { USER_ROLES } from "../core/constants/app.constant";
 import ErrorBoundary from "../components/common/ErrorBoundary";
+import TravellerSearchPage from "../pages/user/TravellerSearchPage";
 
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 const PublicLayout   = lazy(() => import('../layouts/PublicLayout'));
@@ -162,6 +163,7 @@ const AppRoutes = () => {
             <Route path={RoutePath.USER_BOOKING_CANCLE}        element={<S><BookingCancel /></S>} />
             <Route path={RoutePath.USER_DISPUTE}               element={<S><DisputePage /></S>} />
             <Route path={RoutePath.USER_FEEDBACK}              element={<S><FeedbackPage /></S>} />
+            <Route path={RoutePath.USER_TRAVELLER_SEARCH}      element={<S><TravellerSearchPage /></S>} />
           </Route>
         </Route>
 

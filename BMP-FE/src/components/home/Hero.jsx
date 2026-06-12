@@ -142,23 +142,41 @@ const isLoggedIn = !!(token && user);
             parcel delivery.
           </p>
 
-          <div className="mt-3 flex flex-row gap-3 justify-center lg:justify-start">
-            <button onClick={handleSendParcel}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
-                hover:bg-primary transform hover:scale-105 transition-all duration-300
-                shadow-lg hover:shadow-xl">
-              <FiPackage className="text-base" /> Send Parcel
-            </button>
-            <button onClick={handleTrackDelivery}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                bg-white text-blue-600 border border-blue-600
-                px-6 py-3 rounded-lg text-sm font-semibold
-                hover:bg-blue-50 transform hover:scale-105 transition-all duration-200
-                shadow-lg hover:shadow-xl">
-              <FiTruck className="text-base text-blue-600" /> Track Delivery
-            </button>
-          </div>
+          <div className="mt-3 flex flex-row gap-3 justify-center lg:justify-start flex-wrap">
+  <button
+    onClick={handleSendParcel}
+    className="inline-flex items-center justify-center gap-2
+      bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
+      hover:bg-primary transform hover:scale-105 transition-all duration-300
+      shadow-lg hover:shadow-xl"
+  >
+    <FiPackage className="text-base" /> Send Parcel
+  </button>
+
+  <button
+    onClick={handleTrackDelivery}
+    className="inline-flex items-center justify-center gap-2
+      bg-white text-blue-600 border border-blue-600
+      px-4 py-2 rounded-lg text-sm font-semibold
+      hover:bg-blue-50 transform hover:scale-105 transition-all duration-200
+      shadow-lg hover:shadow-xl whitespace-nowrap"
+  >
+    <FiTruck className="text-base text-blue-600" /> Track Delivery
+  </button>
+
+  {isLoggedIn && (
+    <button
+      onClick={() => navigate(RoutePath.USER_TRAVELLER_SEARCH)}
+      className="inline-flex items-center justify-center gap-2
+        bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
+        hover:bg-primary transform hover:scale-105 transition-all duration-200
+        shadow-lg hover:shadow-xl"
+    >
+      <FiTruck className="text-base" />
+      View Travellers
+    </button>
+  )}
+</div>
 
           <div className="mt-3 grid grid-cols-2 lg:grid-cols-3 gap-2 w-full md:max-w-full mx-auto lg:mx-0 lg:max-w-md">
             {/* 30K+ Large */}

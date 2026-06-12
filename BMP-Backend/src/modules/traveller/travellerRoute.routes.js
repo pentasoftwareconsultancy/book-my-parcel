@@ -9,6 +9,7 @@ import {
   getRoute,
   updateRoute,
   deleteRoute,
+  searchRoutes,
 } from "./travellerRoute.controller.js";
 
 const router = express.Router();
@@ -108,6 +109,8 @@ const router = express.Router();
 router.use(generalLimiter);
 router.use(authMiddleware);
 
+router.get("/search", searchRoutes);
+
 // POST /api/traveller/routes - Create a new route
 router.post("/", validateRequest(createRouteSchema), createRoute);
 
@@ -122,5 +125,6 @@ router.put("/:id", updateRoute);
 
 // DELETE /api/traveller/routes/:id - Delete a route
 router.delete("/:id", deleteRoute);
+
 
 export default router;

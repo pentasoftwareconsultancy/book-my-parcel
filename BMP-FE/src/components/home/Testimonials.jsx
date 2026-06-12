@@ -1,9 +1,6 @@
-import { useEffect, useState } from "react";
-import { FaStar, FaCheck } from "react-icons/fa";
-import RoutePath from "../../core/constants/routes.constant";
-import { Link } from "react-router-dom";
-import  testimonials  from "/src/pages/datafiles/AboutTestimonials.js";
 
+import { FaStar, FaCheck } from "react-icons/fa";
+import  testimonials  from "/src/pages/datafiles/AboutTestimonials.js";
 export default function Testimonials() {
   return (
     <section className="pt-10 sm:pt-10 lg:pt-10 pb-0 bg-gradient-to-b from-white via-blue-50/30 to-[#FFFDF6]">
