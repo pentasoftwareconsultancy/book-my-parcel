@@ -75,7 +75,7 @@ export async function getKycStatus(travellerId) {
     console.log(`[KycStatusCache] Querying database for traveller ${travellerId}`);
     
     const result = await sequelize.query(
-      `SELECT kyc_status FROM traveller_kyc WHERE traveller_id = :travellerId`,
+      `SELECT status FROM traveller_kyc WHERE user_id = :travellerId`,
       { 
         replacements: { travellerId },
         type: sequelize.QueryTypes.SELECT 
@@ -84,7 +84,7 @@ export async function getKycStatus(travellerId) {
 
     if (!result || result.length === 0) return null;
 
-    const status = result[0].kyc_status;
+    const status = result[0].status;
     await cacheKycStatus(travellerId, status);
 
     return status;
@@ -104,8 +104,8 @@ export async function cacheFullKycData(travellerId, kycData) {
     await redis.set(key, JSON.stringify(kycData), "EX", CACHE_TTL_SECONDS);
     
     // Also cache status separately
-    if (kycData.kyc_status) {
-      await cacheKycStatus(travellerId, kycData.kyc_status);
+    if (kycData.status) {
+      await cacheKycStatus(travellerId, kycData.status);
     }
     
     console.log(`[KycStatusCache] Cached full KYC for traveller ${travellerId}`);
@@ -133,7 +133,7 @@ export async function getFullKycData(travellerId) {
     console.log(`[KycStatusCache] Querying database for full KYC ${travellerId}`);
     
     const result = await sequelize.query(
-      `SELECT * FROM traveller_kyc WHERE traveller_id = :travellerId`,
+      `SELECT * FROM traveller_kyc WHERE user_id = :travellerId`,
       { 
         replacements: { travellerId },
         type: sequelize.QueryTypes.SELECT 
@@ -143,7 +143,9 @@ export async function getFullKycData(travellerId) {
     if (!result || result.length === 0) return null;
 
     const kycData = result[0];
-    await cacheFullKycData(travellerId, kycData);
+    if (kycData.status) {
+      await cacheKycStatus(travellerId, kycData.status);
+    }
 
     return kycData;
   } catch (error) {
