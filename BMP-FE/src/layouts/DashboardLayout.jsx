@@ -13,6 +13,11 @@ const NO_SIDEBAR_ROUTES = [
   RoutePath.USER_NOTIFICATIONS,
   RoutePath.USER_PROFILE,
   RoutePath.TRAVELER_PROFILE,
+  RoutePath.USER_TRAVELLER_SEARCH,
+];
+
+const NO_NAVBAR_ROUTES = [
+  RoutePath.USER_TRAVELLER_SEARCH,
 ];
 
 // ─── Breakpoint constant — matches Tailwind sm: and PublicHeader ─────────────
@@ -40,12 +45,16 @@ const DashboardLayout = ({ role }) => {
     location.pathname.startsWith(route)
   );
 
+  const hideNavbar = NO_NAVBAR_ROUTES.some((route) =>
+    location.pathname.startsWith(route)
+  );
+
   // on mobile, sidebar is overlay when expanded so no extra margin; collapsed strip still takes 56px
   const contentMargin = hideSidebar ? 0 : isMobile ? 56 : expanded ? 240 : 56;
 
   return (
     <div className="flex min-h-screen w-full bg-slate-50 overflow-x-hidden">
-      <Navbar />
+      {!hideNavbar && <Navbar />}
       {!hideSidebar && (
         <DashboardSidebar
           role={role}
@@ -63,13 +72,11 @@ const DashboardLayout = ({ role }) => {
         <main
           className="w-full overflow-x-hidden"
           style={{
-            minHeight: "calc(100vh - 64px)",
-            // top: 64px navbar offset, bottom: 32px breathing room
-            // left/right: 16px on mobile, 20px on desktop — no more 4px squeeze
-            paddingTop: "64px",
+            minHeight: hideNavbar ? "100vh" : "calc(100vh - 64px)",
+            paddingTop: hideNavbar ? "0" : "64px",
             paddingBottom: "32px",
-            paddingLeft: isMobile ? "16px" : "20px",
-            paddingRight: "20px",
+            paddingLeft: hideSidebar ? "0" : (isMobile ? "16px" : "20px"),
+            paddingRight: hideSidebar ? "0" : "20px",
           }}
         >
           <Outlet />

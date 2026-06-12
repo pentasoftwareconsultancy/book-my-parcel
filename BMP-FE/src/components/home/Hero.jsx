@@ -158,6 +158,18 @@ const isLoggedIn = !!(token && user);
                 shadow-lg hover:shadow-xl">
               <FiTruck className="text-base text-blue-600" /> Track Delivery
             </button>
+            {isLoggedIn && (
+  <button
+    onClick={() => navigate(RoutePath.USER_TRAVELLER_SEARCH)}
+    className="w-full sm:w-auto inline-flex items-center justify-center gap-2
+      bg-green-600 text-white px-6 py-3 rounded-lg text-sm font-semibold
+      hover:bg-green-700 transform hover:scale-105 transition-all duration-200
+      shadow-lg hover:shadow-xl"
+  >
+    <FiTruck className="text-base" />
+    Travellers
+  </button>
+)}
           </div>
 
           <div className="mt-3 grid grid-cols-2 lg:grid-cols-3 gap-2 w-full md:max-w-full mx-auto lg:mx-0 lg:max-w-md">

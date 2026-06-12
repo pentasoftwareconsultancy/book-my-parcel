@@ -78,6 +78,25 @@ class ApiService {
     return this.axiosInstance.get(ServerUrl.API_USER_ACTIVE_TRAVELLEERS, { params });
   }
 
+  static searchRoutes(
+  originLat,
+  originLng,
+  destinationLat,
+  destinationLng
+) {
+  return this.axiosInstance.get(
+    ServerUrl.API_TRAVELER_ROUTE_SEARCH,
+    {
+      params: {
+        origin_lat: originLat,
+        origin_lng: originLng,
+        destination_lat: destinationLat,
+        destination_lng: destinationLng,
+      },
+    }
+  );
+}
+
   // ------------------ Tracking APIs ----------------
   static getTracking(bookingId) {
     return this.axiosInstance.get(ServerUrl.API_TRACKING_GET(bookingId));
