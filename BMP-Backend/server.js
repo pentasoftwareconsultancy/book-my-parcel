@@ -14,6 +14,7 @@ import { setupSocketHandlers } from "./src/utils/socketHandlers.js";
 import runMigrations from "./src/utils/runMigrations.js";
 import { runAutoCancelJob } from "./src/jobs/autoCancel.job.js";
 import { runPaymentReleaseJob } from "./src/jobs/paymentRelease.job.js";
+import {expireRoutes} from "./src/jobs/autoExpiry.job.js";
 import redis from "./src/redis/redis.config.js";
 import { acquireRedisLock, releaseRedisLock } from "./src/redis/utils/redisLock.util.js";
 import "./src/jobs/asyncTasks.worker.js";
@@ -95,22 +96,45 @@ const startServer = async () => {
     setupSocketHandlers(io);
     await setupRealtimeSubscriber(io);
 
-    server.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n${"=".repeat(60)}`);
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`🔌 WebSocket server ready`);
-      const smsEnabled = process.env.TWILIO_SMS_ENABLED !== "false";
-      console.log(`📱 SMS: ${smsEnabled ? "ENABLED — OTPs sent via Twilio" : "DISABLED — OTPs logged to console"}`);
-      console.log(`${"=".repeat(60)}\n`);
-    });
+    // ── Auto-handle port conflicts ────────────────────────────────────────────
+    const startServerWithFallback = (port, maxAttempts = 10) => {
+      return new Promise((resolve, reject) => {
+        const attemptStart = (currentPort, attemptsLeft) => {
+          const serverInstance = server.listen(currentPort, "0.0.0.0", () => {
+            console.log(`\n${"=".repeat(60)}`);
+            console.log(`🚀 Server running on port ${currentPort}`);
+            console.log(`🔌 WebSocket server ready`);
+            const smsEnabled = process.env.TWILIO_SMS_ENABLED !== "false";
+            console.log(`📱 SMS: ${smsEnabled ? "ENABLED — OTPs sent via Twilio" : "DISABLED — OTPs logged to console"}`);
+            console.log(`${"=".repeat(60)}\n`);
+            resolve(currentPort);
+          });
+
+          serverInstance.on('error', (err) => {
+            if (err.code === 'EADDRINUSE' && attemptsLeft > 0) {
+              console.log(`⚠️  Port ${currentPort} in use, trying ${currentPort + 1}...`);
+              attemptStart(currentPort + 1, attemptsLeft - 1);
+            } else {
+              reject(err);
+            }
+          });
+        };
+
+        attemptStart(port, maxAttempts);
+      });
+    };
+
+    await startServerWithFallback(PORT);
 
     // ── Background jobs ──────────────────────────────────────────────────────
     const AUTO_CANCEL_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
     const PAYMENT_RELEASE_INTERVAL_MS = 10 * 60 * 1000; // every 10 minutes
+    const ROUTE_EXPIRY_INTERVAL_MS = 5 * 60 * 1000;
 
     // Guard flags — prevent overlapping runs
     let autoCancelRunning = false;
     let paymentReleaseRunning = false;
+    let routeExpiryRunning = false;
 
     // Wrapper: checks DB health before running, prevents overlap
     const safeRun = async (name, flag, job, setFlag, lockKey, lockTtlMs = 4 * 60 * 1000) => {
@@ -174,14 +198,25 @@ const startServer = async () => {
       PAYMENT_RELEASE_INTERVAL_MS - 10_000
     );
 
+    const expireRoutesExpirySafe = () => safeRun(
+      "RouteExpiry",
+      routeExpiryRunning,
+      expireRoutes,
+      (v) => { routeExpiryRunning = v; },
+      "lock:jobs:route-expiry",
+      ROUTE_EXPIRY_INTERVAL_MS - 10000
+    );
+
     // Initial run after a short delay (let DB settle after sync)
     setTimeout(() => {
       runAutoCancelSafe();
       runPaymentReleaseSafe();
+        expireRoutesExpirySafe();
     }, 15_000);
 
     setInterval(runAutoCancelSafe, AUTO_CANCEL_INTERVAL_MS);
     setInterval(runPaymentReleaseSafe, PAYMENT_RELEASE_INTERVAL_MS);
+    setInterval(expireRoutesExpirySafe, ROUTE_EXPIRY_INTERVAL_MS);
 
     console.log(`AutoCancel job scheduled every ${AUTO_CANCEL_INTERVAL_MS / 60000} min`);
     console.log(`PaymentRelease job scheduled every ${PAYMENT_RELEASE_INTERVAL_MS / 60000} min`);
@@ -196,6 +231,7 @@ const startServer = async () => {
             releaseRedisLock("lock:jobs:auto-cancel", "*"),
             releaseRedisLock("lock:jobs:payment-release", "*"),
             releaseRedisLock("lock:jobs:expire-old-requests", "*"),
+            releaseRedisLock("lock:jobs:route-expiry", "*"),
           ]);
           await redis.quit();
         }
@@ -206,7 +242,7 @@ const startServer = async () => {
     };
 
     process.on("SIGTERM", () => shutdown("SIGTERM"));
-    process.on("SIGINT",  () => shutdown("SIGINT"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
 
   } catch (error) {
     console.error("Server startup failed:", error);

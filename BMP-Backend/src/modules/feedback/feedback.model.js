@@ -66,7 +66,7 @@ const Feedback = sequelize.define(
   },
   {
     timestamps: true,    // auto-manages createdAt and updatedAt columns
-    underscored: true,   // converts camelCase field names to snake_case in DB
+    underscored: false,   // converts camelCase field names to snake_case in DB
       // e.g. reviewerId → reviewer_id in the actual SQL
       indexes: [
   { fields: ["traveller_id"] },

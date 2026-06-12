@@ -14,6 +14,19 @@ const ALL_CATEGORIES = [
 ];
 
 export async function up(queryInterface) {
+  // Safety checks: ensure table + column exist
+  const tables = await queryInterface.showAllTables();
+  if (!tables.includes('traveller_routes')) {
+    console.log('ℹ️  traveller_routes table not present — skipping');
+    return;
+  }
+
+  const tableDesc = await queryInterface.describeTable('traveller_routes');
+  if (!tableDesc.accepted_parcel_types) {
+    console.log('ℹ️  Column accepted_parcel_types not present on traveller_routes — skipping');
+    return;
+  }
+
   // Find routes where accepted_parcel_types contains only size keywords
   const [routes] = await queryInterface.sequelize.query(`
     SELECT id, accepted_parcel_types

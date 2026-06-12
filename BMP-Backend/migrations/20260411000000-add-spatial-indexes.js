@@ -49,6 +49,7 @@ export const up = async (queryInterface, Sequelize) => {
     $$;
   `);
 
+  if (tableDesc.status) {
   await sequelize.query(`
     DO $$
     BEGIN
@@ -63,6 +64,9 @@ export const up = async (queryInterface, Sequelize) => {
     END
     $$;
   `);
+} else {
+  console.log('ℹ️ status column not found — skipping status index');
+}
 
   await sequelize.query(`
     DO $$

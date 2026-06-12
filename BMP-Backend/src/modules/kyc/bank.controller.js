@@ -1,7 +1,7 @@
 // bank.controller.js
 
 import { verifyBankAccountService, addBankRecipientService } from "./bank.service.js";
-import TravellerKYC from "../traveller/travellerKYC.model.js";
+import TravellerKYC from "../kyc/travellerKyc.model.js";
 import { KYC_STATUS } from "../../utils/constants.js";
 
 /**

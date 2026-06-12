@@ -10,7 +10,7 @@ import UserProfile from "../modules/user/userProfile.model.js";
 import TravellerProfile from "./traveller/travellerProfile.model.js";
 import TravellerTrip from "../modules/traveller/travellerTrip.model.js";
 import AadhaarVerification from "../modules/traveller/aadhaarVerification.model.js";
-import TravellerKYC from "./traveller/travellerKYC.model.js";
+import TravellerKYC from "./kyc/travellerKyc.model.js";
 
 /* PARCEL */
 import Parcel from "./parcel/parcel.model.js";
@@ -177,6 +177,18 @@ Booking.hasMany(PendingPayment, {
 PendingPayment.belongsTo(Booking, {
   foreignKey: "booking_id",
   as: "booking",
+});
+
+/* ===========================
+   USER(TRAVELLER) ↔ PENDING PAYMENT (1–N)
+   =========================== */
+User.hasMany(PendingPayment, {
+  foreignKey: "traveller_id",
+  as: "travellerPendingPayments",
+});
+PendingPayment.belongsTo(User, {
+  foreignKey: "traveller_id",
+  as: "traveller",
 });
 
 

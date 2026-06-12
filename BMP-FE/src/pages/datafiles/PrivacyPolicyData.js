@@ -108,6 +108,78 @@ export const privacyPolicyData = {
 };
 
 
+// import {
+//   Shield,
+//   Database,
+//   Globe,
+//   Mail,
+//   FileText,
+// } from "lucide-react";
+
+// export const companyPrivacyPolicyData = {
+//   pageTitle: "Company Privacy Policy",
+//   intro:
+//     "This Privacy Policy explains how the Company collects, uses, stores, and protects personal and business information provided through our platform and services.",
+
+//   sections: [
+//     {
+//       title: "Information We Collect",
+//       icon: User,
+//       iconClass: "text-blue-600",
+//       text:
+//         "We may collect personal information such as name, email address, phone number, company details, business information, and any data voluntarily submitted through our platform.",
+//     },
+//     {
+//       title: "How We Use Information",
+//       icon: Database,
+//       iconClass: "text-green-600",
+//       text:
+//         "Collected information is used to provide services, improve user experience, communicate updates, manage accounts, process requests, and comply with legal obligations.",
+//     },
+//     {
+//       title: "Data Security",
+//       icon: Lock,
+//       iconClass: "text-red-600",
+//       text:
+//         "We implement reasonable technical and organizational measures to protect your information against unauthorized access, disclosure, alteration, or destruction.",
+//     },
+//     {
+//       title: "Information Sharing",
+//       icon: Globe,
+//       iconClass: "text-purple-600",
+//       text:
+//         "We do not sell personal information. Information may be shared with trusted service providers, legal authorities when required, or business partners necessary for service delivery.",
+//     },
+//     {
+//       title: "User Rights",
+//       icon: Shield,
+//       iconClass: "text-orange-600",
+//       list: [
+//         "Access your personal information",
+//         "Request correction of inaccurate data",
+//         "Request deletion of information where applicable",
+//         "Withdraw consent where permitted by law",
+//         "Request details regarding data processing",
+//       ],
+//     },
+//     {
+//       title: "Cookies and Tracking",
+//       icon: FileText,
+//       iconClass: "text-indigo-600",
+//       text:
+//         "Our platform may use cookies and similar technologies to improve functionality, analyze usage, and enhance user experience.",
+//     },
+//     {
+//       title: "Contact Information",
+//       icon: Mail,
+//       iconClass: "text-pink-600",
+//       text:
+//         "For questions regarding this Privacy Policy or data handling practices, please contact the Company through the official contact information provided on the website.",
+//     },
+//   ],
+// };
+
+
 import {
   Shield,
   Database,
@@ -117,64 +189,138 @@ import {
 } from "lucide-react";
 
 export const companyPrivacyPolicyData = {
-  pageTitle: "Company Privacy Policy",
+  pageTitle: "Book My Parcel Privacy Policy",
+  lastUpdated: "11/06/2026",
+
   intro:
-    "This Privacy Policy explains how the Company collects, uses, stores, and protects personal and business information provided through our platform and services.",
+    "This Privacy Policy explains how Book My Parcel ('the Company', 'we', 'our', or 'us') collects, uses, stores, shares, and protects personal and business information when you use our platform and services. By accessing or using our platform, you agree to the practices described in this Privacy Policy.",
 
   sections: [
     {
-      title: "Information We Collect",
-      icon: User,
-      iconClass: "text-blue-600",
-      text:
-        "We may collect personal information such as name, email address, phone number, company details, business information, and any data voluntarily submitted through our platform.",
-    },
-    {
-      title: "How We Use Information",
-      icon: Database,
+      icon: ShieldCheck,
       iconClass: "text-green-600",
-      text:
-        "Collected information is used to provide services, improve user experience, communicate updates, manage accounts, process requests, and comply with legal obligations.",
-    },
-    {
-      title: "Data Security",
-      icon: Lock,
-      iconClass: "text-red-600",
-      text:
-        "We implement reasonable technical and organizational measures to protect your information against unauthorized access, disclosure, alteration, or destruction.",
-    },
-    {
-      title: "Information Sharing",
-      icon: Globe,
-      iconClass: "text-purple-600",
-      text:
-        "We do not sell personal information. Information may be shared with trusted service providers, legal authorities when required, or business partners necessary for service delivery.",
-    },
-    {
-      title: "User Rights",
-      icon: Shield,
-      iconClass: "text-orange-600",
+      title: "1. Information We Collect",
       list: [
-        "Access your personal information",
-        "Request correction of inaccurate data",
-        "Request deletion of information where applicable",
-        "Withdraw consent where permitted by law",
-        "Request details regarding data processing",
+        "Personal Information such as name, email address, phone number, and contact details.",
+        "Business information including company name, address, and authorized representative details where applicable.",
+        "Account information such as login credentials and profile details.",
+        "Technical information including IP address, browser type, device information, cookies, and usage analytics.",
+        "Any additional information voluntarily submitted through forms, communications, or support requests.",
       ],
     },
+
     {
-      title: "Cookies and Tracking",
+      icon: Database,
+      iconClass: "text-blue-600",
+      title: "2. How We Use Information",
+      list: [
+        "Provide and maintain our services.",
+        "Create and manage user accounts.",
+        "Process requests and respond to customer inquiries.",
+        "Improve platform functionality and user experience.",
+        "Send important notifications and service-related communications.",
+        "Prevent fraud, misuse, and unauthorized access.",
+        "Comply with applicable legal and regulatory obligations.",
+      ],
+    },
+
+    {
+      icon: Globe,
+      iconClass: "text-purple-600",
+      title: "3. Information Sharing",
+      text:
+        "We do not sell or rent your personal information. Information may be shared with trusted service providers, payment processors, business partners, or government authorities when required by law or when necessary to provide and improve our services.",
+    },
+
+    {
+      icon: User,
+      iconClass: "text-orange-600",
+      title: "4. Third-Party Services",
+      text:
+        "Our platform may integrate with third-party tools or service providers for payments, analytics, communications, or other operational purposes. Such providers receive only the information necessary to perform their services and are expected to maintain appropriate privacy and security standards.",
+    },
+
+    {
+      icon: Lock,
+      iconClass: "text-teal-600",
+      title: "5. Data Security",
+      text:
+        "We implement reasonable technical and organizational measures to safeguard personal and business information against unauthorized access, disclosure, alteration, or destruction. However, no method of electronic storage or transmission over the internet can be guaranteed to be completely secure.",
+    },
+
+    {
+      icon: Activity,
+      iconClass: "text-green-600",
+      title: "6. Data Retention",
+      text:
+        "We retain personal and business information only for as long as necessary to provide our services, comply with legal obligations, resolve disputes, and enforce our agreements. Once the information is no longer required, it is securely deleted or anonymized in accordance with applicable laws and our internal data retention policies.",
+    },
+
+    {
+      icon: UserX,
+      iconClass: "text-red-600",
+      title: "7. User Rights",
+      list: [
+        "Access your personal information.",
+        "Request correction of inaccurate or incomplete information.",
+        "Request deletion of your personal information where permitted by law.",
+        "Withdraw consent where processing is based on consent.",
+        "Request information about how your personal data is processed.",
+      ],
+    },
+
+    {
       icon: FileText,
       iconClass: "text-indigo-600",
+      title: "8. Cookies and Tracking Technologies",
       text:
-        "Our platform may use cookies and similar technologies to improve functionality, analyze usage, and enhance user experience.",
+        "We may use cookies and similar technologies to improve website functionality, remember user preferences, analyze usage patterns, and enhance the overall user experience. You can control cookie preferences through your browser settings.",
     },
+
     {
-      title: "Contact Information",
+      icon: AlertTriangle,
+      iconClass: "text-orange-600",
+      title: "9. Children's Privacy",
+      text:
+        "Book My Parcel services are intended only for individuals who are 18 years of age or older. We do not knowingly collect, store, or process personal information from anyone under the age of 18. If we become aware that such information has been provided, we will take appropriate steps to remove it and terminate the associated account where required.",
+    },
+
+    {
+      icon: Edit,
+      iconClass: "text-gray-600",
+      title: "10. Policy Updates",
+      text:
+        "We reserve the right to modify or update this Privacy Policy at any time to reflect changes in our services, legal requirements, or business practices. Updated versions will be published with a revised 'Last Updated' date. Continued use of our platform after such updates constitutes acceptance of the revised policy.",
+    },
+
+    {
+      icon: Shield,
+      iconClass: "text-cyan-600",
+      title: "11. Legal Compliance",
+      text:
+        "We may disclose your personal information if required by applicable law, regulation, court order, or an Indian governmental authority, or if necessary to protect our legal rights, our users, or the public.",
+    },
+
+    {
+      icon: Info,
+      iconClass: "text-yellow-600",
+      title: "12. User Responsibility",
+      text:
+        "Users are responsible for providing accurate and up-to-date information. Book My Parcel shall not be responsible for any issues arising from incorrect, incomplete, or outdated information submitted by users.",
+    },
+
+    {
       icon: Mail,
       iconClass: "text-pink-600",
-      text:
-        "For questions regarding this Privacy Policy or data handling practices, please contact the Company through the official contact information provided on the website.",
+      title: "13. Contact Information",
+text: `If you have any questions, concerns, requests, or complaints regarding this Privacy Policy, you may contact us through our official support channels.
+
+Email: support@bookmyparcel.com
+
+Phone: +91 9545444591
+
+Address: Flat No. 303, Sai Enclave-B, Tushar Park, Survey No. 17/1A, Dhanori, Near Dhanori Police Station, Pune - 411015, Maharashtra, India`,
     },
   ],
 };
+

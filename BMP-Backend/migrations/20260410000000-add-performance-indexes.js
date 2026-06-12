@@ -1,187 +1,179 @@
 /**
  * Performance Indexes Migration
- * Adds all missing indexes across the application for production-scale performance.
- * Run: node BMP-Backend/scripts/runMigrations.js
+ * Safe version (handles missing columns + tables properly)
  */
 
-/**
- * Check whether a table exists in the public schema.
- * Returns true/false so callers can skip indexes on tables not yet created.
- */
 async function tableExists(queryInterface, tableName) {
   const [rows] = await queryInterface.sequelize.query(
     `SELECT 1 FROM information_schema.tables
      WHERE table_schema = 'public' AND table_name = :name
      LIMIT 1`,
-    { replacements: { name: tableName }, type: queryInterface.sequelize.QueryTypes.SELECT }
+    {
+      replacements: { name: tableName },
+      type: queryInterface.sequelize.QueryTypes.SELECT,
+    }
   );
-  return !!rows;
+
+  return rows.length > 0;
 }
 
-/**
- * Add an index only when the target table already exists.
- * Silently skips if the table is absent (it will be created later by model sync,
- * and the model definition already declares the same indexes).
- */
 async function safeAddIndex(queryInterface, table, fields, options) {
-  if (!(await tableExists(queryInterface, table))) {
-    console.warn(`⚠️  Skipping index "${options.name}": table "${table}" does not exist yet`);
-    return;
+  try {
+    if (!(await tableExists(queryInterface, table))) {
+      console.warn(`⚠️ Skipping index ${options.name}: table ${table} not found`);
+      return;
+    }
+
+    await queryInterface.addIndex(table, fields, options);
+  } catch (err) {
+    console.warn(`⚠️ Index skip ${options.name}: ${err.message}`);
   }
-  await queryInterface.addIndex(table, fields, options);
 }
 
 export const up = async (queryInterface) => {
-
-  // ── bookings ──────────────────────────────────────────────────────────────
-  // traveller dashboard: WHERE traveller_id = ? ORDER BY createdAt DESC
+  // ───────────────────────── BOOKING ─────────────────────────
   await safeAddIndex(queryInterface, "booking", ["traveller_id"], {
     name: "idx_bookings_traveller_id",
     ifNotExists: true,
   });
 
-  // join from parcel side: WHERE parcel_id = ?
   await safeAddIndex(queryInterface, "booking", ["parcel_id"], {
     name: "idx_bookings_parcel_id",
     ifNotExists: true,
   });
 
-  // status filter on booking list queries
   await safeAddIndex(queryInterface, "booking", ["status"], {
     name: "idx_bookings_status",
     ifNotExists: true,
   });
 
-  // sort column used on every paginated booking query
   await safeAddIndex(queryInterface, "booking", ["createdAt"], {
     name: "idx_bookings_created_at",
     ifNotExists: true,
   });
 
-  // composite: covers fetchTravellerDeliveries fully in one index
-  // WHERE traveller_id = ? AND status IN (...) ORDER BY createdAt DESC
-  await safeAddIndex(queryInterface, "booking", ["traveller_id", "status", "createdAt"], {
+  await safeAddIndex(queryInterface, "booking", [
+    "traveller_id",
+    "status",
+    "createdAt",
+  ], {
     name: "idx_bookings_traveller_status_created",
     ifNotExists: true,
   });
 
-  // ── parcel ────────────────────────────────────────────────────────────────
-  // getUserParcelRequests: WHERE user_id = ?
+  // ───────────────────────── PARCEL ─────────────────────────
   await safeAddIndex(queryInterface, "parcel", ["user_id"], {
     name: "idx_parcels_user_id",
     ifNotExists: true,
   });
 
-  // composite: covers WHERE user_id = ? ORDER BY createdAt DESC together
   await safeAddIndex(queryInterface, "parcel", ["user_id", "createdAt"], {
     name: "idx_parcels_user_id_created",
     ifNotExists: true,
   });
 
-  // matching engine filters: WHERE status = 'CREATED' or 'MATCHING'
   await safeAddIndex(queryInterface, "parcel", ["status"], {
     name: "idx_parcels_status",
     ifNotExists: true,
   });
 
-  // booking creation lookup
-  await safeAddIndex(queryInterface, "parcel", ["selected_partner_id"], {
-    name: "idx_parcels_selected_partner_id",
-    ifNotExists: true,
-  });
+  // 🔥 SAFE: check table and column first
+  const tables = await queryInterface.showAllTables();
+  
+  if (tables.includes("parcel")) {
+    const parcelTable = await queryInterface.describeTable("parcel");
 
-  // ── parcel_requests ───────────────────────────────────────────────────────
-  // composite: fetchTravellerParcelRequests
-  // WHERE traveller_id = ? AND status IN (...) ORDER BY created_at DESC
-  await safeAddIndex(queryInterface, "parcel_requests", ["traveller_id", "status", "created_at"], {
+    if (parcelTable.selected_partner_id) {
+      await safeAddIndex(queryInterface, "parcel", ["selected_partner_id"], {
+        name: "idx_parcels_selected_partner_id",
+        ifNotExists: true,
+      });
+    } else {
+      console.warn(
+        "⚠️ Skipping selected_partner_id index: column does not exist"
+      );
+    }
+  } else {
+    console.warn("⚠️ Skipping parcel table indexes: table does not exist yet");
+  }
+
+  // ───────────────────── PARCEL REQUESTS ─────────────────────
+  await safeAddIndex(queryInterface, "parcel_requests", [
+    "traveller_id",
+    "status",
+    "created_at",
+  ], {
     name: "idx_parcel_requests_traveller_status_created",
     ifNotExists: true,
   });
 
-  // ── users ─────────────────────────────────────────────────────────────────
-  // admin list: ORDER BY createdAt DESC
+  // ───────────────────────── USERS ─────────────────────────
   await safeAddIndex(queryInterface, "users", ["createdAt"], {
     name: "idx_users_created_at",
     ifNotExists: true,
   });
 
-  // OTP lookup + duplicate check
   await safeAddIndex(queryInterface, "users", ["phone_number"], {
     name: "idx_users_phone_number",
     ifNotExists: true,
   });
 
-  // ── user_roles ────────────────────────────────────────────────────────────
-  // admin getAllUsers EXISTS subquery: WHERE user_id = u.id
+  // ───────────────────── USER ROLES ─────────────────────
   await safeAddIndex(queryInterface, "user_roles", ["user_id"], {
     name: "idx_user_roles_user_id",
     ifNotExists: true,
   });
 
-  // JOIN roles ON role_id
   await safeAddIndex(queryInterface, "user_roles", ["role_id"], {
     name: "idx_user_roles_role_id",
     ifNotExists: true,
   });
 
-  // ── traveller_kyc ─────────────────────────────────────────────────────────
-  // getTravelersForKYC: WHERE status = ?
+  // ───────────────────── KYC ─────────────────────
   await safeAddIndex(queryInterface, "traveller_kyc", ["status"], {
     name: "idx_traveller_kyc_status",
     ifNotExists: true,
   });
 
-  // JOIN users ON user_id
   await safeAddIndex(queryInterface, "traveller_kyc", ["user_id"], {
     name: "idx_traveller_kyc_user_id",
     ifNotExists: true,
   });
 
-  // ORDER BY created_at DESC
   await safeAddIndex(queryInterface, "traveller_kyc", ["created_at"], {
     name: "idx_traveller_kyc_created_at",
     ifNotExists: true,
   });
-
-  // ── notifications ─────────────────────────────────────────────────────────
-  // Already defined in the model — listed here for completeness / documentation
-  // (user_id, role), (user_id, is_read), (created_at)
 
   console.log("✅ All performance indexes created successfully");
 };
 
 export const down = async (queryInterface) => {
   const indexes = [
-    // booking
-    ["booking",         "idx_bookings_traveller_id"],
-    ["booking",         "idx_bookings_parcel_id"],
-    ["booking",         "idx_bookings_status"],
-    ["booking",         "idx_bookings_created_at"],
-    ["booking",         "idx_bookings_traveller_status_created"],
-    // parcel
-    ["parcel",          "idx_parcels_user_id"],
-    ["parcel",          "idx_parcels_user_id_created"],
-    ["parcel",          "idx_parcels_status"],
-    ["parcel",          "idx_parcels_selected_partner_id"],
-    // parcel_requests
+    ["booking", "idx_bookings_traveller_id"],
+    ["booking", "idx_bookings_parcel_id"],
+    ["booking", "idx_bookings_status"],
+    ["booking", "idx_bookings_created_at"],
+    ["booking", "idx_bookings_traveller_status_created"],
+    ["parcel", "idx_parcels_user_id"],
+    ["parcel", "idx_parcels_user_id_created"],
+    ["parcel", "idx_parcels_status"],
+    ["parcel", "idx_parcels_selected_partner_id"],
     ["parcel_requests", "idx_parcel_requests_traveller_status_created"],
-    // users
-    ["users",           "idx_users_created_at"],
-    ["users",           "idx_users_phone_number"],
-    // user_roles
-    ["user_roles",      "idx_user_roles_user_id"],
-    ["user_roles",      "idx_user_roles_role_id"],
-    // traveller_kyc
-    ["traveller_kyc",   "idx_traveller_kyc_status"],
-    ["traveller_kyc",   "idx_traveller_kyc_user_id"],
-    ["traveller_kyc",   "idx_traveller_kyc_created_at"],
+    ["users", "idx_users_created_at"],
+    ["users", "idx_users_phone_number"],
+    ["user_roles", "idx_user_roles_user_id"],
+    ["user_roles", "idx_user_roles_role_id"],
+    ["traveller_kyc", "idx_traveller_kyc_status"],
+    ["traveller_kyc", "idx_traveller_kyc_user_id"],
+    ["traveller_kyc", "idx_traveller_kyc_created_at"],
   ];
 
   for (const [table, name] of indexes) {
     try {
       await queryInterface.removeIndex(table, name);
     } catch (err) {
-      console.warn(`Could not remove index ${name} on ${table}:`, err.message);
+      console.warn(`⚠️ Could not remove ${name}: ${err.message}`);
     }
   }
 

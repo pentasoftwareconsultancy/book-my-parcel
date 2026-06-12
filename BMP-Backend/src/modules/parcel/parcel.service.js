@@ -74,9 +74,9 @@ async function enrichAddressWithGoogleData(addressData) {
   try {
     // 1. Validate address (best-effort, non-blocking) - uses separate API key
     let validationGranularity = null;
-    const hasValidationKey = process.env.GOOGLE_ADDRESS_VALIDATION_API_KEY && 
-                              process.env.GOOGLE_ADDRESS_VALIDATION_API_KEY !== "your_address_validation_api_key_here";
-    
+    const hasValidationKey = process.env.GOOGLE_ADDRESS_VALIDATION_API_KEY &&
+      process.env.GOOGLE_ADDRESS_VALIDATION_API_KEY !== "your_address_validation_api_key_here";
+
     if (hasValidationKey) {
       try {
         const validationResult = await validateAddress(`${address}, ${city}, ${pincode}`);
@@ -124,9 +124,9 @@ async function enrichAddressWithGoogleData(addressData) {
       try {
         const placeDetails = await getPlaceDetails(resolvedPlaceId);
         const hierarchy = extractHierarchy(placeDetails);
-        if (hierarchy.district)    enriched.district    = hierarchy.district;
-        if (hierarchy.taluka)      enriched.taluka      = hierarchy.taluka;
-        if (hierarchy.locality)    enriched.locality    = hierarchy.locality;
+        if (hierarchy.district) enriched.district = hierarchy.district;
+        if (hierarchy.taluka) enriched.taluka = hierarchy.taluka;
+        if (hierarchy.locality) enriched.locality = hierarchy.locality;
         if (hierarchy.subLocality) enriched.sub_localities = [hierarchy.subLocality];
       } catch (e) {
         console.warn("[Parcel] Place details fetch failed (non-fatal):", e.message);
@@ -199,30 +199,30 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
   // 3. Create new address record
   const newAddress = await Address.create(
     {
-      name:             enrichedData.name,
-      address:          enrichedData.address,
-      city:             enrichedData.city,
-      state:            enrichedData.state,
-      pincode:          enrichedData.pincode,
-      country:          enrichedData.country,
-      phone:            enrichedData.phone,
-      alt_phone:        enrichedData.alt_phone || null,
-      aadhar_no:        enrichedData.aadhar_no || null,
+      name: enrichedData.name,
+      address: enrichedData.address,
+      city: enrichedData.city,
+      state: enrichedData.state,
+      pincode: enrichedData.pincode,
+      country: enrichedData.country,
+      phone: enrichedData.phone,
+      alt_phone: enrichedData.alt_phone || null,
+      aadhar_no: enrichedData.aadhar_no || null,
       type,
-      user_profile_id:  null, // Don't set user_profile_id for parcel addresses
+      user_profile_id: null, // Don't set user_profile_id for parcel addresses
       // Enriched fields (may be null if Google API not configured)
-      place_id:          enrichedData.place_id          || null,
-      latitude:          enrichedData.latitude          || null,
-      longitude:         enrichedData.longitude         || null,
-      plus_code:         enrichedData.plus_code         || null,
+      place_id: enrichedData.place_id || null,
+      latitude: enrichedData.latitude || null,
+      longitude: enrichedData.longitude || null,
+      plus_code: enrichedData.plus_code || null,
       validation_status: enrichedData.validation_status || null,
-      district:          enrichedData.district          || null,
-      taluka:            enrichedData.taluka            || null,
-      locality:          enrichedData.locality          || null,
-      landmarks:         enrichedData.landmarks         || null,
-      sub_localities:    enrichedData.sub_localities    || null,
+      district: enrichedData.district || null,
+      taluka: enrichedData.taluka || null,
+      locality: enrichedData.locality || null,
+      landmarks: enrichedData.landmarks || null,
+      sub_localities: enrichedData.sub_localities || null,
       formatted_address: enrichedData.formatted_address || null,
-      last_geocoded_at:  enrichedData.last_geocoded_at  || null,
+      last_geocoded_at: enrichedData.last_geocoded_at || null,
     },
     { transaction }
   );
@@ -235,7 +235,7 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
 export async function createParcelRequest(data, files) {
   // Sanitize data: convert empty strings to null or defaults
   if (!data.weight) data.weight = weightMap[data.package_size] || 1;
-  
+
   // Sanitize numeric fields
   data.length = data.length && !isNaN(data.length) ? Number(data.length) : null;
   data.width = data.width && !isNaN(data.width) ? Number(data.width) : null;
@@ -252,11 +252,11 @@ export async function createParcelRequest(data, files) {
   ]);
 
   // ── Step 2: Compute route if coordinates are available ──
-  let routeDistance    = null;
-  let routeDuration    = null;
+  let routeDistance = null;
+  let routeDuration = null;
   let intermediateCities = null;
-  let routeGeometry    = null;
-  let suggestedPrice   = null;
+  let routeGeometry = null;
+  let suggestedPrice = null;
 
   if (
     pickupEnriched.latitude && pickupEnriched.longitude &&
@@ -280,7 +280,7 @@ export async function createParcelRequest(data, files) {
         const steps = route.legs?.[0]?.steps || [];
         intermediateCities = extractIntermediateCities(steps);
         // route_distance_km is the source of truth for short/long classification in Phase 2
-        
+
         // ── Calculate estimated price with surge multiplier ──────────────────
         try {
           const priceResult = await calculatePriceWithSurge(
@@ -294,8 +294,8 @@ export async function createParcelRequest(data, files) {
           suggestedPrice = priceResult.price;
           // Attach surge info to data so it can be returned to the FE
           data._surgeMultiplier = priceResult.surgeMultiplier;
-          data._surgeReasons    = priceResult.surgeReasons;
-          data._basePrice       = priceResult.basePrice;
+          data._surgeReasons = priceResult.surgeReasons;
+          data._basePrice = priceResult.basePrice;
         } catch (priceError) {
           // Fallback to sync calculation
           try { suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.length, data.width, data.height); } catch (syncPriceErr) {
@@ -314,7 +314,7 @@ export async function createParcelRequest(data, files) {
     deliveryEnriched.latitude && deliveryEnriched.longitude
   ) {
     const straight = haversineKm(
-      Number(pickupEnriched.latitude),  Number(pickupEnriched.longitude),
+      Number(pickupEnriched.latitude), Number(pickupEnriched.longitude),
       Number(deliveryEnriched.latitude), Number(deliveryEnriched.longitude)
     );
     routeDistance = Math.round(straight * 1.3 * 10) / 10;
@@ -325,8 +325,8 @@ export async function createParcelRequest(data, files) {
       const priceResult = await calculatePriceWithSurge(routeDistance, data.weight || 1, data.length, data.width, data.height);
       suggestedPrice = priceResult.price;
       data._surgeMultiplier = priceResult.surgeMultiplier;
-      data._surgeReasons    = priceResult.surgeReasons;
-      data._basePrice       = priceResult.basePrice;
+      data._surgeReasons = priceResult.surgeReasons;
+      data._basePrice = priceResult.basePrice;
     } catch (priceErr) {
       try { suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.length, data.width, data.height); } catch (_) { /* non-fatal */ }
     }
@@ -339,39 +339,45 @@ export async function createParcelRequest(data, files) {
   while (retryCount < maxRetries) {
     const parcel_ref = await generateParcelId();
     const t = await sequelize.transaction();
-    
+
     try {
-      const pickupAddress   = await getOrCreateAddress(pickupEnriched,   "pickup",   data.user_id, t);
+      const pickupAddress = await getOrCreateAddress(pickupEnriched, "pickup", data.user_id, t);
       const deliveryAddress = await getOrCreateAddress(deliveryEnriched, "delivery", data.user_id, t);
+
+      console.log("=== PICKUP DEBUG ===");
+      console.log("pickup_date:", data.pickup_date);
+      console.log("pickup_time:", data.pickup_time);
+      console.log("pickupDate:", data.pickupDate);
+      console.log("pickupTime:", data.pickupTime);
 
       const parcel = await Parcel.create(
         {
-          user_id:               data.user_id,
+          user_id: data.user_id,
           parcel_ref,
-          package_size:          data.package_size,
-          weight:                data.weight,
-          length:                data.length     || null,
-          width:                 data.width      || null,
-          height:                data.height     || null,
-          description:           data.description || null,
-          parcel_type:           data.parcel_type  || null, // user's content type e.g. "Documents"
-          value:                 data.value      || null,
-          vehicle_type:          data.vehicle_type, // user's preferred vehicle type
-          notes:                 data.notes      || null,
-          photos:                photoPaths,
-          pickup_address_id:     pickupAddress.id,
-          delivery_address_id:   deliveryAddress.id,
-          selected_partner_id:   data.selected_partner_id || null,
+          package_size: data.package_size,
+          weight: data.weight,
+          length: data.length || null,
+          width: data.width || null,
+          height: data.height || null,
+          description: data.description || null,
+          parcel_type: data.parcel_type || null, // user's content type e.g. "Documents"
+          value: data.value || null,
+          vehicle_type: data.vehicle_type, // user's preferred vehicle type
+          notes: data.notes || null,
+          photos: photoPaths,
+          pickup_address_id: pickupAddress.id,
+          delivery_address_id: deliveryAddress.id,
+          selected_partner_id: data.selected_partner_id || null,
           // Persist optional preferred pickup date/time if provided
-          pickup_date:           data.pickup_date || data.pickupDate || null,
-          pickup_time:           data.pickup_time || data.pickupTime || null,
+          pickup_date: data.pickup_date || data.pickupDate || null,
+          pickup_time: data.pickup_time || data.pickupTime || null,
           // Use calculated suggestedPrice as the final price_quote
-          price_quote:           suggestedPrice || data.price_quote || null,
-          route_distance_km:     routeDistance,
+          price_quote: suggestedPrice || data.price_quote || null,
+          route_distance_km: routeDistance,
           route_duration_minutes: routeDuration,
-          intermediate_cities:   intermediateCities,
-          route_geometry:        routeGeometry,
-          status:                BOOKING_STATUS.CREATED,
+          intermediate_cities: intermediateCities,
+          route_geometry: routeGeometry,
+          status: BOOKING_STATUS.CREATED,
         },
         { transaction: t }
       );
@@ -384,26 +390,26 @@ export async function createParcelRequest(data, files) {
         deliveryAddress,
         suggestedPrice,
         surgeMultiplier: data._surgeMultiplier || 1,
-        surgeReasons:    data._surgeReasons    || [],
-        basePrice:       data._basePrice       || suggestedPrice,
+        surgeReasons: data._surgeReasons || [],
+        basePrice: data._basePrice || suggestedPrice,
       };
     } catch (error) {
       await t.rollback();
-      
+
       // Check if it's a unique constraint error on parcel_ref
-      if (error.name === 'SequelizeUniqueConstraintError' && 
-          error.fields && error.fields.parcel_ref) {
+      if (error.name === 'SequelizeUniqueConstraintError' &&
+        error.fields && error.fields.parcel_ref) {
         retryCount++;
-        
+
         if (retryCount >= maxRetries) {
           throw new Error('Failed to generate unique parcel reference after multiple attempts');
         }
-        
+
         // Wait a bit before retrying to avoid race conditions
         await new Promise(resolve => setTimeout(resolve, 100));
         continue;
       }
-      
+
       // For other errors, throw immediately
       throw error;
     }
@@ -467,10 +473,10 @@ export async function getUserParcelRequests(userId, query = {}) {
     const plain = p.toJSON();
     if (plain.booking?.id) {
       const fb = feedbackMap[plain.booking.id];
-      plain.has_feedback      = !!fb;
+      plain.has_feedback = !!fb;
       plain.existing_feedback = fb ? { rating: fb.rating, comment: fb.comment } : null;
     } else {
-      plain.has_feedback      = false;
+      plain.has_feedback = false;
       plain.existing_feedback = null;
     }
     return plain;
@@ -489,8 +495,8 @@ export async function getParcelById(parcelId) {
       include: [
         { model: Address, as: "pickupAddress" },
         { model: Address, as: "deliveryAddress" },
-        { 
-          model: Booking, 
+        {
+          model: Booking,
           as: "booking",
           required: false, // Make booking optional
           include: [
@@ -526,8 +532,8 @@ export async function getParcelById(parcelId) {
         include: [
           { model: Address, as: "pickupAddress" },
           { model: Address, as: "deliveryAddress" },
-          { 
-            model: Booking, 
+          {
+            model: Booking,
             as: "booking",
             required: false, // Make booking optional
             include: [
@@ -567,7 +573,7 @@ export async function getParcelById(parcelId) {
 // ─── Update Parcel Form Step ──────────────────────────────────────────────────
 export async function updateParcelStep(parcelId, stepData, req = null) {
   const t = await sequelize.transaction();
-  
+
   try {
     const parcel = await Parcel.findByPk(parcelId, {
       include: [
@@ -576,42 +582,51 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
       ],
       transaction: t
     });
-    
+
     if (!parcel) {
       await t.rollback();
       throw new Error('Parcel not found');
     }
 
     const updateData = {};
-    
+
     // Update form step if provided
     if (stepData.form_step !== undefined) {
       updateData.form_step = stepData.form_step;
     }
-    
+
     // Update selected acceptance if provided
     if (stepData.selected_acceptance_id !== undefined) {
       updateData.selected_acceptance_id = stepData.selected_acceptance_id;
     }
-    
+
     // Update selected partner if provided (for backward compatibility)
     if (stepData.selected_partner_id !== undefined) {
       updateData.selected_partner_id = stepData.selected_partner_id;
     }
 
+    // Allow updating optional preferred pickup scheduling (date/time) via step update
+    if (stepData.pickup_date !== undefined) {
+      updateData.pickup_date = stepData.pickup_date || null;
+    }
+
+    if (stepData.pickup_time !== undefined) {
+      updateData.pickup_time = stepData.pickup_time || null;
+    }
+
     // ✅ NEW: Generate Booking ID when Step 3 is completed (payment)
     let booking = null;
     if (stepData.form_step === 3) {
-      
+
       // Update parcel status to CONFIRMED when payment is done
       updateData.status = "CONFIRMED";
-      
+
       // Check if booking already exists
-      booking = await Booking.findOne({ 
+      booking = await Booking.findOne({
         where: { parcel_id: parcelId },
-        transaction: t 
+        transaction: t
       });
-      
+
       // Use selected_partner_id from stepData (MUST be provided) or from parcel as fallback
       const selectedPartnerId = stepData.selected_partner_id || parcel.selected_partner_id;
 
@@ -620,12 +635,12 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
       }
       // All bookings use PAY_NOW mode
       const paymentMode = 'PAY_NOW';
-      
+
       if (!booking && selectedPartnerId) {
         // Generate Booking ID
         const { generateBookingId } = await import("../../utils/idGenerator.js");
         const bookingRef = await generateBookingId();
-        
+
         // Create booking with Booking ID (but NO tracking ID yet)
         booking = await Booking.create({
           parcel_id: parcelId,
@@ -635,7 +650,7 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
           tracking_ref: null, // Will be generated when IN_TRANSIT
           payment_mode: paymentMode, // Track whether it's pay now or pay after delivery
         }, { transaction: t });
-        
+
       } else if (booking && !booking.booking_ref) {
         // Update existing booking with Booking ID
         const { generateBookingId } = await import("../../utils/idGenerator.js");
@@ -646,12 +661,12 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
 
     await parcel.update(updateData, { transaction: t });
     await t.commit();
-    
+
     // ✅ NEW: Emit WebSocket events when Step 3 is completed (booking confirmed)
     const selectedPartnerId = stepData.selected_partner_id || parcel.selected_partner_id;
     if (stepData.form_step === 3 && booking && selectedPartnerId && req?.app?.get("io")) {
       const io = req.app.get("io");
-      
+
       // Fetch traveller details to include in the socket payload
       let travellerDetails = null;
       if (selectedPartnerId) {
@@ -700,9 +715,9 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
           pickup_date: parcel.pickup_date,
         }
       };
-      
+
       io.to(`traveller_requests_${selectedPartnerId}`).emit("booking_confirmed", bookingConfirmedData);
-      
+
       // Emit to parcel room (for parcel owner)
       io.to(`parcel_${parcelId}`).emit("parcel_booking_confirmed", {
         parcel_id: parcelId,
@@ -711,7 +726,7 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
         traveller_id: parcel.selected_partner_id,
         status: "CONFIRMED",
       });
-      
+
       // Send push notification to traveller
       const { sendToTraveller } = await import("../../services/notification.service.js");
       await sendToTraveller(
@@ -726,7 +741,7 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
         }
       );
     }
-    
+
     return parcel;
   } catch (error) {
     await t.rollback();
@@ -737,17 +752,17 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
 // ─── Cancel Parcel (User cancels their own parcel) ─────────────────────────────
 export async function cancelParcelRequest(parcelId, userId, cancellationData = {}, req = null) {
   const { reason = "other", details = "" } = cancellationData;
-  
+
   try {
     const parcel = await Parcel.findByPk(parcelId, {
       include: [
         { model: User, as: "user" },
         { model: Booking, as: "booking" },
-        { model: Address, as: "pickupAddress",   foreignKey: "pickup_address_id" },
+        { model: Address, as: "pickupAddress", foreignKey: "pickup_address_id" },
         { model: Address, as: "deliveryAddress", foreignKey: "delivery_address_id" },
       ],
     });
-    
+
     if (!parcel) {
       throw new Error("Parcel not found");
     }
@@ -773,17 +788,17 @@ export async function cancelParcelRequest(parcelId, userId, cancellationData = {
     const refundResult = await refundPaymentForParcel(parcelId, `Cancelled by user: ${reason}`);
 
     auditLog({
-      action:       "PARCEL_CANCELLED",
-      actorId:      userId,
-      actorRole:    "user",
+      action: "PARCEL_CANCELLED",
+      actorId: userId,
+      actorRole: "user",
       resourceType: "parcel",
-      resourceId:   parcelId,
-      meta:         { parcel_ref: parcel.parcel_ref, reason },
+      resourceId: parcelId,
+      meta: { parcel_ref: parcel.parcel_ref, reason },
     });
 
     // Emit WebSocket event to both user and traveller
     const io = app.get("io");
-    
+
     if (io) {
       const cancelData = {
         parcel_id: parcelId,
@@ -809,8 +824,8 @@ export async function cancelParcelRequest(parcelId, userId, cancellationData = {
 
     // ── SMS + push notifications (best-effort, non-fatal) ─────────────────
     try {
-      const fromCity = parcel.pickupAddress?.city  || "pickup";
-      const toCity   = parcel.deliveryAddress?.city || "delivery";
+      const fromCity = parcel.pickupAddress?.city || "pickup";
+      const toCity = parcel.deliveryAddress?.city || "delivery";
 
       // Notify sender (in-app)
       await sendToUser(

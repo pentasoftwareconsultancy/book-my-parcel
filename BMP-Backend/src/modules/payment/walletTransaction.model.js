@@ -22,6 +22,12 @@ const WalletTransaction = sequelize.define(
       allowNull: false,
     },
     reason: DataTypes.STRING,
+    idempotency_key: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      unique: true,
+      comment: "Prevents duplicate wallet credits for same payment/job",
+    },
   },
   {
     timestamps: true,
