@@ -6,7 +6,9 @@ import ServerUrl from "../../core/constants/serverUrl.constant";
 import ApiService from "../../core/services/api.service";
 import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 import RoutePath from "../../core/constants/routes.constant";
-
+import {
+  FiTruck,
+} from "react-icons/fi";
 export default function TravellerSearchPage() {
     const navigate = useNavigate();
     const [origin, setOrigin] = useState("");
@@ -127,19 +129,19 @@ export default function TravellerSearchPage() {
             <div className="h-18" />
             <div className="max-w-5xl mx-auto px-4 py-8">
                 <div className="flex items-center gap-4 mb-6">
-                   <button
-  onClick={() => navigate(RoutePath.PUBLIC_HOME)}
-  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
+                    <button
+                        onClick={() => navigate(RoutePath.PUBLIC_HOME)}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
              bg-gradient-to-r from-blue-600 to-indigo-600
              text-white text-sm font-semibold
              shadow-md hover:shadow-lg
              hover:from-blue-700 hover:to-indigo-700
              transform hover:-translate-y-0.5 hover:scale-105
              transition-all duration-300 ease-in-out"
->
-  <span className="text-base">←</span>
-  Back to Home
-</button>
+                    >
+                        <span className="text-base">←</span>
+                        Back to Home
+                    </button>
                 </div>
 
                 <h1 className="text-xl font-bold mb-1">Find Travellers</h1>
@@ -234,7 +236,30 @@ export default function TravellerSearchPage() {
                             </div>
 
                             <div className="space-y-4">
-                                {routes.map((route) => (
+                                {routes.map((route) => {
+                                    const travellerName =
+                                        route.traveller_name ||
+                                        route.travellerProfile?.user?.profile?.name ||
+                                        route.travellerProfile?.user?.name ||
+                                        route.travellerProfile?.user?.email ||
+                                        route.travellerProfile?.user?.phone_number ||
+                                        route.user?.profile?.name ||
+                                        route.user?.name ||
+                                        route.user?.email ||
+                                        route.user?.phone_number ||
+                                        "Verified Traveller";
+                                    const rating = route.rating || route.travellerProfile?.rating || "4.8";
+                                    const completedTrips = route.completed_trips || route.travellerProfile?.total_deliveries || "25+";
+                                    const transportMode = route.transport_mode === 'private' ? 'Private Vehicle' : (route.transport_mode || "Available");
+                                    const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "Personal Vehicle";
+                                    const weight = route.max_weight_kg ? `${route.max_weight_kg} kg` : (route.available_capacity_kg ? `${route.available_capacity_kg} kg` : "—");
+                                    const transitInfo = route.transit_details ? (typeof route.transit_details === 'string' ? route.transit_details : JSON.stringify(route.transit_details)) : null;
+
+                                    const cardOrigin = route.originAddress?.formatted_address || route.originAddress?.address || origin;
+                                    const cardDestination = route.destAddress?.formatted_address || route.destAddress?.address || destination;
+
+                                    return (
+                                
                                     <div
                                         key={route.id}
                                         className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 p-6 border border-gray-100"
@@ -255,75 +280,88 @@ export default function TravellerSearchPage() {
                                                 <div className="flex items-center justify-between mb-3">
                                                     <div>
                                                         <h4 className="font-bold text-gray-800 text-lg">
-                                                            {route.traveller_name || route.user?.name || "Verified Traveller"}
+                                                            {travellerName}
                                                         </h4>
                                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                                             <div className="flex items-center gap-1">
                                                                 <FiStar className="text-yellow-500 fill-current" />
-                                                                <span className="font-medium">{route.rating || "4.8"}</span>
+                                                                <span className="font-medium">{rating}</span>
                                                             </div>
                                                             <span>•</span>
-                                                            <span>{route.completed_trips || "25+"} trips completed</span>
+                                                            <span>{completedTrips} trips completed</span>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
                                                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                            {route.transport_mode === 'private' ? 'Private Vehicle' : route.transport_mode || "Available"}
+                                                            {transportMode}
                                                         </span>
                                                         <div className="text-sm text-gray-500 mt-1 capitalize">
-                                                            {route.vehicle_type || "Personal Vehicle"}
+                                                            {vehicleType}
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Route Details */}
-                                                <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <div className="flex items-center gap-2 text-sm">
-                                                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                                            <span className="font-medium text-gray-700">
-                                                                {route.originAddress?.city || origin.split(',')[0] || "Origin"}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex-1 mx-4">
-                                                            <div className="h-px bg-gray-300 relative">
-                                                                <div className="absolute inset-0 bg-blue-500 w-3/4"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-sm">
-                                                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                                            <span className="font-medium text-gray-700">
-                                                                {route.destAddress?.city || destination.split(',')[0] || "Destination"}
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+  <div className="flex gap-4">
+    {/* Icon */}
+    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+      <FiTruck className="text-blue-600 text-2xl" />
+    </div>
 
-                                                    <div className="grid grid-cols-3 gap-4 text-center">
-                                                        <div className="text-sm">
-                                                            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-                                                                <FiMapPin className="text-xs" />
-                                                            </div>
-                                                            <div className="font-medium">{route.total_distance_km || "120"} km</div>
-                                                            <div className="text-xs text-gray-500">Distance</div>
-                                                        </div>
-                                                        <div className="text-sm">
-                                                            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-                                                                <FiClock className="text-xs" />
-                                                            </div>
-                                                            <div className="font-medium">
-                                                                {Math.floor((route.total_duration_minutes || 180) / 60)}h {(route.total_duration_minutes || 180) % 60}m
-                                                            </div>
-                                                            <div className="text-xs text-gray-500">Duration</div>
-                                                        </div>
-                                                        <div className="text-sm">
-                                                            <div className="flex items-center justify-center gap-1 text-gray-600 mb-1">
-                                                                <FiPackage className="text-xs" />
-                                                            </div>
-                                                            <div className="font-medium">{route.available_capacity_kg || "15"} kg</div>
-                                                            <div className="text-xs text-gray-500">Capacity</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+    {/* Content */}
+    <div className="flex-1">
+      {/* Route */}
+            <h3 className="font-semibold text-base text-gray-900 leading-6">
+                {cardOrigin} → {cardDestination}
+            </h3>
+
+      {/* Pickup */}
+            <div className="flex items-start gap-2 mt-2 text-sm text-gray-600">
+                <FiMapPin className="text-green-500 mt-1 flex-shrink-0" size={14} />
+                <span>{cardOrigin}</span>
+            </div>
+
+      {/* Destination */}
+            <div className="flex items-start gap-2 mt-1 text-sm text-gray-600">
+                <FiMapPin className="text-red-500 mt-1 flex-shrink-0" size={14} />
+                <span>{cardDestination}</span>
+            </div>
+
+      {/* Info */}
+      <div className="flex flex-wrap gap-6 mt-3 text-sm">
+                <div>
+                    <span className="text-gray-500">Vehicle:</span>{" "}
+                    <span className="font-semibold text-gray-800">
+                        {vehicleType}
+                    </span>
+                </div>
+
+                <div>
+                    <span className="text-gray-500">Mode:</span>{" "}
+                    <span className="font-semibold text-gray-800 capitalize">
+                        {transportMode}
+                    </span>
+                </div>
+
+                <div>
+                    <span className="text-gray-500">Weight:</span>{" "}
+                    <span className="font-semibold text-gray-800">
+                        {weight}
+                    </span>
+                </div>
+      </div>
+
+      {/* Transit Badge */}
+      {transitInfo && (
+        <div className="mt-3 inline-flex bg-blue-50 text-blue-600 text-xs font-medium px-3 py-1 rounded-full">
+          {transitInfo}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+                                                
 
                                                 {/* Action Buttons */}
                                                 <div className="flex gap-3">
@@ -342,7 +380,8 @@ export default function TravellerSearchPage() {
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </>
                     )}
