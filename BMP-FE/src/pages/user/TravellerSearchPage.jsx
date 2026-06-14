@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { FiSearch, FiMapPin, FiClock, FiPackage, FiUser, FiStar, FiMessageCircle, FiArrowLeft } from "react-icons/fi";
+import {  FiMapPin, FiPackage, FiUser, FiStar,  } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import ServerUrl from "../../core/constants/serverUrl.constant";
 import ApiService from "../../core/services/api.service";
-import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 import RoutePath from "../../core/constants/routes.constant";
+import SearchSection from  "./SearchSection"
+
 import {
   FiTruck,
 } from "react-icons/fi";
@@ -16,7 +17,6 @@ export default function TravellerSearchPage() {
     const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-
     const token = localStorage.getItem("token");
 
     //  API CALL INSIDE SAME FILE
@@ -150,48 +150,9 @@ export default function TravellerSearchPage() {
                 </p>
 
                 {/* Search Form */}
-                <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-100 shadow-lg">
-                    <div className="flex items-center gap-2 mb-4 font-bold">
-                        <FiSearch className="text-gray-500" size={20} />
-                        <span>Search Routes</span>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-500 font-semibold">From Location *</label>
-                            <AddressAutoComplete
-                                value={origin}
-                                onChange={setOrigin}
-                                placeholder="Enter pickup location (e.g. Pune)"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-500 font-semibold">To Location *</label>
-                            <AddressAutoComplete
-                                value={destination}
-                                onChange={setDestination}
-                                placeholder="Enter destination (e.g. Mumbai)"
-                            />
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleSearch}
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    >
-                        <FiSearch className="text-sm" />
-                        {loading ? "Finding routes..." : "Search Travellers"}
-                    </button>
-
-                    {error && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-red-600 text-sm">{error}</p>
-                        </div>
-                    )}
-                </div>
-
+                <SearchSection
+  origin={origin}setOrigin={setOrigin}destination={destination}setDestination={setDestination}handleSearch={handleSearch}loading={loading}error={error}
+/>
                 {/* Results Section */}
                 <div className="space-y-4">
                     {/* Loading State */}
@@ -361,7 +322,7 @@ export default function TravellerSearchPage() {
     </div>
   </div>
 </div>
-                                                
+           
 
                                                 {/* Action Buttons */}
                                                 <div className="flex gap-3">
@@ -369,13 +330,7 @@ export default function TravellerSearchPage() {
                                                         <FiPackage className="text-sm" />
                                                         Book Now
                                                     </button>
-                                                    <button className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm">
-                                                        <FiMessageCircle className="text-sm" />
-                                                        Chat
-                                                    </button>
-                                                    <button className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm">
-                                                        View Profile
-                                                    </button>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
