@@ -76,7 +76,15 @@ const OrderSummary = ({ data: propData }) => {
             <Info icon={<Phone size={14} />}        label="Phone"           value={propData?.pickupPhone} />
             <Info icon={<Mail size={14} />}         label="Alternate Phone" value={propData?.pickupAltPhone} />
             <Info icon={<CheckCircle size={14} />}  label="Aadhaar"         value={propData?.pickupAadhaar} />
-            <Info icon={<Calendar size={14} />}     label="Pickup Date"     value={propData?.pickupDate} />
+         <Info
+  icon={<Calendar size={14} />}
+  label="Pickup Date"
+  value={
+    propData?.pickupDate
+      ? new Date(propData.pickupDate).toLocaleDateString("en-GB")
+      : "-"
+  }
+/>
             <Info icon={<Clock size={14} />}        label="Pickup Time"     value={propData?.pickupTime} />
           </InfoCard>
         </Section>
