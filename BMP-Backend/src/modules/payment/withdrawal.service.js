@@ -3,7 +3,12 @@ import Withdrawal from "./withdrawal.model.js";
 import TravellerKYC from "../kyc/travellerKyc.model.js";
 import { debitWalletService, getWalletBalanceService } from "./wallet.service.js";
 import { createBeneficiary } from "../../services/cashfreePayout.service.js";
-import { transferToBank } from "../../services/cashfreePayout.service.js";
+import { transferToBank, getTransferStatus } from "../../services/cashfreePayout.service.js";
+
+// Mirror the same ID format used in cashfreePayout.service.js
+function sanitizeBeneficiaryId(userId) {
+  return `BEN_${userId.replace(/-/g, "")}`.slice(0, 50);
+}
 import { getSetting } from "../../redis/cache/platformSettingsCache.service.js";
 
 // Minimum withdrawal amount — loaded from platform_settings via cache service.
@@ -204,13 +209,23 @@ export async function processWithdrawalService(withdrawalId) {
       throw walletError;
     }
 
-    // TODO: Integrate with actual bank transfer API (Razorpay, etc.)
-    // For now, simulate success
+    // Get KYC + user contact details for beneficiary creation
     const kyc = await TravellerKYC.findOne({
       where: { user_id: withdrawal.user_id },
+      include: [{
+        model: (await import("../user/user.model.js")).default,
+        as: "User",
+        attributes: ["email", "phone_number"],
+      }],
     });
 
-    let beneficiaryId = `BEN_${kyc.user_id.replace(/-/g, "_")}`;
+    // Enrich KYC with user contact so beneficiary has real email/phone
+    if (kyc && kyc.User) {
+      kyc.email = kyc.User.email;
+      kyc.phone = kyc.User.phone_number;
+    }
+
+    let beneficiaryId = sanitizeBeneficiaryId(kyc.user_id);
 
     try {
       beneficiaryId = await createBeneficiary(kyc);
@@ -233,38 +248,49 @@ export async function processWithdrawalService(withdrawalId) {
     );
 
     const transactionId =
-      payout?.data?.referenceId ||
-      payout?.data?.transferId ||
-      payout?.referenceId ||
-      payout?.transferId;
+      payout?.cf_transfer_id ||
+      payout?.data?.cf_transfer_id ||
+      payout?.transfer_id ||
+      payout?.data?.transfer_id;
 
-    // Update withdrawal status to SUCCESS
+    const payoutStatus = payout?.transfer_status || payout?.data?.transfer_status || "ACCEPTED";
+
+    // Map Cashfree async status to our internal status
+    // ACCEPTED / RECEIVED = transfer is queued, will settle within minutes
+    // SUCCESS = already settled (rare for async)
+    // FAILED = transfer failed
+    const withdrawalStatus = ["SUCCESS", "SETTLED"].includes(payoutStatus)
+      ? "SUCCESS"
+      : payoutStatus === "FAILED"
+        ? "FAILED"
+        : "PROCESSING"; // ACCEPTED/RECEIVED = still in flight
+
+    // Update withdrawal status
     await withdrawal.update(
       {
-        status: "SUCCESS",
+        status: withdrawalStatus,
         beneficiary_id: beneficiaryId,
         cashfree_transfer_id: transactionId,
         transaction_id: transactionId,
         processed_at: new Date(),
+        ...(payoutStatus === "FAILED" && { failure_reason: payout?.transfer_message || "Transfer failed at Cashfree" }),
       },
       { transaction: t }
     );
 
     await t.commit();
 
-    console.log(
-      `✅ [Withdrawal] Processed successfully: ₹${withdrawal.amount}`
-    );
-    console.log(`   Transaction ID: ${transactionId}`);
-    console.log(`   Bank: ${withdrawal.bank_name}`);
+    console.log(`✅ [Withdrawal] Processed: ₹${withdrawal.amount} | status: ${withdrawalStatus} | cf_id: ${transactionId}`);
 
     return {
       withdrawal_id: withdrawal.id,
       amount: withdrawal.amount,
-      status: withdrawal.status,
+      status: withdrawalStatus,
       transaction_id: transactionId,
       processed_at: withdrawal.processed_at,
-      message: "Withdrawal processed. Money will reach your account in 1-2 business days.",
+      message: withdrawalStatus === "SUCCESS"
+        ? "Withdrawal processed. Money will reach your account shortly."
+        : "Withdrawal accepted. Money will reach your account in 1-2 business days.",
     };
   } catch (error) {
     await t.rollback();
