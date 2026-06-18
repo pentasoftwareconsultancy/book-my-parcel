@@ -211,7 +211,7 @@ export function useStepReview({ data, readOnly }) {
       const order_id = order.id;
 
       const cashfree = await load({
-        mode: "sandbox", // production later
+        mode: import.meta.env.VITE_CASHFREE_ENV === "PRODUCTION" ? "production" : "sandbox",
       });
 
       const checkoutOptions = {

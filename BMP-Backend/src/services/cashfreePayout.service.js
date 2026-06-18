@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const getCashfreeBaseUrl = () =>
-  process.env.CASHFREE_ENV === "production"
+  process.env.CASHFREE_ENV === "PRODUCTION"
     ? "https://api.cashfree.com/payout"
     : "https://sandbox.cashfree.com/payout";
 
@@ -29,15 +29,9 @@ const getCashfreeHeaders = () => {
 };
 
 const logCashfreeConfig = () => {
-  console.log("Cashfree Env:", process.env.CASHFREE_ENV || "sandbox");
-  console.log(
-    "Client ID:",
-    `[${process.env.CASHFREE_P_SECRET_ID ?? "MISSING"}]`
-  );
-  console.log(
-    "Client Secret:",
-    process.env.CASHFREE_P_SECRET_KEY ? "[SET]" : "[MISSING]"
-  );
+  console.log("Cashfree Env:", process.env.CASHFREE_ENV || "PRODUCTION");
+  console.log("Client ID:", `[SET]`);
+  console.log("Client Secret:", `[SET]`);
 };
 
 logCashfreeConfig();

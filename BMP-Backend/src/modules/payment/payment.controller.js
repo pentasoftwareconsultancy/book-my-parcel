@@ -15,8 +15,6 @@ export const createOrder = async (req, res) => {
 
     const order = await createOrderService(parcel_id, req.user.id);
 
-    console.log("FINAL RESPONSE:", JSON.stringify(order, null, 2));
-
     return responseSuccess(res, {
       order: {
         id: order.order_id,

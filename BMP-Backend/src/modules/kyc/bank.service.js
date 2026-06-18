@@ -3,7 +3,7 @@
 import axios from "axios";
 import { mockBankVerificationResponse, mockBankRecipientResponse } from "./bank.mock.js";
 
-const USE_REAL_API = false; // change to true later after getting paid API
+const USE_REAL_API = process.env.BANK_VERIFY_REAL_API === "true";
 
 /**
  * Step 1: Verify bank account
