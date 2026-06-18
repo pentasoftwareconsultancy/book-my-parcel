@@ -111,7 +111,7 @@ const isLoggedIn = !!(token && user);
     { value: "30K+", label: "Orders Delivered\nsafely at location", wide: true },
     { value: "40K+", label: "Loyal\ncustomers", wide: false },
     { value: "27+", label: "Locations\nCovered", wide: false },
-    { value: "20K+", label: "Trained delivery\npartners", wide: true },
+    { value: "20K+", label: "Verified Travellers\npartners", wide: true },
   ];
 
   return (
@@ -207,7 +207,7 @@ const isLoggedIn = !!(token && user);
             <div className="col-span-1 md:col-span-1 lg:col-span-2 text-white p-5 sm:p-6 rounded-2xl shadow-md bg-primary">
               <p className="text-2xl sm:text-3xl font-bold mb-2">20K+</p>
               <p className="text-sm leading-snug opacity-95">
-                Trained delivery <br /> partners
+                Verified Traveller <br /> partners
               </p>
             </div>
           </div>
