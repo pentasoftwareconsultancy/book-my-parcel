@@ -40,8 +40,11 @@ const SearchTravellerInfo = ({
           {/* Traveller Info */}
           <div className="mt-2">
             <div className="flex items-center gap-2">
-              <FiUser className="text-gray-500 text-lg flex-shrink-0" />
-              <h4 className="font-medium text-gray-800 text-sm sm:text-base break-words">
+              
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+  <FiUser className="text-white text-lg" />
+</div>
+              <h4 className="font-medium text-blue-500 text-sm sm:text-base break-words">
                 {travellerName}
               </h4>
             </div>

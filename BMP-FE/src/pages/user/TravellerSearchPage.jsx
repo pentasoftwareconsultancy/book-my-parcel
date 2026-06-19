@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import {  FiMapPin, FiPackage, FiUser, FiStar, FiSearch } from "react-icons/fi";
+import {  FiMapPin,FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import ServerUrl from "../../core/constants/serverUrl.constant";
 import ApiService from "../../core/services/api.service";
@@ -17,18 +17,43 @@ export default function TravellerSearchPage() {
     const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const token = localStorage.getItem("token");
+    const [selectedVehicleType, setSelectedVehicleType] = useState("All");
 
-    //  API CALL INSIDE SAME FILE
+    const normalizeVehicleType = (value) => {
+        if (!value) return "";
+        return value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]/g, " ")
+            .split(" ")
+            .filter(Boolean)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
+    const matchesSelectedVehicle = (vehicleType, selectedType) => {
+        if (!selectedType || selectedType === "All") return true;
+        const normalized = vehicleType?.toString().toLowerCase() || "";
+        const selected = selectedType.toString().toLowerCase();
+
+        if (selected === "Bike") return /bike|bicycle|motorcycle/.test(normalized);
+        if (selected === "Car") return /\bcar\b|sedan|hatchback|coupe/.test(normalized);
+        if (selected === "Suv") return normalized.includes("suv");
+        if (selected === "Van") return normalized.includes("van");
+        if (selected === "Tempo") return normalized.includes("Tempo");
+        if (selected === "Truck") return normalized.includes("truck") || normalized.includes("tempo") || normalized.includes("lorry");
+
+        return normalized.includes(selected);
+    };
+
     const handleSearch = async () => {
         if (!origin.trim() || !destination.trim()) {
             setError("Please enter origin and destination");
             return;
         }
-
         setError("");
         setLoading(true);
-
         console.log("Origin Selected:", origin);
         console.log("Destination Selected:", destination);
 
@@ -38,7 +63,6 @@ export default function TravellerSearchPage() {
                 ApiService.geocodeAddress(origin),
                 ApiService.geocodeAddress(destination)
             ]);
-
             console.log("Origin Geocode:", originGeocode);
             console.log("Destination Geocode:", destinationGeocode);
 
@@ -124,6 +148,18 @@ export default function TravellerSearchPage() {
             setLoading(false);
         }
     };
+
+    const filteredRoutes = routes
+        .filter((route) => {
+            const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "";
+            return matchesSelectedVehicle(vehicleType, selectedVehicleType);
+        })
+        .sort((a, b) => {
+            const aType = normalizeVehicleType(a.vehicle_type || a.travellerProfile?.vehicle_type || "");
+            const bType = normalizeVehicleType(b.vehicle_type || b.travellerProfile?.vehicle_type || "");
+            return aType.localeCompare(bType);
+        });
+
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="h-18" />
@@ -179,7 +215,15 @@ export default function TravellerSearchPage() {
 
                 {/* Search Form */}
                 <SearchSection
-  origin={origin}setOrigin={setOrigin}destination={destination}setDestination={setDestination}handleSearch={handleSearch}loading={loading}error={error}
+  origin={origin}
+  setOrigin={setOrigin}
+  destination={destination}
+  setDestination={setDestination}
+  handleSearch={handleSearch}
+  loading={loading}
+  error={error}
+  selectedVehicleType={selectedVehicleType}
+  onVehicleTypeChange={setSelectedVehicleType}
 />
                 {/* Results Section */}
                 <div className="space-y-4">
@@ -217,48 +261,62 @@ export default function TravellerSearchPage() {
                         <>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold text-gray-800">
-                                    Available Travellers ({routes.length})
+                                    Available Travellers ({filteredRoutes.length})
                                 </h3>
                                 <div className="text-sm text-gray-500">
-                                    Sorted by relevance
+                                    {selectedVehicleType && selectedVehicleType !== "All"
+                                        ? `Filtered by ${selectedVehicleType}`
+                                        : "Sorted by vehicle type"}
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                {routes.map((route) => {
-                                    const travellerName =
-                                        route.traveller_name ||
-                                        route.travellerProfile?.user?.profile?.name ||
-                                        route.travellerProfile?.user?.name ||
-                                        route.travellerProfile?.user?.email ||
-                                        route.travellerProfile?.user?.phone_number ||
-                                        route.user?.profile?.name ||
-                                        route.user?.name ||
-                                        route.user?.email ||
-                                        route.user?.phone_number ||
-                                        "Verified Traveller";
-                                    const rating = route.rating || route.travellerProfile?.rating || "4.8";
-                                    const completedTrips = route.completed_trips || route.travellerProfile?.total_deliveries || "25+";
-                                    const transportMode = route.transport_mode === 'private' ? 'Private Vehicle' : (route.transport_mode || "Available");
-                                    const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "Personal Vehicle";
-                                    const weight = route.max_weight_kg ? `${route.max_weight_kg} kg` : (route.available_capacity_kg ? `${route.available_capacity_kg} kg` : "—");
-                                    const transitInfo = route.transit_details ? (typeof route.transit_details === 'string' ? route.transit_details : JSON.stringify(route.transit_details)) : null;
+                            {filteredRoutes.length === 0 ? (
+                                <div className="bg-white rounded-2xl p-8 border border-yellow-200 shadow-sm text-sm text-yellow-800">
+                                    No travellers match the selected vehicle type. Try selecting All Vehicles or a different vehicle.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {filteredRoutes.map((route) => {
+                                        const travellerName =
+                                            route.traveller_name ||
+                                            route.travellerProfile?.user?.profile?.name ||
+                                            route.travellerProfile?.user?.name ||
+                                            route.travellerProfile?.user?.email ||
+                                            route.travellerProfile?.user?.phone_number ||
+                                            route.user?.profile?.name ||
+                                            route.user?.name ||
+                                            route.user?.email ||
+                                            route.user?.phone_number ||
+                                            "Verified Traveller";
+                                        const rating = route.rating || route.travellerProfile?.rating || "4.8";
+                                        const completedTrips = route.completed_trips || route.travellerProfile?.total_deliveries || "25+";
+                                        const transportMode = route.transport_mode === 'private' ? 'Private Vehicle' : (route.transport_mode || "Available");
+                                        const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "Personal Vehicle";
+                                        const weight = route.max_weight_kg ? `${route.max_weight_kg} kg` : (route.available_capacity_kg ? `${route.available_capacity_kg} kg` : "—");
+                                        const transitInfo = route.transit_details ? (typeof route.transit_details === 'string' ? route.transit_details : JSON.stringify(route.transit_details)) : null;
 
-                                    const cardOrigin = route.originAddress?.formatted_address || route.originAddress?.address || origin;
-                                    const cardDestination = route.destAddress?.formatted_address || route.destAddress?.address || destination;
+                                        const cardOrigin = route.originAddress?.formatted_address || route.originAddress?.address || origin;
+                                        const cardDestination = route.destAddress?.formatted_address || route.destAddress?.address || destination;
 
-                                    return (
-                                
-                                    <div key={route.id} >
-                                            {/* Traveller Info */}
-<SearchTravellerInfo
-  travellerName={travellerName}rating={rating}completedTrips={completedTrips}transportMode={transportMode}vehicleType={vehicleType}cardOrigin={cardOrigin}cardDestination={cardDestination}weight={weight}transitInfo={transitInfo}
-/>                                  
-
-                                    </div>
-                                    );
-                                })}
-                            </div>
+                                        return (
+                                            <div key={route.id}>
+                                                {/* Traveller Info */}
+                                                <SearchTravellerInfo
+                                                    travellerName={travellerName}
+                                                    rating={rating}
+                                                    completedTrips={completedTrips}
+                                                    transportMode={transportMode}
+                                                    vehicleType={vehicleType}
+                                                    cardOrigin={cardOrigin}
+                                                    cardDestination={cardDestination}
+                                                    weight={weight}
+                                                    transitInfo={transitInfo}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
