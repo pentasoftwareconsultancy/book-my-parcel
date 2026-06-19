@@ -56,10 +56,10 @@ const SearchSection = ({
 const vehicleOptions = [
   { label: "All Vehicles", value: "All", icon: FaCar },
   { label: "Bike", value: "Bike", icon: FaMotorcycle },
-  { label: "Scooter", value: "Scooter", icon: FaMotorcycle },
   { label: "Car", value: "Car", icon: FaCarSide },
   { label: "SUV", value: "SUV", icon: FaCar },
   { label: "Van", value: "Van", icon: FaShuttleVan },
+  { label: "Tempo", value: "Tempo", icon: FaTruck},
   { label: "Truck", value: "Truck", icon: FaTruck },
 ];
 
@@ -125,7 +125,9 @@ const vehicleOptions = [
               onClick={() => setShowSortMenu((prev) => !prev)}
               className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-200"
             >
-              Filter By Vehicle
+              {selectedVehicleType && selectedVehicleType !== "All"
+                ? selectedVehicleType
+                : "Filter By Vehicle"}
               <FiChevronDown
                 size={16}
                 className={`transition-transform ${
