@@ -207,7 +207,7 @@ const AdminPersonalTab = ({ personalInfo, isEditing, onSave, onCancel }) => (
       <h2 className="text-[17px] font-bold text-gray-900">Personal Information</h2>
       {isEditing && (
         <span className="text-xs text-white bg-primary border border-blue-200 px-3 py-1 rounded-full font-medium">
-          ✏️ Editing mode
+           Editing mode
         </span>
       )}
     </div>
@@ -299,7 +299,7 @@ const UserPersonalTab = ({ personalInfo = {}, isEditing, onSave }) => {
         <h2 className="text-[17px] font-bold text-gray-900">Personal Information</h2>
         {isEditing && (
           <span className="text-xs text-white bg-primary border border-blue-200 px-3 py-1 rounded-full font-medium">
-            ✏️ Editing mode
+             Editing mode
           </span>
         )}
       </div>

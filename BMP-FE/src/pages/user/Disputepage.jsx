@@ -7,22 +7,110 @@ import ApiService from "../../core/services/api.service";
 import ServerUrl from "../../core/constants/serverUrl.constant";
 import { showToast } from "../../core/utils/toast.util";
 
-const DISPUTE_REASONS = [
-  "Traveler asking extra money",
-  "Traveler unreachable",
-  "Wrong pickup location",
-  "Traveler not coming for pickup",
-  "Traveler deviated route",
-];
+const USER_REASONS = {
+  CONFIRMED: [
+    "Traveler unreachable",
+    "Traveler asking extra money",
+    "Payment issue",
+    "Cancellation issue",
+    "Other",
+  ],
+
+  PICKUP: [
+    "Traveler not coming for pickup",
+    "Wrong pickup location",
+    "Parcel damaged",
+    "Parcel missing",
+    "Other",
+  ],
+
+  IN_TRANSIT: [
+    "Traveler deviated route",
+    "Parcel damaged",
+    "Parcel lost",
+    "Delivery delay",
+    "Tracking issue",
+    "Other",
+  ],
+
+  DELIVERED: [
+    "Wrong delivery",
+    "Parcel damaged",
+    "Incomplete delivery",
+    "Payment issue",
+    "Other",
+  ],
+
+  CANCELLED: [
+    "Refund not received",
+    "Wrong cancellation",
+    "Payment issue",
+    "Other",
+  ],
+};
+
+const TRAVELLER_REASONS = {
+  CONFIRMED: [
+    "User unreachable",
+    "Wrong booking details",
+    "Payment issue",
+    "Other",
+  ],
+
+  PICKUP: [
+    "User unavailable",
+    "Parcel not ready",
+    "Parcel differs from description",
+    "Other",
+  ],
+
+  IN_TRANSIT: [
+    "Receiver unreachable",
+    "User requesting route change",
+    "Delivery issue",
+    "Other",
+  ],
+
+  DELIVERED: [
+    "Receiver refused parcel",
+    "False complaint",
+    "Payment issue",
+    "Other",
+  ],
+
+  CANCELLED: [
+    "Wrong cancellation",
+    "Payment issue",
+    "Other",
+  ],
+};
+
 
 const DisputePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const role =
+    location.state?.role ||
+    (location.pathname.includes("/traveler")
+      ? "TRAVELLER"
+      : "USER");
   // Read the order passed from handleDispute
   const order = location.state?.order;
 
   const bookingId = order?.deliveryId || order?.id || order?.booking_id || order?.bookingId;
+
+  console.log("FULL ORDER OBJECT:", order);
+  console.log("booking_id:", order?.booking_id);
+  console.log("bookingId:", order?.bookingId);
+  console.log("deliveryId:", order?.deliveryId);
+  console.log("id:", order?.id);
+
+
+  const DISPUTE_REASONS =
+    role === "TRAVELLER"
+      ? TRAVELLER_REASONS[order?.status] || ["Other"]
+      : USER_REASONS[order?.status] || ["Other"];
 
   const [selectedReason, setSelectedReason] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -43,12 +131,12 @@ const DisputePage = () => {
             const existing = res.data.data.find(d => d.booking_id === bookingId || d?.booking?.id === bookingId);
             if (existing) {
               setExistingDispute(existing);
-              console.log("✅ Dispute already exists for this booking:", existing);
+              console.log("Dispute already exists for this booking:", existing);
             }
           }
         })
         .catch(err => {
-          console.log("⚠️ Could not fetch existing disputes:", err.message);
+          console.log(" Could not fetch existing disputes:", err.message);
         })
         .finally(() => setCheckingDispute(false));
     }
@@ -82,7 +170,7 @@ const DisputePage = () => {
         booking_id: bookingId,
         dispute_type: selectedReason,
         description,
-        role: "USER",  // ✅ Explicitly set role for user disputes
+        role,
       });
       showToast("Dispute submitted successfully!", "success");
       setSubmitted(true);
@@ -110,7 +198,9 @@ const DisputePage = () => {
         </button>
 
         <h1 className="text-2xl md:text-3xl font-bold text-blue-600 mb-6">
-          Dispute
+          {role === "TRAVELLER"
+            ? "Traveller Dispute"
+            : "Customer Dispute"}
         </h1>
 
         {/* Order Summary Card */}
@@ -336,8 +426,8 @@ const SuccessScreen = ({ onBack, isExisting }) => (
       {/* Message */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
         <p className="text-gray-700">
-          {isExisting 
-            ? "You have already submitted a dispute for this booking." 
+          {isExisting
+            ? "You have already submitted a dispute for this booking."
             : "Thank you for reporting this issue."
           }
         </p>
