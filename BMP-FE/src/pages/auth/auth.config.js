@@ -13,5 +13,5 @@ import { CiMail,CiLock } from "react-icons/ci";
 
 export const loginFields = [
   { name: "email", label: "Email", type: "email", icon: CiMail, placeholder: "Enter your mail", required: true },
-  { name: "password", label: "Password", type: "password", placeholder: "Enter your password", required: true },
+  { name: "password", label: "Password", icon: CiLock, type: "password", placeholder: "Enter your password", required: true },
 ];
