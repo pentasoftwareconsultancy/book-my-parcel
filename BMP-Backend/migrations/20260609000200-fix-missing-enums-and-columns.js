@@ -63,7 +63,8 @@ export async function up(queryInterface, Sequelize) {
       'PICKUP',
       'IN_TRANSIT',
       'DELIVERED',
-      'CANCELLED'
+      'CANCELLED',
+      'AUTO_CANCELLED'
     ];
 
     for (const status of parcelStatusValues) {

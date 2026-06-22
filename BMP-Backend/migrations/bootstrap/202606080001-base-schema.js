@@ -39,7 +39,8 @@ module.exports = {
             'PICKUP',
             'IN_TRANSIT',
             'DELIVERED',
-            'CANCELLED'
+            'CANCELLED',
+            'AUTO_CANCELLED'
         ]); await createEnum('enum_payments_status', ['PENDING']);
         await createEnum('enum_withdrawals_status', ['PENDING']);
         await createEnum('enum_chat_messages_sender_role', ['USER', 'TRAVELLER', 'ADMIN']);
