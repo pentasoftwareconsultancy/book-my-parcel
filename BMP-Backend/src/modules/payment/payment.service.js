@@ -28,11 +28,7 @@ import {
  */
 export const createOrderService = async (parcel_id, requestingUserId) => {
   const parcel = await Parcel.findByPk(parcel_id);
-
-  console.log("CASHFREE_APP_ID:", process.env.CASHFREE_APP_ID);
-  console.log("CASHFREE_SECRET_KEY:", process.env.CASHFREE_SECRET_KEY);
-  console.log("CASHFREE_ENV:", process.env.CASHFREE_ENV);
-
+  
   if (!parcel) {
     throw new Error("Parcel not found");
   }

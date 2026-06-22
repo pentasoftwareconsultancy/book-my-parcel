@@ -17,6 +17,23 @@ const VEHICLE_MULTIPLIERS = {
   bus: 0.85, train: 0.75, plane: 3.5,
 };
 
+// Backend-aligned slab-based pricing functions
+function getWeightCharge(weight) {
+  if (weight <= 1) return 20;
+  if (weight <= 5) return 50;
+  if (weight <= 10) return 80;
+  if (weight <= 20) return 120;
+  return 180;
+}
+
+function getDistanceCharge(distance) {
+  if (distance <= 50) return 30;
+  if (distance <= 200) return 80;
+  if (distance <= 500) return 150;
+  if (distance <= 1000) return 250;
+  return 400;
+}
+
 export const SIZE_OPTIONS = [
   { id: "small",       title: "Small",       desc: "Documents, letters",  min: 0,  max: 1  },
   { id: "medium",      title: "Medium",      desc: "Books, clothes",      min: 1,  max: 5  },
@@ -90,6 +107,7 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
   }, [data.packageSize]);
 
   // Recalculate estimated price whenever relevant fields change
+  // Uses exact backend formula: (Distance + Weight) × Vehicle + Platform Fee + GST
   useEffect(() => {
     if (!data.pickupLat || !data.pickupLng || !data.deliveryLat || !data.deliveryLng || !data.parcelWeight || !data.vehicleType) {
       setEstimatedPrice(null);
@@ -97,19 +115,34 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
     }
     try {
       const distance = haversineDistance(data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng);
-      const l = Number(data.parcelLength) || 0;
-      const w = Number(data.parcelWidth)  || 0;
-      const h = Number(data.parcelHeight) || 0;
-      const volumetric = l > 0 && w > 0 && h > 0 ? (l * w * h) / 366 : 0;
-      const billable = Math.max(Number(data.parcelWeight) || 0, volumetric);
+      
+      // Use actual weight only (NO dimension-based volumetric calculation)
+      const weight = Number(data.parcelWeight) || 1;
+      
+      // Apply backend-aligned slab-based pricing
+      const weightCharge = getWeightCharge(weight);
+      const distanceCharge = getDistanceCharge(distance);
+      
+      // Apply vehicle multiplier
       const multiplier = VEHICLE_MULTIPLIERS[data.vehicleType] || 1.0;
-      const price = Math.round(50 + distance * 0.5 + billable * 10) * multiplier;
-      setEstimatedPrice(price);
-      updateFields({ priceQuote: price });
+      const basePrice = Math.round((distanceCharge + weightCharge) * multiplier);
+      
+      // Calculate platform fee (assume 10% for frontend estimation)
+      const platformFee = Math.round(basePrice * 0.10);
+      const subtotal = basePrice + platformFee;
+      
+      // Calculate GST (18%)
+      const gstAmount = Math.round(subtotal * 0.18);
+      
+      // Final price
+      const finalPrice = subtotal + gstAmount;
+      
+      setEstimatedPrice(finalPrice);
+      updateFields({ priceQuote: finalPrice });
     } catch {
       setEstimatedPrice(null);
     }
-  }, [data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng, data.parcelWeight, data.parcelLength, data.parcelWidth, data.parcelHeight, data.vehicleType]);
+  }, [data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng, data.parcelWeight, data.vehicleType]);
 
   const geocodeAddress = async (address, type, selectedPlaceId = "") => {
     if (!address?.trim()) return;

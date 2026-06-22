@@ -188,7 +188,7 @@ const AppRoutes = () => {
             <Route path={RoutePath.TRAVELER_MYROUTES}             element={<S><MyRoutes /></S>} />
             <Route path={RoutePath.TRAVELLER_EARNINGS}            element={<S><Earnings /></S>} />
             <Route path={RoutePath.TRAVELLER_NOTIFICATIONS}       element={<S><TravelerNotifications /></S>} />
-            <Route path={RoutePath.TRAVELLER_DISPUTE}             element={<S><TravellerDisputepage /></S>} />
+            <Route path={RoutePath.TRAVELLER_DISPUTE}             element={<S><DisputePage /></S>} />
           </Route>
 
           <Route path={RoutePath.TRAVELLER_ROUTE}  element={<S><TravelRoute /></S>} />

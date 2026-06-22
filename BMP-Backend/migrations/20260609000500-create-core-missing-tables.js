@@ -22,7 +22,7 @@ export async function up(queryInterface, Sequelize) {
   };
 
   await createEnum('enum_booking_status', ['CREATED', 'MATCHING', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED']);
-  await createEnum('enum_parcel_status', ['CREATED', 'MATCHING', 'PARTNER_SELECTED', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED']);
+  await createEnum('enum_parcel_status', ['CREATED', 'MATCHING', 'PARTNER_SELECTED', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'AUTO_CANCELLED']);
   await createEnum('enum_payments_status', ['CREATED', 'PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
   await createEnum('enum_withdrawals_status', ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']);
   await createEnum('enum_chat_messages_sender_role', ['USER', 'TRAVELLER', 'ADMIN']);
@@ -143,7 +143,7 @@ export async function up(queryInterface, Sequelize) {
       intermediate_cities: Sequelize.JSONB,
       route_geometry: Sequelize.TEXT,
       status: {
-        type: Sequelize.ENUM('CREATED', 'MATCHING', 'PARTNER_SELECTED', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'),
+        type: Sequelize.ENUM('CREATED', 'MATCHING', 'PARTNER_SELECTED', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'AUTO_CANCELLED'),
         defaultValue: 'CREATED'
       },
       createdAt: { type: Sequelize.DATE, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },

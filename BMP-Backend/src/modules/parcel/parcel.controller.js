@@ -18,9 +18,11 @@ export const createParcel = async (req, res) => {
       id: result.parcel.id,
       parcel: result.parcel,
       suggestedPrice: result.suggestedPrice,
-      surgeMultiplier: result.surgeMultiplier,
-      surgeReasons: result.surgeReasons,
+      distanceCharge: result.distanceCharge,
+      weightCharge: result.weightCharge,
       basePrice: result.basePrice,
+      platformFee: result.platformFee,
+      gstAmount: result.gstAmount,
       pickupAddress: result.pickupAddress,
       deliveryAddress: result.deliveryAddress
     }, "Parcel request created successfully");
