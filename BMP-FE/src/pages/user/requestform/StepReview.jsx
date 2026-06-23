@@ -8,6 +8,7 @@ import { DELIVERY_STATUS } from "../../../core/constants/app.constant";
 const STATUS_STYLES = {
   [DELIVERY_STATUS.DELIVERED]: "bg-green-50 border-green-200 text-green-800",
   [DELIVERY_STATUS.CANCELLED]: "bg-red-50 border-red-200 text-red-800",
+  [DELIVERY_STATUS.AUTO_CANCELLED]: "bg-orange-50 border-orange-200 text-orange-800",
   [DELIVERY_STATUS.IN_TRANSIT]: "bg-blue-50 border-blue-200 text-blue-800",
   [DELIVERY_STATUS.CONFIRMED]: "bg-green-50 border-green-200 text-green-800",
 };

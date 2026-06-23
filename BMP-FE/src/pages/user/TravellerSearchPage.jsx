@@ -1,15 +1,15 @@
 
 import { useState } from "react";
-import {  FiMapPin, FiPackage, FiUser, FiStar,  } from "react-icons/fi";
+import {  FiMapPin,FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import ServerUrl from "../../core/constants/serverUrl.constant";
 import ApiService from "../../core/services/api.service";
 import RoutePath from "../../core/constants/routes.constant";
 import SearchSection from  "./SearchSection"
 
-import {
-  FiTruck,
-} from "react-icons/fi";
+
+import SearchTravellerInfo from "./requestform/SearchTravellerInfo";
+
 export default function TravellerSearchPage() {
     const navigate = useNavigate();
     const [origin, setOrigin] = useState("");
@@ -17,18 +17,43 @@ export default function TravellerSearchPage() {
     const [routes, setRoutes] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const token = localStorage.getItem("token");
+    const [selectedVehicleType, setSelectedVehicleType] = useState("All");
 
-    //  API CALL INSIDE SAME FILE
+    const normalizeVehicleType = (value) => {
+        if (!value) return "";
+        return value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/[_-]/g, " ")
+            .split(" ")
+            .filter(Boolean)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
+    const matchesSelectedVehicle = (vehicleType, selectedType) => {
+        if (!selectedType || selectedType === "All") return true;
+        const normalized = vehicleType?.toString().toLowerCase() || "";
+        const selected = selectedType.toString().toLowerCase();
+
+        if (selected === "Bike") return /bike|bicycle|motorcycle/.test(normalized);
+        if (selected === "Car") return /\bcar\b|sedan|hatchback|coupe/.test(normalized);
+        if (selected === "Suv") return normalized.includes("suv");
+        if (selected === "Van") return normalized.includes("van");
+        if (selected === "Tempo") return normalized.includes("Tempo");
+        if (selected === "Truck") return normalized.includes("truck") || normalized.includes("tempo") || normalized.includes("lorry");
+
+        return normalized.includes(selected);
+    };
+
     const handleSearch = async () => {
         if (!origin.trim() || !destination.trim()) {
             setError("Please enter origin and destination");
             return;
         }
-
         setError("");
         setLoading(true);
-
         console.log("Origin Selected:", origin);
         console.log("Destination Selected:", destination);
 
@@ -38,7 +63,6 @@ export default function TravellerSearchPage() {
                 ApiService.geocodeAddress(origin),
                 ApiService.geocodeAddress(destination)
             ]);
-
             console.log("Origin Geocode:", originGeocode);
             console.log("Destination Geocode:", destinationGeocode);
 
@@ -124,34 +148,82 @@ export default function TravellerSearchPage() {
             setLoading(false);
         }
     };
+
+    const filteredRoutes = routes
+        .filter((route) => {
+            const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "";
+            return matchesSelectedVehicle(vehicleType, selectedVehicleType);
+        })
+        .sort((a, b) => {
+            const aType = normalizeVehicleType(a.vehicle_type || a.travellerProfile?.vehicle_type || "");
+            const bType = normalizeVehicleType(b.vehicle_type || b.travellerProfile?.vehicle_type || "");
+            return aType.localeCompare(bType);
+        });
+
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="h-18" />
             <div className="max-w-5xl mx-auto px-4 py-8">
-                <div className="flex items-center gap-4 mb-6">
-                    <button
-                        onClick={() => navigate(RoutePath.PUBLIC_HOME)}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
-             bg-gradient-to-r from-blue-600 to-indigo-600
-             text-white text-sm font-semibold
-             shadow-md hover:shadow-lg
-             hover:from-blue-700 hover:to-indigo-700
-             transform hover:-translate-y-0.5 hover:scale-105
-             transition-all duration-300 ease-in-out"
-                    >
-                        <span className="text-base">←</span>
-                        Back to Home
-                    </button>
-                </div>
+<header className="relative overflow-hidden  px-6 sm:px-8 py-6 text-white mb-8">
+  {/* Gradient Background */}
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "linear-gradient(180deg, #1F2AFF 0%, #5C9DF2 139.02%)",
+    }}
+  />
 
-                <h1 className="text-xl font-bold mb-1">Find Travellers</h1>
-                <p className="text-gray-500 mb-6 text-sm">
-                    Search for verified travellers on your route and get your parcels delivered
-                </p>
+  {/* Pattern Background Image */}
+  <div
+    className="absolute inset-0 pointer-events-none"
+    style={{
+      backgroundImage: "url('/whychooseus-bg.png')",
+      backgroundSize: "1150px",
+      backgroundRepeat: "repeat",
+      opacity: 1,
+      mixBlendMode: "invert",
+      zIndex: 1,
+    }}
+  />
+
+  {/* Header Content */}
+  <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 className="text-2xl sm:text-3xl font-semibold flex items-center gap-2">
+        <FiSearch size={24} />
+        Find Travellers
+      </h1>
+
+      <p className="mt-2 max-w-2xl text-sm sm:text-base text-white/90">
+        Search for verified travellers heading to your destination and find
+        the best match for safe, reliable, and timely parcel delivery.
+      </p>
+    </div>
+
+    <button
+      onClick={() => navigate(RoutePath.PUBLIC_HOME)}
+      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg
+        bg-white text-blue-700 font-semibold shadow-md
+        hover:bg-gray-100 transition-all duration-300"
+    >
+      <span>←</span>
+      Back to Home
+    </button>
+  </div>
+</header>
 
                 {/* Search Form */}
                 <SearchSection
-  origin={origin}setOrigin={setOrigin}destination={destination}setDestination={setDestination}handleSearch={handleSearch}loading={loading}error={error}
+  origin={origin}
+  setOrigin={setOrigin}
+  destination={destination}
+  setDestination={setDestination}
+  handleSearch={handleSearch}
+  loading={loading}
+  error={error}
+  selectedVehicleType={selectedVehicleType}
+  onVehicleTypeChange={setSelectedVehicleType}
 />
                 {/* Results Section */}
                 <div className="space-y-4">
@@ -189,155 +261,62 @@ export default function TravellerSearchPage() {
                         <>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-semibold text-gray-800">
-                                    Available Travellers ({routes.length})
+                                    Available Travellers ({filteredRoutes.length})
                                 </h3>
                                 <div className="text-sm text-gray-500">
-                                    Sorted by relevance
+                                    {selectedVehicleType && selectedVehicleType !== "All"
+                                        ? `Filtered by ${selectedVehicleType}`
+                                        : "Sorted by vehicle type"}
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                {routes.map((route) => {
-                                    const travellerName =
-                                        route.traveller_name ||
-                                        route.travellerProfile?.user?.profile?.name ||
-                                        route.travellerProfile?.user?.name ||
-                                        route.travellerProfile?.user?.email ||
-                                        route.travellerProfile?.user?.phone_number ||
-                                        route.user?.profile?.name ||
-                                        route.user?.name ||
-                                        route.user?.email ||
-                                        route.user?.phone_number ||
-                                        "Verified Traveller";
-                                    const rating = route.rating || route.travellerProfile?.rating || "4.8";
-                                    const completedTrips = route.completed_trips || route.travellerProfile?.total_deliveries || "25+";
-                                    const transportMode = route.transport_mode === 'private' ? 'Private Vehicle' : (route.transport_mode || "Available");
-                                    const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "Personal Vehicle";
-                                    const weight = route.max_weight_kg ? `${route.max_weight_kg} kg` : (route.available_capacity_kg ? `${route.available_capacity_kg} kg` : "—");
-                                    const transitInfo = route.transit_details ? (typeof route.transit_details === 'string' ? route.transit_details : JSON.stringify(route.transit_details)) : null;
+                            {filteredRoutes.length === 0 ? (
+                                <div className="bg-white rounded-2xl p-8 border border-yellow-200 shadow-sm text-sm text-yellow-800">
+                                    No travellers match the selected vehicle type. Try selecting All Vehicles or a different vehicle.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {filteredRoutes.map((route) => {
+                                        const travellerName =
+                                            route.traveller_name ||
+                                            route.travellerProfile?.user?.profile?.name ||
+                                            route.travellerProfile?.user?.name ||
+                                            route.travellerProfile?.user?.email ||
+                                            route.travellerProfile?.user?.phone_number ||
+                                            route.user?.profile?.name ||
+                                            route.user?.name ||
+                                            route.user?.email ||
+                                            route.user?.phone_number ||
+                                            "Verified Traveller";
+                                        const rating = route.rating || route.travellerProfile?.rating || "4.8";
+                                        const completedTrips = route.completed_trips || route.travellerProfile?.total_deliveries || "25+";
+                                        const transportMode = route.transport_mode === 'private' ? 'Private Vehicle' : (route.transport_mode || "Available");
+                                        const vehicleType = route.vehicle_type || route.travellerProfile?.vehicle_type || "Personal Vehicle";
+                                        const weight = route.max_weight_kg ? `${route.max_weight_kg} kg` : (route.available_capacity_kg ? `${route.available_capacity_kg} kg` : "—");
+                                        const transitInfo = route.transit_details ? (typeof route.transit_details === 'string' ? route.transit_details : JSON.stringify(route.transit_details)) : null;
 
-                                    const cardOrigin = route.originAddress?.formatted_address || route.originAddress?.address || origin;
-                                    const cardDestination = route.destAddress?.formatted_address || route.destAddress?.address || destination;
+                                        const cardOrigin = route.originAddress?.formatted_address || route.originAddress?.address || origin;
+                                        const cardDestination = route.destAddress?.formatted_address || route.destAddress?.address || destination;
 
-                                    return (
-                                
-                                    <div
-                                        key={route.id}
-                                        className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 p-6 border border-gray-100"
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            {/* Traveller Avatar */}
-                                            <div className="relative flex-shrink-0">
-                                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                    <FiUser className="text-white text-2xl" />
-                                                </div>
-                                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                                                    <span className="text-white text-xs font-bold">✓</span>
-                                                </div>
+                                        return (
+                                            <div key={route.id}>
+                                                {/* Traveller Info */}
+                                                <SearchTravellerInfo
+                                                    travellerName={travellerName}
+                                                    rating={rating}
+                                                    completedTrips={completedTrips}
+                                                    transportMode={transportMode}
+                                                    vehicleType={vehicleType}
+                                                    cardOrigin={cardOrigin}
+                                                    cardDestination={cardDestination}
+                                                    weight={weight}
+                                                    transitInfo={transitInfo}
+                                                />
                                             </div>
-
-                                            {/* Traveller Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div>
-                                                        <h4 className="font-bold text-gray-800 text-lg">
-                                                            {travellerName}
-                                                        </h4>
-                                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                            <div className="flex items-center gap-1">
-                                                                <FiStar className="text-yellow-500 fill-current" />
-                                                                <span className="font-medium">{rating}</span>
-                                                            </div>
-                                                            <span>•</span>
-                                                            <span>{completedTrips} trips completed</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                            {transportMode}
-                                                        </span>
-                                                        <div className="text-sm text-gray-500 mt-1 capitalize">
-                                                            {vehicleType}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Route Details */}
-                                                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-  <div className="flex gap-4">
-    {/* Icon */}
-    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-      <FiTruck className="text-blue-600 text-2xl" />
-    </div>
-
-    {/* Content */}
-    <div className="flex-1">
-      {/* Route */}
-            <h3 className="font-semibold text-base text-gray-900 leading-6">
-                {cardOrigin} → {cardDestination}
-            </h3>
-
-      {/* Pickup */}
-            <div className="flex items-start gap-2 mt-2 text-sm text-gray-600">
-                <FiMapPin className="text-green-500 mt-1 flex-shrink-0" size={14} />
-                <span>{cardOrigin}</span>
-            </div>
-
-      {/* Destination */}
-            <div className="flex items-start gap-2 mt-1 text-sm text-gray-600">
-                <FiMapPin className="text-red-500 mt-1 flex-shrink-0" size={14} />
-                <span>{cardDestination}</span>
-            </div>
-
-      {/* Info */}
-      <div className="flex flex-wrap gap-6 mt-3 text-sm">
-                <div>
-                    <span className="text-gray-500">Vehicle:</span>{" "}
-                    <span className="font-semibold text-gray-800">
-                        {vehicleType}
-                    </span>
-                </div>
-
-                <div>
-                    <span className="text-gray-500">Mode:</span>{" "}
-                    <span className="font-semibold text-gray-800 capitalize">
-                        {transportMode}
-                    </span>
-                </div>
-
-                <div>
-                    <span className="text-gray-500">Weight:</span>{" "}
-                    <span className="font-semibold text-gray-800">
-                        {weight}
-                    </span>
-                </div>
-      </div>
-
-      {/* Transit Badge */}
-      {transitInfo && (
-        <div className="mt-3 inline-flex bg-blue-50 text-blue-600 text-xs font-medium px-3 py-1 rounded-full">
-          {transitInfo}
-        </div>
-      )}
-    </div>
-  </div>
-</div>
-           
-
-                                                {/* Action Buttons */}
-                                                <div className="flex gap-3">
-                                                    <button className="flex-1 bg-blue-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2">
-                                                        <FiPackage className="text-sm" />
-                                                        Book Now
-                                                    </button>
-                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    );
-                                })}
-                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

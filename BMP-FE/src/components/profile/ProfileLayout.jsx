@@ -146,7 +146,7 @@ const DUMMY_DATA = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS = ["Personal Info", "Saved Addresses", "Settings"];
+const TABS = ["Personal Info", " Address", "Settings"];
 
 const ProfileLayout = ({ role = "USER" }) => {
   const dispatch = useDispatch();

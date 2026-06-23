@@ -154,8 +154,8 @@ const options = {
         },
         ParcelStatus: {
           type: 'string',
-          enum: ['PENDING', 'PARTNER_SELECTED', 'PAYMENT_PENDING', 'PAID', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED'],
-          example: 'PENDING',
+          enum: ['CREATED', 'MATCHING', 'PARTNER_SELECTED', 'CONFIRMED', 'PICKUP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED', 'AUTO_CANCELLED'],
+          example: 'MATCHING',
         },
         
         // Traveller Schemas

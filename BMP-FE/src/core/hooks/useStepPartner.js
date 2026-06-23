@@ -90,6 +90,7 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
   const [selectedRouteId, setSelectedRouteId]     = useState(null);
   const [highlightedRouteId, setHighlightedRouteId] = useState(null);
   const [newlyAcceptedIds, setNewlyAcceptedIds]   = useState(new Set());
+  const [selectionError, setSelectionError]       = useState(null);
 
   const fetchTravellers = async (triggerMatching = false) => {
     if (!parcelId) { showToast("Please complete step 1 first", "error"); return; }
@@ -259,10 +260,12 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
         showToast("Traveller selected! 🎉", "success");
         onNext();
       } else {
-        showToast(res?.data?.message || "Failed to save selection", "error");
+        const message = res?.data?.message || "Failed to save selection";
+        setSelectionError(message);
       }
-    } catch {
-      showToast("Failed to save selection", "error");
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to save selection";
+      setSelectionError(message);
     } finally {
       setLoading(false);
     }
@@ -272,6 +275,7 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
     selectedId, travellers, loading, parcelData,
     sortBy, setSortBy,
     selectedRouteId, highlightedRouteId, newlyAcceptedIds,
+    selectionError, clearSelectionError: () => setSelectionError(null),
     fetchTravellers, handleSelect, handleRouteClick, handleNext,
   };
 }

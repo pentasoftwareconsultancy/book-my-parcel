@@ -1,6 +1,8 @@
 import sequelize from "../../config/database.config.js";
 import TravellerRoute from "./travellerRoute.model.js";
 import TravellerProfile from "./travellerProfile.model.js";
+import User from "../user/user.model.js";
+import UserProfile from "../user/userProfile.model.js";
 import Address from "../parcel/address.model.js";
 import {
   geocodeAddress,
@@ -851,6 +853,20 @@ export async function searchTravellerRoutes(
       {
         model: TravellerProfile,
         as: "travellerProfile",
+        include: [
+          {
+            model: User,
+            as: "user",
+            include: [
+              {
+                model: UserProfile,
+                as: "profile",
+                attributes: ["name", "avatar_url"],
+              },
+            ],
+            attributes: ["id", "email", "phone_number"],
+          },
+        ],
       },
       {
         model: Address,

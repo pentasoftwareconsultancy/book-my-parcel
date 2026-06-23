@@ -152,11 +152,11 @@ export async function logoutController(req, res) {
 
 export async function firebaseLoginController(req, res) {
   try {
-    const { token, provider } = req.body;
+    const { token, provider,role} = req.body;
     if (!token || !provider) {
       return responseError(res, "Token and provider are required", 400);
     }
-    const result = await authService.firebaseLogin(token, provider);
+    const result = await authService.firebaseLogin(token, provider,role);
     return responseSuccess(res, result, "Login successful", 200);
   } catch (err) {
     // SDK not initialized — this is a server config problem, not a client error

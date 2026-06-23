@@ -48,7 +48,7 @@ const UserOrdersPage = () => {
     : "";
 
   const activeCount = orders.filter(
-    (o) => o.status === DELIVERY_STATUS.IN_TRANSIT || o.status === DELIVERY_STATUS.CONFIRMED || o.status === DELIVERY_STATUS.PARTNER_SELECTED
+    (o) => o.status === DELIVERY_STATUS.IN_TRANSIT || o.status === DELIVERY_STATUS.CONFIRMED || o.status === DELIVERY_STATUS.PARTNER_SELECTED || o.status === DELIVERY_STATUS.PICKUP
   ).length;
 
   return (

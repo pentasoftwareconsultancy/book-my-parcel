@@ -97,7 +97,11 @@ const TravellerDetailsPage = () => {
               weight: data.weight ? `${data.weight} kg` : "—",
               value: data.value || "—",
               speed: data.delivery_speed || "Standard",
-              est_delivery: "3-5 Days",
+              est_delivery: data.route_duration_minutes 
+                ? data.route_duration_minutes < 60
+                  ? `${Math.round(data.route_duration_minutes)} mins`
+                  : `${Math.round(data.route_duration_minutes / 60)} hrs`
+                : "—",
               description: data.description || "—",
               type: data.parcel_type || "—",
               length: data.length ? formatDimensionInches(data.length) : "—",
@@ -112,24 +116,33 @@ const TravellerDetailsPage = () => {
             // Traveller info (sender's perspective)
             traveller: data.booking?.traveller ? {
               name: data.booking.traveller.profile?.name || data.booking.traveller.email || "—",
-              vehicle: data.booking.traveller.travellerProfile?.vehicle_type || "—",
+              vehicle: data.booking.traveller.travellerProfile?.vehicle_type
+                ? data.booking.traveller.travellerProfile.vehicle_type.charAt(0).toUpperCase() +
+                  data.booking.traveller.travellerProfile.vehicle_type.slice(1).toLowerCase()
+                : "—",
               vehicleNumber: data.booking.traveller.travellerProfile?.vehicle_number || "—",
               rating: data.booking.traveller.travellerProfile?.rating || "N/A",
               totalDeliveries: data.booking.traveller.travellerProfile?.total_deliveries || 0,
-              estimatedDelivery: "Today",
+              estimatedDelivery: data.route_duration_minutes 
+                ? data.route_duration_minutes < 60
+                  ? `${Math.round(data.route_duration_minutes)} mins`
+                  : `${Math.round(data.route_duration_minutes / 60)} hrs`
+                : "—",
               route: `${data.pickupAddress?.city} → ${data.deliveryAddress?.city}`,
               price: data.price_quote || "—",
               avatar: data.booking.traveller.profile?.avatar || null,
             } : null,
             
-            // Pricing info
+            // Pricing info - calculate traveller earnings (basePrice without platform fee and GST)
             price: {
-              actualPrice: data.price_quote || "—",  // Full parcel price
-              basePrice: data.price_quote || "—",    // Full parcel price for display
-              travellersEarnings: data.price_quote || "—",  // Traveller full earnings
-              deliverySpeedCharge: 0,
-              gst: 0,
-              total: data.price_quote || "—",  // Total amount (matches agreed price)
+              actualPrice: data.price_quote || "—",
+              basePrice: data.basePrice || data.price_quote || "—",
+              travellersEarnings: data.basePrice || data.price_quote || "—",  // Traveller gets base price (platform fee & GST are deducted)
+              distanceCharge: data.distanceCharge || "—",
+              weightCharge: data.weightCharge || "—",
+              platformFee: data.platformFee || "—",
+              gstAmount: data.gstAmount || "—",
+              finalPrice: data.price_quote || data.finalPrice || "—",
             },
             
             // Additional traveller info
@@ -172,13 +185,13 @@ const TravellerDetailsPage = () => {
             `${ServerUrl.API_FEEDBACK_BASE}/booking/${parcelData.bookingId}`
           );
           
-          console.log("📦 Feedback response:", response);
+          console.log("Feedback response:", response);
           
           if (response?.data?.data) {
             setFeedback(response.data.data);
             console.log("✅ Feedback set:", response.data.data);
           } else if (response?.data === null) {
-            console.log("ℹ️ No feedback yet for this booking");
+            console.log(" No feedback yet for this booking");
             setFeedback(null);
           }
         }

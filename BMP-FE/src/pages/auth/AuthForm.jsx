@@ -16,7 +16,7 @@ import {
   validateOnlyCharacters,
 } from "../../core/utils/validation";
 import RoutePath from "../../core/constants/routes.constant";
-import TermModel from  "../../components/modals/TerrmModel";
+import TermModel from "../../components/modals/TerrmModel";
 import PrivacyModel from "../../components/modals/PolicyModel";
 
 const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
@@ -49,9 +49,9 @@ const AuthForm = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordHint, setShowPasswordHint] = useState(false);
   const lastAutofillRef = React.useRef(0);
-const [termsOpen, setTermsOpen] = useState(false);
-const [policyOpen, setPolicyOpen] = useState(false);
-const [agreed, setAgreed] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const password = formData.password || "";
 
@@ -179,15 +179,15 @@ const [agreed, setAgreed] = useState(false);
             onClick={() => handleRoleClick(USER_ROLES.TRAVELLER)}
             className={`flex-1 flex flex-col items-center p-4 border rounded-md cursor-pointer transition
         ${role === USER_ROLES.TRAVELLER
-          ? "border-blue-600 bg-blue-50"
-          : "border-gray-300 hover:bg-gray-50"
-        }`}
-    >
-      <FaRoute className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
-      <span className="font-semibold text-[13px]">Traveler</span>
-    </div>
-  </div>
-)}
+                ? "border-blue-600 bg-blue-50"
+                : "border-gray-300 hover:bg-gray-50"
+              }`}
+          >
+            <FaRoute className={`text-2xl mb-2 text-white bg-blue-600 p-1 rounded-[5px] h-10 w-10 ${role === USER_ROLES.TRAVELLER ? "bg-blue-600" : "bg-gray-400"} `} />
+            <span className="font-semibold text-[13px]">Traveler</span>
+          </div>
+        </div>
+      )}
 
       {/* Dynamic Fields */}
       <div className="space-y-2">
@@ -215,9 +215,7 @@ const [agreed, setAgreed] = useState(false);
                       }`}
                   />
                 </div>
-                {errors.phone_number && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phone_number}</p>
-                )}
+                
               </div>
             ) : field.name === "password" || field.name === "confirmPassword" ? (
               <div className="space-y-1">
@@ -243,11 +241,9 @@ const [agreed, setAgreed] = useState(false);
                     onBlur={() => field.name === "password" && setShowPasswordHint(false)}
                     placeholder={field.placeholder}
                     autoComplete={isLoginPage ? (field.name === "password" ? "current-password" : "off") : "new-password"}
-                    className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${
-                      field.icon ? "pl-10" : "px-3"
-                    } ${
-                      errors[field.name] ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${field.icon ? "pl-10" : "px-3"
+                      } ${errors[field.name] ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   <div
                     onClick={() => {
@@ -293,28 +289,6 @@ const [agreed, setAgreed] = useState(false);
           </div>
         ))}
       </div>
-
-      {/* Terms */}
-      {/* {isSignupPage && (
-        <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
-          <input
-            type="checkbox"
-            required
-            className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
-          />
-          <span>
-            I agree to the{" "}
-            <Link to={RoutePath.PUBLIC_TERMSANDCONDITION} className="text-blue-600 hover:underline">
-              Terms & Conditions
-            </Link>
-            {"  "}and{"  "}
-            <Link to={RoutePath.PUBLIC_POLICY} className="text-blue-600 hover:underline">
-              Privacy Policy
-            </Link>
-
-          </span>
-        </label>
-      )} */}
       {isSignupPage && (
         <div className="mt-2">
           <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">
@@ -388,18 +362,19 @@ const [agreed, setAgreed] = useState(false);
 
           {/* Continue with Google — full-width, matches Google brand guidelines */}
           <button
+
             type="button"
-            onClick={onGoogleLogin}
+            onClick={() => onGoogleLogin(role)}
             disabled={disabled}
             aria-label="Continue with Google"
             className="
-              w-full flex items-center justify-center gap-3
-              px-4 py-2.5 rounded-lg border border-gray-300
-              bg-white text-gray-700 text-sm font-medium
-              hover:bg-gray-50 hover:border-gray-400
-              transition-all duration-150
-              disabled:opacity-60 disabled:cursor-not-allowed
-              shadow-sm
+            w-full flex items-center justify-center gap-3
+            px-4 py-2.5 rounded-lg border border-gray-300
+            bg-white text-gray-700 text-sm font-medium
+            hover:bg-gray-50 hover:border-gray-400
+            transition-all duration-150
+            disabled:opacity-60 disabled:cursor-not-allowed
+            shadow-sm
             "
           >
             <FcGoogle size={20} />

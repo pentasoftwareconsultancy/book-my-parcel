@@ -160,6 +160,7 @@ export function useStepReview({ data, readOnly }) {
       case DELIVERY_STATUS.IN_TRANSIT: return "Your parcel is in transit with the traveller.";
       case DELIVERY_STATUS.DELIVERED: return "Your parcel has been successfully delivered.";
       case DELIVERY_STATUS.CANCELLED: return "This order has been cancelled.";
+      case DELIVERY_STATUS.AUTO_CANCELLED: return "This parcel request expired because no traveller accepted within the allowed time.";
       default: return "";
     }
   };
