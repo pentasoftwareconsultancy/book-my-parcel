@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiTruck, FiCheckCircle, FiAlertCircle,
-  FiPackage, FiDollarSign, FiClock,
+  FiPackage,  FiClock,
 } from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
 import { CiUnread } from "react-icons/ci";
 // import { RiDeleteBin6Line } from "react-icons/ri";
 import { MdNotificationsNone } from "react-icons/md";
@@ -32,7 +33,7 @@ const iconMap = {
   check:   <FiCheckCircle />,
   alert:   <FiAlertCircle />,
   clock:   <FiClock />,
-  rupee:   <FiDollarSign />,
+  rupee:   <FaRupeeSign />,
 };
 
 // ── Color map ───────────────────────────────────────────────
@@ -76,7 +77,7 @@ const getSummaryCards = (notifications, unreadCount) => [
   {
     key: "earnings",
     label: "Earnings",
-    icon: <FiDollarSign size={16} />,
+    icon: <FaRupeeSign size={16} />,
     count: notifications.filter(
       (n) => notificationConfig.traveller.types[n.type_code]?.tabType === "earnings"
     ).length,
