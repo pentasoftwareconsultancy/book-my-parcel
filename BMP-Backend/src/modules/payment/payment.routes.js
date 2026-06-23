@@ -2,8 +2,30 @@ import express from "express";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
 import { sensitiveLimiter, paymentLimiter } from "../../middlewares/rateLimit.middleware.js";
 import { createOrder, verifyPayment } from "./payment.controller.js";
+import { cashfreeWebhook } from "./webhook.controller.js";
 
 const router = express.Router();
+
+// ─── Cashfree Webhook ─────────────────────────────────────────────────────────
+// MUST use express.raw() here so we have the raw body for HMAC signature verification.
+// This route is intentionally unauthenticated — Cashfree calls it server-to-server.
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  (req, res, next) => {
+    // Expose rawBody as a string for the signature check, then parse JSON normally
+    if (Buffer.isBuffer(req.body)) {
+      req.rawBody = req.body.toString("utf8");
+      try {
+        req.body = JSON.parse(req.rawBody);
+      } catch {
+        return res.status(400).json({ message: "Invalid JSON in webhook body" });
+      }
+    }
+    next();
+  },
+  cashfreeWebhook
+);
 
 /**
  * @swagger

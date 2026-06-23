@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { FiPackage } from "react-icons/fi";
-import aboutushero from "../../assets/homeimage/aboutushero.jpg"
+import aboutushero from "../../assets/homeimage/about3D.jpg"
 
 const AboutHero = () => {
   return (
@@ -62,7 +62,7 @@ const AboutHero = () => {
             <img
               src={aboutushero}
               alt="Parcel"
-              className="w-80 md:w-[450px] rounded-3xl shadow-2xl"
+              className="w-100 md:w-[750px] rounded-3xl shadow-2xl"
             />
           </motion.div>
 

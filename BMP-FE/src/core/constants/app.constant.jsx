@@ -1,8 +1,8 @@
 export const APPLICATION_CONSTANTS = {
   STORAGE: {
-    TOKEN:        "token",
+    TOKEN: "token",
     USER_DETAILS: "user",
-    LANGUAGE:     "lang",
+    LANGUAGE: "lang",
     ROUTE_STEP_1: "routeStep1",
     ROUTE_STEP_2: "routeStep2",
   },
@@ -14,7 +14,7 @@ export const APPLICATION_CONSTANTS = {
 };
 
 
-export const  DELIVERY_STATUS = {
+export const DELIVERY_STATUS = {
   CREATED: "CREATED",
   MATCHING: "MATCHING",
   PARTNER_SELECTED: "PARTNER_SELECTED",
@@ -23,13 +23,15 @@ export const  DELIVERY_STATUS = {
   IN_TRANSIT: "IN_TRANSIT",
   DELIVERED: "DELIVERED",
   CANCELLED: "CANCELLED",
+  AUTO_CANCELLED: "AUTO_CANCELLED",
   FAILED: "FAILED",
   REJECTED: "REJECTED",
+
 };
 
 export const PARCEL_REQUEST_STATUS = {
   SENT: "SENT",
-  INTERESTED: "INTERESTED", 
+  INTERESTED: "INTERESTED",
   ACCEPTED: "ACCEPTED",
   REJECTED: "REJECTED",
   EXPIRED: "EXPIRED",
@@ -94,6 +96,10 @@ export const DELIVERY_STATUS_UI = {
     label: "Cancelled",
     badge: "bg-red-100 text-red-600",
   },
+  AUTO_CANCELLED: {
+    label: "Expired",
+    badge: "bg-orange-100 text-orange-700",
+  },
   FAILED: {
     label: "Failed",
     badge: "bg-red-100 text-red-700",
@@ -110,19 +116,19 @@ export const DELIVERY_STATUS_UI = {
  * @param {"Active" | "Paused" | "Completed" | string} status
  */
 export const statusColor = (status) =>
-  ({
-    Active:    "bg-green-100 text-green-600",
-    Paused:    "bg-orange-100 text-orange-500",
-    Completed: "bg-blue-100 text-blue-600",
-  }[status] ?? "bg-gray-100 text-gray-500");
+({
+  Active: "bg-green-100 text-green-600",
+  Paused: "bg-orange-100 text-orange-500",
+  Completed: "bg-blue-100 text-blue-600",
+}[status] ?? "bg-gray-100 text-gray-500");
 // FIX: OTP_CONFIG values updated to match production backend .env settings.
 // OTP_LENGTH must match OTP_LENGTH in backend .env (production: 6).
 // These are used for UI only (input field length, countdown timers).
 // The backend is the authoritative source — keep these in sync.
 export const OTP_CONFIG = {
-  LENGTH:          6,   // was 4 — updated to match backend OTP_LENGTH=6
-  MAX_ATTEMPTS:    3,
-  EXPIRY_MINUTES:  10,  // was 30 — updated to match backend OTP_EXPIRY_MINUTES=10
+  LENGTH: 6,   // was 4 — updated to match backend OTP_LENGTH=6
+  MAX_ATTEMPTS: 3,
+  EXPIRY_MINUTES: 10,  // was 30 — updated to match backend OTP_EXPIRY_MINUTES=10
   LOCKOUT_MINUTES: 15,
 };
 

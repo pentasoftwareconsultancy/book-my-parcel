@@ -4,6 +4,7 @@ import RoutePath from "../core/constants/routes.constant";
 import ProtectedRoute from "./ProtectedRoute";
 import { USER_ROLES } from "../core/constants/app.constant";
 import ErrorBoundary from "../components/common/ErrorBoundary";
+import TravellerSearchPage from "../pages/user/TravellerSearchPage";
 
 // ─── Layouts ──────────────────────────────────────────────────────────────────
 const PublicLayout   = lazy(() => import('../layouts/PublicLayout'));
@@ -53,13 +54,9 @@ const FeedbackPage            = lazy(() => import("../pages/user/Feedbackpage"))
 
 // Traveler pages
 const TravelerDashboard    = lazy(() => import("../pages/traveler/TravelerDashboard"));
-const AvailableRequest     = lazy(() => import("../pages/traveler/AvailableRequest"));
 const TravelerLive         = lazy(() => import("../pages/traveler/Live"));
 const TravelerPickupOTP    = lazy(() => import("../pages/traveler/PickupOTP"));
 const TravelerDropOTP      = lazy(() => import("../pages/traveler/DropOTP"));
-const TravelerDeliveries   = lazy(() => import("../pages/traveler/Deliveries"));
-const TravelerCompleted    = lazy(() => import("../pages/traveler/Completed"));
-const TravelerCancelled    = lazy(() => import("../pages/traveler/Cancelled"));
 const TravelerTrack        = lazy(() => import("../pages/traveler/Track"));
 const TravelerProfile      = lazy(() => import("../pages/traveler/Profile"));
 const TravelerKYCPending   = lazy(() => import("../pages/traveler/KYCPending"));
@@ -162,6 +159,7 @@ const AppRoutes = () => {
             <Route path={RoutePath.USER_BOOKING_CANCLE}        element={<S><BookingCancel /></S>} />
             <Route path={RoutePath.USER_DISPUTE}               element={<S><DisputePage /></S>} />
             <Route path={RoutePath.USER_FEEDBACK}              element={<S><FeedbackPage /></S>} />
+            <Route path={RoutePath.USER_TRAVELLER_SEARCH}      element={<S><TravellerSearchPage /></S>} />
           </Route>
         </Route>
 
@@ -173,20 +171,20 @@ const AppRoutes = () => {
           <Route path={RoutePath.TRAVELER_BASE} element={<TravelerLayout />}>
             <Route index                                          element={<S><TravelerDashboard /></S>} />
             <Route path={RoutePath.TRAVELER_DASHBOARD}            element={<S><TravelerDashboard /></S>} />
-            <Route path={RoutePath.TRAVELER_AVAILABLE_REQUEST}    element={<S><AvailableRequest /></S>} />
+            <Route path={RoutePath.TRAVELER_AVAILABLE_REQUEST}    element={<S><TravelerDashboard /></S>} />
             <Route path={RoutePath.TRAVELER_LIVE}                 element={<S><TravelerLive /></S>} />
             <Route path={RoutePath.TRAVELER_PICKUP_OTP}           element={<S><TravelerPickupOTP /></S>} />
             <Route path={RoutePath.TRAVELER_DROP_OTP}             element={<S><TravelerDropOTP /></S>} />
-            <Route path={RoutePath.TRAVELER_DELIVERIES}           element={<S><TravelerDeliveries /></S>} />
-            <Route path={RoutePath.TRAVELER_COMPLETED}            element={<S><TravelerCompleted /></S>} />
+            <Route path={RoutePath.TRAVELER_DELIVERIES}           element={<S><TravelerDashboard /></S>} />
+            <Route path={RoutePath.TRAVELER_COMPLETED}            element={<S><TravelerDashboard /></S>} />
             <Route path={RoutePath.TRAVELER_TRACK}                element={<S><TravelerTrack /></S>} />
             <Route path={RoutePath.TRAVELER_KYC_PENDING}          element={<S><TravelerKYCPending /></S>} />
-            <Route path={RoutePath.TRAVELER_CANCELLED}            element={<S><TravelerCancelled /></S>} />
+            <Route path={RoutePath.TRAVELER_CANCELLED}            element={<S><TravelerDashboard /></S>} />
             <Route path={RoutePath.TRAVELER_PARCEL_DETAILS}       element={<S><TravellerDetailsPage /></S>} />
             <Route path={RoutePath.TRAVELER_MYROUTES}             element={<S><MyRoutes /></S>} />
             <Route path={RoutePath.TRAVELLER_EARNINGS}            element={<S><Earnings /></S>} />
             <Route path={RoutePath.TRAVELLER_NOTIFICATIONS}       element={<S><TravelerNotifications /></S>} />
-            <Route path={RoutePath.TRAVELLER_DISPUTE}             element={<S><TravellerDisputepage /></S>} />
+            <Route path={RoutePath.TRAVELLER_DISPUTE}             element={<S><DisputePage /></S>} />
           </Route>
 
           <Route path={RoutePath.TRAVELLER_ROUTE}  element={<S><TravelRoute /></S>} />

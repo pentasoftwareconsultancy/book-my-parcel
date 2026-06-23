@@ -18,17 +18,17 @@ import { signInWithGoogle } from "../../core/services/firebaseAuth.service";
 
 // ── Redirect helper ───────────────────────────────────────────────────────────
 function getRedirectPath(activeRole) {
-  if (activeRole === USER_ROLES.ADMIN)      return RoutePath.ADMIN_BASE;
-  if (activeRole === USER_ROLES.TRAVELLER)  return RoutePath.TRAVELER_DASHBOARD;
+  if (activeRole === USER_ROLES.ADMIN) return RoutePath.ADMIN_BASE;
+  if (activeRole === USER_ROLES.TRAVELLER) return RoutePath.TRAVELER_DASHBOARD;
   return RoutePath.PUBLIC_HOME;
 }
 
 const Login = () => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const dispatch  = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
 
-  const [error,   setError]   = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Hint injected by Register.jsx when user clicks "Sign in instead"
@@ -39,9 +39,9 @@ const Login = () => {
     const { user, token, activeRole, roles } = response.data.data;
 
     const userToStore = {
-      id:           user.id,
-      email:        user.email,
-      name:         user.name,
+      id: user.id,
+      email: user.email,
+      name: user.name,
       phone_number: user.phone_number,
       activeRole,
       roles,
@@ -49,7 +49,7 @@ const Login = () => {
 
     // Persist to storage + Redux — same keys the interceptor looks for
     StorageService.setData("token", token);
-    StorageService.setData("user",  userToStore);
+    StorageService.setData("user", userToStore);
     dispatch(setAuth({ user: userToStore, token }));
 
     navigate(getRedirectPath(activeRole));
@@ -64,8 +64,8 @@ const Login = () => {
       // loginWithEmailAndPassword thunk persists token + user and returns them
       const result = await dispatch(
         loginWithEmailAndPassword({
-          email:     data.email,
-          password:  data.password,
+          email: data.email,
+          password: data.password,
           loginRole: data.role || USER_ROLES.INDIVIDUAL,
         })
       );
@@ -87,7 +87,11 @@ const Login = () => {
   };
 
   // ── Firebase social handlers — shared POST to /api/auth/firebase-login ────
-  const handleFirebaseLogin = async (getToken, provider) => {
+  const handleFirebaseLogin = async (
+    getToken,
+    provider,
+    selectedRole
+  ) => {
     try {
       setLoading(true);
       setError("");
@@ -95,6 +99,8 @@ const Login = () => {
       const response = await ApiService.apipost(ServerUrl.API_FIREBASE_LOGIN, {
         token: firebaseToken,
         provider,
+        role: selectedRole,
+
       });
       handleLoginSuccess(response);
     } catch (err) {
@@ -105,8 +111,8 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => handleFirebaseLogin(signInWithGoogle, "google");
-
+  const handleGoogleLogin = (selectedRole) =>
+    handleFirebaseLogin(signInWithGoogle, "google", selectedRole);
   return (
     <AuthLayout title="Welcome Back!">
       <h2 className="text-2xl font-extrabold text-[#1F2AFF]">Log In</h2>

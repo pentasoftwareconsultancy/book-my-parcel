@@ -111,7 +111,7 @@ const isLoggedIn = !!(token && user);
     { value: "30K+", label: "Orders Delivered\nsafely at location", wide: true },
     { value: "40K+", label: "Loyal\ncustomers", wide: false },
     { value: "27+", label: "Locations\nCovered", wide: false },
-    { value: "20K+", label: "Trained delivery\npartners", wide: true },
+    { value: "20K+", label: "Verified Travellers\npartners", wide: true },
   ];
 
   return (
@@ -142,23 +142,41 @@ const isLoggedIn = !!(token && user);
             parcel delivery.
           </p>
 
-          <div className="mt-3 flex flex-row gap-3 justify-center lg:justify-start">
-            <button onClick={handleSendParcel}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
-                hover:bg-primary transform hover:scale-105 transition-all duration-300
-                shadow-lg hover:shadow-xl">
-              <FiPackage className="text-base" /> Send Parcel
-            </button>
-            <button onClick={handleTrackDelivery}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2
-                bg-white text-blue-600 border border-blue-600
-                px-6 py-3 rounded-lg text-sm font-semibold
-                hover:bg-blue-50 transform hover:scale-105 transition-all duration-200
-                shadow-lg hover:shadow-xl">
-              <FiTruck className="text-base text-blue-600" /> Track Delivery
-            </button>
-          </div>
+          <div className="mt-3 flex flex-row gap-3 justify-center lg:justify-start flex-wrap">
+  <button
+    onClick={handleSendParcel}
+    className="inline-flex items-center justify-center gap-2
+      bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
+      hover:bg-primary transform hover:scale-105 transition-all duration-300
+      shadow-lg hover:shadow-xl"
+  >
+    <FiPackage className="text-base" /> Send Parcel
+  </button>
+
+  <button
+    onClick={handleTrackDelivery}
+    className="inline-flex items-center justify-center gap-2
+      bg-white text-blue-600 border border-blue-600
+      px-4 py-2 rounded-lg text-sm font-semibold
+      hover:bg-blue-50 transform hover:scale-105 transition-all duration-200
+      shadow-lg hover:shadow-xl whitespace-nowrap"
+  >
+    <FiTruck className="text-base text-blue-600" /> Track Delivery
+  </button>
+
+  {isLoggedIn && (
+    <button
+      onClick={() => navigate(RoutePath.USER_TRAVELLER_SEARCH)}
+      className="inline-flex items-center justify-center gap-2
+        bg-primary text-white px-6 py-3 rounded-lg text-sm font-semibold
+        hover:bg-primary transform hover:scale-105 transition-all duration-200
+        shadow-lg hover:shadow-xl"
+    >
+      <FiTruck className="text-base" />
+      View Travellers
+    </button>
+  )}
+</div>
 
           <div className="mt-3 grid grid-cols-2 lg:grid-cols-3 gap-2 w-full md:max-w-full mx-auto lg:mx-0 lg:max-w-md">
             {/* 30K+ Large */}
@@ -189,7 +207,7 @@ const isLoggedIn = !!(token && user);
             <div className="col-span-1 md:col-span-1 lg:col-span-2 text-white p-5 sm:p-6 rounded-2xl shadow-md bg-primary">
               <p className="text-2xl sm:text-3xl font-bold mb-2">20K+</p>
               <p className="text-sm leading-snug opacity-95">
-                Trained delivery <br /> partners
+                Verified Traveller <br /> partners
               </p>
             </div>
           </div>

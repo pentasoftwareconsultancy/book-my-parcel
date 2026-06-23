@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiTruck, FiCheckCircle, FiAlertCircle,
-  FiPackage, FiDollarSign, FiClock,
+  FiPackage,  FiClock,
 } from "react-icons/fi";
+import { FaRupeeSign } from "react-icons/fa";
 import { CiUnread } from "react-icons/ci";
-// import { RiDeleteBin6Line } from "react-icons/ri";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { MdNotificationsNone } from "react-icons/md";
 import { useNotifications } from "../../core/hooks/useNotification";
 import { notificationConfig } from "../../core/constants/Notification.constants";
@@ -32,7 +33,7 @@ const iconMap = {
   check:   <FiCheckCircle />,
   alert:   <FiAlertCircle />,
   clock:   <FiClock />,
-  rupee:   <FiDollarSign />,
+  rupee:   <FaRupeeSign />,
 };
 
 // ── Color map ───────────────────────────────────────────────
@@ -76,7 +77,7 @@ const getSummaryCards = (notifications, unreadCount) => [
   {
     key: "earnings",
     label: "Earnings",
-    icon: <FiDollarSign size={16} />,
+    icon: <FaRupeeSign size={16} />,
     count: notifications.filter(
       (n) => notificationConfig.traveller.types[n.type_code]?.tabType === "earnings"
     ).length,
@@ -96,17 +97,17 @@ const TravellerNotifications = () => {
   } = useNotifications("traveller");
 
   // Navigate to the relevant page based on notification type and meta
-  const handleViewDetails = (n) => {
-    markAsRead(n.id);
-    const meta = n.meta || {};
-    if (meta.booking_id) {
-      navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.booking_id}`);
-    } else if (meta.parcel_id) {
-      navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.parcel_id}`);
-    } else {
-      navigate(RoutePath.TRAVELER_DELIVERIES);
-    }
-  };
+  // const handleViewDetails = (n) => {
+  //   markAsRead(n.id);
+  //   const meta = n.meta || {};
+  //   if (meta.booking_id) {
+  //     navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.booking_id}`);
+  //   } else if (meta.parcel_id) {
+  //     navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.parcel_id}`);
+  //   } else {
+  //     navigate(RoutePath.TRAVELER_DELIVERIES);
+  //   }
+  // };
 
   const filtered = notifications.filter((n) => {
     if (activeTab === "all")    return true;
@@ -261,12 +262,12 @@ const TravellerNotifications = () => {
                         Accept
                       </button>
                     )}
-                    <button
+                    {/* <button
                       onClick={() => handleViewDetails(n)}
                       className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-full"
                     >
                       View Details
-                    </button>
+                    </button> */}
                     {!n.is_read && (
                       <button
                         onClick={() => markAsRead(n.id)}

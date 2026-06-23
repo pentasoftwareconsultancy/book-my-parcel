@@ -49,6 +49,7 @@ class RoutePath {
   static USER_FEEDBACK = `${this.USER_BASE}/feedback/:bookingId`;
   static USER_FEEDBACK_BASE = `${this.USER_BASE}/feedback`;
 
+  static USER_TRAVELLER_SEARCH = `${this.USER_BASE}/traveller-search`;
 
   // ==================== TRAVELER ROUTES ====================
   static TRAVELER_DASHBOARD = `${this.TRAVELER_BASE}/dashboard`;
@@ -106,7 +107,7 @@ class RoutePath {
 
   static KYC_PAN = "/kyc/pan";
   static KYC_AADHAAR = "/kyc/aadhaar";
-  static KYC_BANK = "/kyc/bank";  
+  static KYC_BANK = "/kyc/bank";
 
 
   static UNAUTHORIZED = "/unauthorized";

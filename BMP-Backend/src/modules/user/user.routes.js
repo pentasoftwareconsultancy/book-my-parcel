@@ -101,7 +101,7 @@ router.get("/orders/:bookingId", authMiddleware, ctrl.getOrderDetails);
  *         name: status
  *         schema:
  *           type: string
- *           enum: [PENDING, PARTNER_SELECTED, PAYMENT_PENDING, PAID, IN_TRANSIT, DELIVERED, CANCELLED]
+     *           enum: [CREATED, MATCHING, PARTNER_SELECTED, CONFIRMED, PICKUP, IN_TRANSIT, DELIVERED, CANCELLED, AUTO_CANCELLED]
  *         description: Filter by status
  *       - in: query
  *         name: page

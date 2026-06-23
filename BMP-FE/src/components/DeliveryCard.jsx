@@ -4,19 +4,20 @@ import { DELIVERY_STATUS } from "../core/constants/app.constant";
 
 /* ── Status config ── */
 const STATUS_CONFIG = {
-  SENT:           { bg: "bg-blue-50",   text: "text-blue-700",   label: "REQUEST SENT" },
-  AVAILABLE:      { bg: "bg-blue-50",   text: "text-blue-700",   label: "AVAILABLE" },
-  INTERESTED:     { bg: "bg-amber-50",  text: "text-amber-700",  label: "INTEREST SENT" },
-  ACCEPTED:       { bg: "bg-amber-50",  text: "text-amber-700",  label: "ACCEPTED" },
-  REJECTED:       { bg: "bg-red-50",    text: "text-red-700",    label: "REJECTED" },
-  EXPIRED:        { bg: "bg-gray-100",  text: "text-gray-500",   label: "EXPIRED" },
-  SELECTED:       { bg: "bg-green-50",  text: "text-green-700",  label: "SELECTED" },
-  NOT_SELECTED:   { bg: "bg-red-50",    text: "text-red-700",    label: "NOT SELECTED" },
-  [DELIVERY_STATUS.CONFIRMED]:  { bg: "bg-green-50",  text: "text-green-700",  label: "CONFIRMED" },
-  [DELIVERY_STATUS.PICKUP]:     { bg: "bg-amber-50",  text: "text-amber-700",  label: "PICKUP READY" },
+  SENT: { bg: "bg-blue-50", text: "text-blue-700", label: "REQUEST SENT" },
+  AVAILABLE: { bg: "bg-blue-50", text: "text-blue-700", label: "AVAILABLE" },
+  INTERESTED: { bg: "bg-amber-50", text: "text-amber-700", label: "INTEREST SENT" },
+  ACCEPTED: { bg: "bg-amber-50", text: "text-amber-700", label: "ACCEPTED" },
+  REJECTED: { bg: "bg-red-50", text: "text-red-700", label: "REJECTED" },
+  EXPIRED: { bg: "bg-gray-100", text: "text-gray-500", label: "EXPIRED" },
+  SELECTED: { bg: "bg-green-50", text: "text-green-700", label: "SELECTED" },
+  NOT_SELECTED: { bg: "bg-red-50", text: "text-red-700", label: "NOT SELECTED" },
+  [DELIVERY_STATUS.CONFIRMED]: { bg: "bg-green-50", text: "text-green-700", label: "CONFIRMED" },
+  [DELIVERY_STATUS.PICKUP]: { bg: "bg-amber-50", text: "text-amber-700", label: "PICKUP READY" },
   [DELIVERY_STATUS.IN_TRANSIT]: { bg: "bg-indigo-50", text: "text-indigo-600", label: "IN TRANSIT" },
-  [DELIVERY_STATUS.DELIVERED]:  { bg: "bg-emerald-100", text: "text-emerald-700", label: "DELIVERED" },
-  [DELIVERY_STATUS.CANCELLED]:  { bg: "bg-red-50",    text: "text-red-700",    label: "CANCELLED" },
+  [DELIVERY_STATUS.DELIVERED]: { bg: "bg-emerald-100", text: "text-emerald-700", label: "DELIVERED" },
+  [DELIVERY_STATUS.CANCELLED]: { bg: "bg-red-50", text: "text-red-700", label: "CANCELLED" },
+  [DELIVERY_STATUS.AUTO_CANCELLED]: { bg: "bg-orange-50", text: "text-orange-700", label: "EXPIRED" },
 };
 
 const getStatusConfig = (status) => STATUS_CONFIG[status] || { bg: "bg-blue-50", text: "text-blue-700", label: "UNKNOWN" };
@@ -30,10 +31,10 @@ const formatRupee = (val) => {
 
 /* ── Button config per booking status ── */
 const BUTTON_CONFIG = {
-  [DELIVERY_STATUS.CONFIRMED]:  { label: "Reached at Pickup",     action: "start_pickup",    cls: "bg-amber-500 hover:bg-amber-600 text-white" },
-  [DELIVERY_STATUS.PICKUP]:     { label: "Enter Pickup OTP",      action: "verify_pickup",   cls: "bg-amber-500 hover:bg-amber-600 text-white" },
-  [DELIVERY_STATUS.IN_TRANSIT]: { label: "Reached at Delivery",   action: "start_delivery",  cls: "bg-emerald-500 hover:bg-emerald-600 text-white" },
-  [DELIVERY_STATUS.DELIVERED]:  { label: "Completed",             action: null,              cls: "bg-blue-500 hover:bg-blue-600 text-white" },
+  [DELIVERY_STATUS.CONFIRMED]: { label: "Reached at Pickup", action: "start_pickup", cls: "bg-amber-500 hover:bg-amber-600 text-white" },
+  [DELIVERY_STATUS.PICKUP]: { label: "Enter Pickup OTP", action: "verify_pickup", cls: "bg-amber-500 hover:bg-amber-600 text-white" },
+  [DELIVERY_STATUS.IN_TRANSIT]: { label: "Reached at Delivery", action: "start_delivery", cls: "bg-emerald-500 hover:bg-emerald-600 text-white" },
+  [DELIVERY_STATUS.DELIVERED]: { label: "Completed", action: null, cls: "bg-blue-500 hover:bg-blue-600 text-white" },
 };
 
 /* ── Small reusable pieces ── */
@@ -206,14 +207,24 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
   const statusConfig = getStatusConfig(delivery.status);
   const buttonConfig = useMemo(() => BUTTON_CONFIG[delivery.status] || null, [delivery.status]);
 
-  const pickupText = typeof delivery.pickup === "string" ? delivery.pickup : delivery.pickup?.address || delivery.pickup?.name || "Mumbai";
-  const dropText   = typeof delivery.drop   === "string" ? delivery.drop   : delivery.drop?.address   || delivery.drop?.name   || "Pune";
+  const formatDate = (date) => {
+    if (!date) return "N/A";
 
-  const isBus   = delivery.transport_mode === "bus";
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const pickupText = typeof delivery.pickup === "string" ? delivery.pickup : delivery.pickup?.address || delivery.pickup?.name || "Mumbai";
+  const dropText = typeof delivery.drop === "string" ? delivery.drop : delivery.drop?.address || delivery.drop?.name || "Pune";
+
+  const isBus = delivery.transport_mode === "bus";
   const isTrain = delivery.transport_mode === "train";
   const isPublic = isBus || isTrain;
 
-  const showPickupOtp  = [DELIVERY_STATUS.PICKUP, DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.DELIVERED].includes(delivery.status);
+  const showPickupOtp = [DELIVERY_STATUS.PICKUP, DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.DELIVERED].includes(delivery.status);
   const showDeliveryOtp = [DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.DELIVERED].includes(delivery.status);
 
   const BOOKING_STATUSES = ["PARTNER_SELECTED", "CONFIRMED", "PICKUP", "IN_TRANSIT", "DELIVERED"];
@@ -263,17 +274,31 @@ const DeliveryCard = ({ delivery, onAction, userType = "traveller" }) => {
 
         {/* Locations — stack on mobile, side-by-side from sm */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <LocationBox title="Pickup Location" address={pickupText} date={delivery.pickupDate || "2024-12-25"} accent="blue" />
-          <LocationBox title="Drop Location"   address={dropText}   date={delivery.dropDate   || "2024-12-26"} accent="green" />
+          <LocationBox
+            title="Pickup Location"
+            address={pickupText}
+            date={formatDate(delivery.assignedDate)}
+            accent="blue"
+          />
+
+          <LocationBox
+            title="Drop Location"
+            address={dropText}
+            date={delivery.bookedDate || formatDate(delivery.assignedDate)}
+            accent="green"
+          />
         </div>
+
 
         {/* Parcel Details — 2-col on mobile, 4-col from sm */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {[
-            { label: "Parcel Type",  value: delivery.type || delivery.parcelType || "Documents" },
-            { label: "Weight",       value: delivery.weight || "0.5 kg" },
-            { label: isPublic ? "Walking Distance" : "Detour Distance",
-              value: isPublic ? `${delivery.detour_km || 0} km` : `${delivery.detour_km || 0} km (${delivery.detour_percentage || 0}%)` },
+            { label: "Parcel Type", value: delivery.type || delivery.parcelType || "Documents" },
+            { label: "Weight", value: delivery.weight || "0.5 kg" },
+            {
+              label: isPublic ? "Walking Distance" : "Detour Distance",
+              value: isPublic ? `${delivery.detour_km || 0} km` : `${delivery.detour_km || 0} km (${delivery.detour_percentage || 0}%)`
+            },
             { label: "Total Amount", value: formatRupee(delivery.totalAmount ?? delivery.amount) },
           ].map(({ label, value }) => (
             <div key={label}>

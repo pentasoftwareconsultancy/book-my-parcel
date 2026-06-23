@@ -78,6 +78,25 @@ class ApiService {
     return this.axiosInstance.get(ServerUrl.API_USER_ACTIVE_TRAVELLEERS, { params });
   }
 
+  static searchRoutes(
+  originLat,
+  originLng,
+  destinationLat,
+  destinationLng
+) {
+  return this.axiosInstance.get(
+    ServerUrl.API_TRAVELER_ROUTE_SEARCH,
+    {
+      params: {
+        origin_lat: originLat,
+        origin_lng: originLng,
+        destination_lat: destinationLat,
+        destination_lng: destinationLng,
+      },
+    }
+  );
+}
+
   // ------------------ Tracking APIs ----------------
   static getTracking(bookingId) {
     return this.axiosInstance.get(ServerUrl.API_TRACKING_GET(bookingId));
@@ -431,7 +450,7 @@ static updateDisputeStatus(disputeId, data) {
     formData.append("proof_photo", photoFile);
     return this.apipostForm(ServerUrl.API_TRACKING_PROOF, formData);
   }
-
+  
   // ------------------ Notification APIs ------------------
   static getNotifications(role, page = 1, limit = 20) {
     return this.axiosInstance.get(ServerUrl.API_NOTIFICATIONS_GET, {

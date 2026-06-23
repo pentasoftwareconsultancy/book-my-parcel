@@ -1,6 +1,8 @@
 import sequelize from "../../config/database.config.js";
 import TravellerRoute from "./travellerRoute.model.js";
 import TravellerProfile from "./travellerProfile.model.js";
+import User from "../user/user.model.js";
+import UserProfile from "../user/userProfile.model.js";
 import Address from "../parcel/address.model.js";
 import {
   geocodeAddress,
@@ -67,6 +69,39 @@ async function setCachedJson(cacheKey, payload, ttlSeconds) {
   } catch (error) {
     console.warn("[RouteGoogleCache] write failed:", error.message);
   }
+}
+
+function buildIsoDateTime(date, time) {
+  if (!date || !time) return null;
+  const normalizedTime = time.length === 5 ? `${time}:00` : time;
+  return new Date(`${date}T${normalizedTime}`);
+}
+
+function isRouteExpired(route) {
+  if (!route || route.status !== "ACTIVE" || route.is_recurring) return false;
+
+  const arrivalDateTime = buildIsoDateTime(route.arrival_date, route.arrival_time);
+  if (arrivalDateTime) {
+    return new Date() > arrivalDateTime;
+  }
+
+  const departureDateTime = buildIsoDateTime(route.departure_date, route.departure_time);
+  return departureDateTime ? new Date() > departureDateTime : false;
+}
+
+async function refreshRouteStatus(route) {
+  if (!route || route.status !== "ACTIVE") return route;
+  if (!isRouteExpired(route)) return route;
+
+  try {
+    await route.update({ status: "COMPLETED" });
+    await invalidateRouteCache(route.id, route.traveller_profile_id);
+    route.status = "COMPLETED";
+  } catch (error) {
+    console.warn(`[TravellerRoute] Failed to auto-complete route ${route.id}:`, error.message);
+  }
+
+  return route;
 }
 
 // ─── Helper: Enrich address data via Google APIs ──────────────────────────────
@@ -512,7 +547,7 @@ export async function createTravellerRoute(data, userId) {
   ) {
     const straight = haversineKm(
       Number(originEnriched.latitude), Number(originEnriched.longitude),
-      Number(destEnriched.latitude),   Number(destEnriched.longitude)
+      Number(destEnriched.latitude), Number(destEnriched.longitude)
     );
     // Apply ~1.3x road-distance correction factor to straight-line distance
     routeDistance = Math.round(straight * 1.3 * 10) / 10;
@@ -608,7 +643,7 @@ export async function createTravellerRoute(data, userId) {
     await extractAndStorePlaces(route.id, intermediateData, t);
 
     await t.commit();
-    
+
     // Cache the newly created route
     await cacheRoute(route.id, {
       id: route.id,
@@ -622,7 +657,7 @@ export async function createTravellerRoute(data, userId) {
       vehicle_type: route.vehicle_type,
       transport_mode: route.transport_mode
     });
-    
+
     return { route, originAddress, destAddress };
   } catch (error) {
     await t.rollback();
@@ -649,6 +684,8 @@ export async function getTravellerRoutes(userId) {
     order: [["created_at", "DESC"]],
   });
 
+  await Promise.all(routes.map((route) => refreshRouteStatus(route)));
+
   return routes;
 }
 
@@ -663,6 +700,7 @@ export async function getRouteById(routeId) {
     ],
   });
 
+  await refreshRouteStatus(route);
   return route;
 }
 
@@ -686,20 +724,20 @@ export async function updateTravellerRoute(routeId, userId, data) {
     if (data.origin_address) {
       const enriched = await enrichAddressWithGoogleData(data.origin_address);
       await route.originAddress.update({
-        address:          enriched.address          || route.originAddress.address,
-        city:             enriched.city             || route.originAddress.city,
-        state:            enriched.state            || route.originAddress.state,
-        pincode:          enriched.pincode          || route.originAddress.pincode,
-        country:          enriched.country          || route.originAddress.country,
-        place_id:         enriched.place_id         || null,
-        latitude:         enriched.latitude         || null,
-        longitude:        enriched.longitude        || null,
-        plus_code:        enriched.plus_code        || null,
-        district:         enriched.district         || null,
-        taluka:           enriched.taluka           || null,
-        locality:         enriched.locality         || null,
-        landmarks:        enriched.landmarks        || null,
-        sub_localities:   enriched.sub_localities   || null,
+        address: enriched.address || route.originAddress.address,
+        city: enriched.city || route.originAddress.city,
+        state: enriched.state || route.originAddress.state,
+        pincode: enriched.pincode || route.originAddress.pincode,
+        country: enriched.country || route.originAddress.country,
+        place_id: enriched.place_id || null,
+        latitude: enriched.latitude || null,
+        longitude: enriched.longitude || null,
+        plus_code: enriched.plus_code || null,
+        district: enriched.district || null,
+        taluka: enriched.taluka || null,
+        locality: enriched.locality || null,
+        landmarks: enriched.landmarks || null,
+        sub_localities: enriched.sub_localities || null,
         formatted_address: enriched.formatted_address || null,
         last_geocoded_at: enriched.last_geocoded_at || null,
       }, { transaction: t });
@@ -709,20 +747,20 @@ export async function updateTravellerRoute(routeId, userId, data) {
     if (data.dest_address) {
       const enriched = await enrichAddressWithGoogleData(data.dest_address);
       await route.destAddress.update({
-        address:          enriched.address          || route.destAddress.address,
-        city:             enriched.city             || route.destAddress.city,
-        state:            enriched.state            || route.destAddress.state,
-        pincode:          enriched.pincode          || route.destAddress.pincode,
-        country:          enriched.country          || route.destAddress.country,
-        place_id:         enriched.place_id         || null,
-        latitude:         enriched.latitude         || null,
-        longitude:        enriched.longitude        || null,
-        plus_code:        enriched.plus_code        || null,
-        district:         enriched.district         || null,
-        taluka:           enriched.taluka           || null,
-        locality:         enriched.locality         || null,
-        landmarks:        enriched.landmarks        || null,
-        sub_localities:   enriched.sub_localities   || null,
+        address: enriched.address || route.destAddress.address,
+        city: enriched.city || route.destAddress.city,
+        state: enriched.state || route.destAddress.state,
+        pincode: enriched.pincode || route.destAddress.pincode,
+        country: enriched.country || route.destAddress.country,
+        place_id: enriched.place_id || null,
+        latitude: enriched.latitude || null,
+        longitude: enriched.longitude || null,
+        plus_code: enriched.plus_code || null,
+        district: enriched.district || null,
+        taluka: enriched.taluka || null,
+        locality: enriched.locality || null,
+        landmarks: enriched.landmarks || null,
+        sub_localities: enriched.sub_localities || null,
         formatted_address: enriched.formatted_address || null,
         last_geocoded_at: enriched.last_geocoded_at || null,
       }, { transaction: t });
@@ -774,9 +812,132 @@ export async function deleteTravellerRoute(routeId, userId) {
   if (!route) throw new Error("Route not found or unauthorized");
 
   await route.destroy();
-  
+
   // Invalidate route cache
   await invalidateRouteCache(routeId, travellerProfile.id);
 
+
   return { message: "Route deleted successfully" };
+}
+
+
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in km
+
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+export async function searchTravellerRoutes(
+  originLat,
+  originLng,
+  destinationLat,
+  destinationLng
+) {
+  const routes = await TravellerRoute.findAll({
+    where: {
+      status: "ACTIVE",
+    },
+    include: [
+      {
+        model: TravellerProfile,
+        as: "travellerProfile",
+        include: [
+          {
+            model: User,
+            as: "user",
+            include: [
+              {
+                model: UserProfile,
+                as: "profile",
+                attributes: ["name", "avatar_url"],
+              },
+            ],
+            attributes: ["id", "email", "phone_number"],
+          },
+        ],
+      },
+      {
+        model: Address,
+        as: "originAddress",
+      },
+      {
+        model: Address,
+        as: "destAddress",
+      },
+    ],
+    order: [["created_at", "DESC"]],
+  });
+
+  const refreshedRoutes = await Promise.all(
+    routes.map((route) => refreshRouteStatus(route))
+  );
+
+  return refreshedRoutes.filter((route) => {
+  try {
+    console.log("Route ID:", route.id);
+
+    if (route.status !== "ACTIVE") return false;
+
+    console.log("Origin Address:", route.originAddress);
+    console.log("Dest Address:", route.destAddress);
+
+    const routeOriginLat = Number(route.originAddress?.latitude);
+    const routeOriginLng = Number(route.originAddress?.longitude);
+
+    const routeDestLat = Number(route.destAddress?.latitude);
+    const routeDestLng = Number(route.destAddress?.longitude);
+
+    console.log({
+      routeOriginLat,
+      routeOriginLng,
+      routeDestLat,
+      routeDestLng,
+    });
+
+    if (
+      Number.isNaN(routeOriginLat) ||
+      Number.isNaN(routeOriginLng) ||
+      Number.isNaN(routeDestLat) ||
+      Number.isNaN(routeDestLng)
+    ) {
+      return false;
+    }
+
+    const originDistance = calculateDistanceKm(
+      originLat,
+      originLng,
+      routeOriginLat,
+      routeOriginLng
+    );
+
+    const destinationDistance = calculateDistanceKm(
+      destinationLat,
+      destinationLng,
+      routeDestLat,
+      routeDestLng
+    );
+
+    console.log({
+      originDistance,
+      destinationDistance,
+    });
+
+    return originDistance <= 3 && destinationDistance <= 3;
+  } catch (err) {
+    console.error("FILTER ERROR:", err);
+    throw err;
+  }
+});
 }

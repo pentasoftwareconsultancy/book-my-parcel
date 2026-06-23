@@ -56,20 +56,20 @@ export async function signup(userData) {
 
     // 5️ Create User 
     const user = await User.create({
-      email:           userData.email,
-      password:        hashedPassword,
-      phone_number:    userData.phone_number,
+      email: userData.email,
+      password: hashedPassword,
+      phone_number: userData.phone_number,
       alternate_phone: userData.alternate_phone || null,
     }, { transaction: t });
 
     // 6 Create UserProfile 
     // ✅ full_name, address, city, state → user_profiles only
     await UserProfile.create({
-      user_id:   user.id,
+      user_id: user.id,
       name: userData.name || null,
-      address:   userData.address   || null,
-      city:      userData.city      || null,
-      state:     userData.state     || null,
+      address: userData.address || null,
+      city: userData.city || null,
+      state: userData.state || null,
     }, { transaction: t });
 
     // Assign a unique referral code to this user
@@ -84,19 +84,19 @@ export async function signup(userData) {
     //  Create TravellerProfile 
     await TravellerProfile.create({
       user_id: user.id,
-      status:  "INCOMPLETE",  
+      status: "INCOMPLETE",
     }, { transaction: t });
 
     // 8️⃣ Create TravellerKYC 
     await TravellerKYC.create({
       user_id: user.id,
-      status:  KYC_STATUS.NOT_STARTED,
+      status: KYC_STATUS.NOT_STARTED,
     }, { transaction: t });
 
     //  Fetch BOTH roles from DB
     const [individualRole, travellerRole] = await Promise.all([
       Role.findOne({ where: { name: ROLES.INDIVIDUAL }, transaction: t }),
-      Role.findOne({ where: { name: ROLES.TRAVELLER  }, transaction: t }),
+      Role.findOne({ where: { name: ROLES.TRAVELLER }, transaction: t }),
     ]);
 
     if (!individualRole || !travellerRole) {
@@ -106,29 +106,29 @@ export async function signup(userData) {
     //  Assign BOTH roles 
     await UserRole.bulkCreate([
       { user_id: user.id, role_id: individualRole.id },
-      { user_id: user.id, role_id: travellerRole.id  },
+      { user_id: user.id, role_id: travellerRole.id },
     ], { transaction: t });
 
     // Generate token
     const token = await generateToken({ userId: user.id });
 
     auditLog({
-      action:       "USER_SIGNUP",
-      actorId:      user.id,
-      actorRole:    "user",
+      action: "USER_SIGNUP",
+      actorId: user.id,
+      actorRole: "user",
       resourceType: "user",
-      resourceId:   user.id,
-      meta:         { email: user.email, roles: [ROLES.INDIVIDUAL, ROLES.TRAVELLER] },
+      resourceId: user.id,
+      meta: { email: user.email, roles: [ROLES.INDIVIDUAL, ROLES.TRAVELLER] },
     });
 
     return {
       token,
       user: {
-        id:           user.id,
-        email:        user.email,
+        id: user.id,
+        email: user.email,
         phone_number: user.phone_number,
       },
-      roles:   [ROLES.INDIVIDUAL, ROLES.TRAVELLER],
+      roles: [ROLES.INDIVIDUAL, ROLES.TRAVELLER],
       message: "Signup successful! You can login as Individual or Traveller.",
     };
 
@@ -199,12 +199,12 @@ export async function login(email, password, loginRole) {
   if (dbRoles.includes(ROLES.ADMIN)) {
     const token = await generateToken({ userId: user.id, roles: dbRoles });
     auditLog({
-      action:       "USER_LOGIN",
-      actorId:      user.id,
-      actorRole:    ROLES.ADMIN,
+      action: "USER_LOGIN",
+      actorId: user.id,
+      actorRole: ROLES.ADMIN,
       resourceType: "user",
-      resourceId:   user.id,
-      meta:         { email: user.email, activeRole: ROLES.ADMIN },
+      resourceId: user.id,
+      meta: { email: user.email, activeRole: ROLES.ADMIN },
     });
     return {
       token,
@@ -224,28 +224,28 @@ export async function login(email, password, loginRole) {
   const token = await generateToken({ userId: user.id });
 
   auditLog({
-    action:       "USER_LOGIN",
-    actorId:      user.id,
-    actorRole:    loginRole,
+    action: "USER_LOGIN",
+    actorId: user.id,
+    actorRole: loginRole,
     resourceType: "user",
-    resourceId:   user.id,
-    meta:         { email: user.email, activeRole: loginRole },
+    resourceId: user.id,
+    meta: { email: user.email, activeRole: loginRole },
   });
 
   return {
     token,
     user: {
-      id:           user.id,
-      email:        user.email,
+      id: user.id,
+      email: user.email,
       phone_number: user.phone_number,
     },
     activeRole: loginRole,
-    roles:      dbRoles,
-    kycStatus:  user.travellerKYC?.status || KYC_STATUS.NOT_STARTED,
+    roles: dbRoles,
+    kycStatus: user.travellerKYC?.status || KYC_STATUS.NOT_STARTED,
   };
 }
 
-export async function firebaseLogin(firebaseToken, provider) {
+export async function firebaseLogin(firebaseToken, provider, selectedRole) {
   if (!firebaseToken) throw new Error("Firebase token is required");
   if (!provider) throw new Error("Provider is required");
   if (!admin.apps.length) {
@@ -266,9 +266,9 @@ export async function firebaseLogin(firebaseToken, provider) {
   if (!email) throw new Error("Firebase account email is required");
   validateEmail(email);
 
-  const firebaseUid   = decodedToken.uid;
+  const firebaseUid = decodedToken.uid;
   const firebasePhone = decodedToken.phone_number || null;
-  const firebaseName  = decodedToken.name || null;
+  const firebaseName = decodedToken.name || null;
 
   // Normalise provider name — store lowercase for consistency
   const authProvider = provider.toLowerCase();
@@ -276,42 +276,42 @@ export async function firebaseLogin(firebaseToken, provider) {
   let user = await User.findOne({
     where: { email },
     include: [
-      { model: Role,        as: "roles",       through: { attributes: [] } },
+      { model: Role, as: "roles", through: { attributes: [] } },
       { model: TravellerKYC, as: "travellerKYC", attributes: ["status"] },
     ],
   });
 
   if (!user) {
     // ── New user: auto-create account via transaction ────────────────────────
-    const passwordHash  = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
-    const phoneNumber   = firebasePhone || `firebase:${firebaseUid}`;
+    const passwordHash = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
+    const phoneNumber = firebasePhone || `firebase:${firebaseUid}`;
 
     await sequelize.transaction(async (t) => {
       user = await User.create({
         email,
-        password:     passwordHash,
+        password: passwordHash,
         phone_number: phoneNumber,
       }, { transaction: t });
 
       await UserProfile.create({
-        user_id:       user.id,
-        name:          firebaseName,
+        user_id: user.id,
+        name: firebaseName,
         auth_provider: authProvider,   // ← store which provider was used
       }, { transaction: t });
 
       await TravellerProfile.create({
         user_id: user.id,
-        status:  "INCOMPLETE",
+        status: "INCOMPLETE",
       }, { transaction: t });
 
       await TravellerKYC.create({
         user_id: user.id,
-        status:  KYC_STATUS.NOT_STARTED,
+        status: KYC_STATUS.NOT_STARTED,
       }, { transaction: t });
 
       const [individualRole, travellerRole] = await Promise.all([
         Role.findOne({ where: { name: ROLES.INDIVIDUAL }, transaction: t }),
-        Role.findOne({ where: { name: ROLES.TRAVELLER  }, transaction: t }),
+        Role.findOne({ where: { name: ROLES.TRAVELLER }, transaction: t }),
       ]);
       if (!individualRole || !travellerRole) {
         throw new Error("Roles not found. Run seeder first.");
@@ -319,7 +319,7 @@ export async function firebaseLogin(firebaseToken, provider) {
 
       await UserRole.bulkCreate([
         { user_id: user.id, role_id: individualRole.id },
-        { user_id: user.id, role_id: travellerRole.id  },
+        { user_id: user.id, role_id: travellerRole.id },
       ], { transaction: t });
 
       await assignReferralCode(user.id, t);
@@ -329,12 +329,12 @@ export async function firebaseLogin(firebaseToken, provider) {
     });
 
     auditLog({
-      action:       "USER_SIGNUP",
-      actorId:      user.id,
-      actorRole:    "user",
+      action: "USER_SIGNUP",
+      actorId: user.id,
+      actorRole: "user",
       resourceType: "user",
-      resourceId:   user.id,
-      meta:         { email, authProvider, firebaseUid },
+      resourceId: user.id,
+      meta: { email, authProvider, firebaseUid },
     });
 
   } else {
@@ -349,38 +349,48 @@ export async function firebaseLogin(firebaseToken, provider) {
   user = await User.findOne({
     where: { email },
     include: [
-      { model: Role,        as: "roles",       through: { attributes: [] } },
+      { model: Role, as: "roles", through: { attributes: [] } },
       { model: TravellerKYC, as: "travellerKYC", attributes: ["status"] },
     ],
   });
 
-  const dbRoles   = user.roles.map((r) => r.name);
-  const activeRole = dbRoles.includes(ROLES.TRAVELLER)
-    ? ROLES.TRAVELLER
-    : dbRoles.includes(ROLES.INDIVIDUAL)
+  const dbRoles = user.roles.map((r) => r.name);
+  console.log("Received Role:", selectedRole);
+  console.log("DB Roles:", dbRoles);
+  let activeRole;
+
+  if (
+    selectedRole &&
+    dbRoles.includes(selectedRole)
+  ) {
+    activeRole = selectedRole;
+  } else {
+    activeRole = dbRoles.includes(ROLES.INDIVIDUAL)
       ? ROLES.INDIVIDUAL
-      : dbRoles[0] || ROLES.INDIVIDUAL;
+      : dbRoles[0];
+  }
+  console.log("Final Active Role:", activeRole);
 
   const token = await generateToken({ userId: user.id });
 
   auditLog({
-    action:       "USER_LOGIN",
-    actorId:      user.id,
-    actorRole:    activeRole,
+    action: "USER_LOGIN",
+    actorId: user.id,
+    actorRole: activeRole,
     resourceType: "user",
-    resourceId:   user.id,
-    meta:         { email: user.email, activeRole, authProvider },
+    resourceId: user.id,
+    meta: { email: user.email, activeRole, authProvider },
   });
 
   return {
     token,
     user: {
-      id:           user.id,
-      email:        user.email,
+      id: user.id,
+      email: user.email,
       phone_number: user.phone_number,
     },
     activeRole,
-    roles:     dbRoles,
+    roles: dbRoles,
     kycStatus: user.travellerKYC?.status || KYC_STATUS.NOT_STARTED,
   };
 }
@@ -503,7 +513,7 @@ export async function uploadProfilePhoto(userId, file) {
   }
 
   const photoPath = `/uploads/profiles/${file.filename}`;
-  
+
   await userProfile.update({ avatar_url: photoPath });
 
   return { avatar_url: photoPath };
@@ -591,12 +601,12 @@ export async function resetPasswordWithOtp(email, otp, newPassword) {
   await invalidateUserCache(user.id);
 
   auditLog({
-    action:       "PASSWORD_RESET",
-    actorId:      user.id,
-    actorRole:    "user",
+    action: "PASSWORD_RESET",
+    actorId: user.id,
+    actorRole: "user",
     resourceType: "user",
-    resourceId:   user.id,
-    meta:         { email },
+    resourceId: user.id,
+    meta: { email },
   });
 
   return { message: "Password reset successfully. You can now log in." };
@@ -646,12 +656,12 @@ export async function updatePassword(userId, oldPassword, newPassword) {
   await invalidateUserCache(userId);
 
   auditLog({
-    action:       "PASSWORD_CHANGED",
-    actorId:      userId,
-    actorRole:    "user",
+    action: "PASSWORD_CHANGED",
+    actorId: userId,
+    actorRole: "user",
     resourceType: "user",
-    resourceId:   userId,
-    meta:         {},
+    resourceId: userId,
+    meta: {},
   });
 
   return { message: "Password updated successfully" };

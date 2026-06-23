@@ -59,16 +59,22 @@ export const addBankRecipient = async (req, res) => {
     // Update bank verification status in TravellerKYC
     // Note: This does NOT update the main KYC status (which is for PAN verification)
     // bank_verified is a separate field used for withdrawal eligibility
-    await TravellerKYC.update(
-      { 
-        bank_verified: true,
-        account_number: accountNumber,
-        bank_name: bankName,
-        ifsc: ifsc,
-        account_holder: recipientName,
-      },
-      { where: { user_id: req.user.id } }
-    );
+    const kyc = await TravellerKYC.findOne({ where: { user_id: req.user.id } });
+
+    if (!kyc) {
+      return res.status(404).json({
+        success: false,
+        message: "KYC record not found. Please complete your KYC first.",
+      });
+    }
+
+    await kyc.update({
+      bank_verified: true,
+      account_number: accountNumber,
+      bank_name: bankName,
+      ifsc: ifsc,
+      account_holder: recipientName,
+    });
 
     return res.json(result);
   } catch (error) {

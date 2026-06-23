@@ -170,8 +170,8 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
       await existing.update({
         usage_count: (existing.usage_count || 0) + 1,
         // Always refresh mutable contact fields with latest submission values
-        name:      enrichedData.name      || existing.name,
-        phone:     enrichedData.phone     || existing.phone,
+        name: enrichedData.name || existing.name,
+        phone: enrichedData.phone || existing.phone,
         alt_phone: enrichedData.alt_phone != null ? enrichedData.alt_phone : existing.alt_phone,
         aadhar_no: enrichedData.aadhar_no || existing.aadhar_no,
       }, { transaction });
@@ -188,8 +188,8 @@ async function getOrCreateAddress(enrichedData, type, userId, transaction) {
     await existingByFields.update({
       usage_count: (existingByFields.usage_count || 0) + 1,
       // Always refresh mutable contact fields with latest submission values
-      name:      enrichedData.name      || existingByFields.name,
-      phone:     enrichedData.phone     || existingByFields.phone,
+      name: enrichedData.name || existingByFields.name,
+      phone: enrichedData.phone || existingByFields.phone,
       alt_phone: enrichedData.alt_phone != null ? enrichedData.alt_phone : existingByFields.alt_phone,
       aadhar_no: enrichedData.aadhar_no || existingByFields.aadhar_no,
     }, { transaction });
@@ -286,19 +286,20 @@ export async function createParcelRequest(data, files) {
           const priceResult = await calculatePriceWithSurge(
             routeDistance,
             data.weight || 1,
-            data.length,
-            data.width,
-            data.height,
             data.vehicle_type
           );
-          suggestedPrice = priceResult.price;
-          // Attach surge info to data so it can be returned to the FE
-          data._surgeMultiplier = priceResult.surgeMultiplier;
-          data._surgeReasons = priceResult.surgeReasons;
+          suggestedPrice = priceResult.finalPrice;
+          // Store pricing breakdown for transparency
+          data._distanceCharge = priceResult.distanceCharge;
+          data._weightCharge = priceResult.weightCharge;
           data._basePrice = priceResult.basePrice;
+          data._platformFee = priceResult.platformFee;
+          data._gstAmount = priceResult.gstAmount;
         } catch (priceError) {
-          // Fallback to sync calculation
-          try { suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.length, data.width, data.height); } catch (syncPriceErr) {
+          // Fallback to sync calculation (NO dimensions)
+          try { 
+            suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.vehicle_type); 
+          } catch (syncPriceErr) {
             console.warn("[Parcel] Sync price calculation fallback failed (non-fatal):", syncPriceErr.message);
           }
         }
@@ -322,13 +323,25 @@ export async function createParcelRequest(data, files) {
     console.log(`[Parcel] Haversine fallback distance: ${routeDistance} km`);
     // Calculate price using fallback distance
     try {
-      const priceResult = await calculatePriceWithSurge(routeDistance, data.weight || 1, data.length, data.width, data.height);
-      suggestedPrice = priceResult.price;
-      data._surgeMultiplier = priceResult.surgeMultiplier;
-      data._surgeReasons = priceResult.surgeReasons;
+      const priceResult = await calculatePriceWithSurge(
+        routeDistance,
+        data.weight || 1,
+        data.vehicle_type
+      );
+      suggestedPrice = priceResult.finalPrice;
+      data._distanceCharge = priceResult.distanceCharge;
+      data._weightCharge = priceResult.weightCharge;
       data._basePrice = priceResult.basePrice;
+      data._platformFee = priceResult.platformFee;
+      data._gstAmount = priceResult.gstAmount;
     } catch (priceErr) {
-      try { suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.length, data.width, data.height); } catch (_) { /* non-fatal */ }
+      try {
+        suggestedPrice = calculatePrice(
+          routeDistance,
+          data.weight || 1,
+          data.vehicle_type
+        );
+      } catch (_) { /* non-fatal */ }
     }
   }
 
@@ -389,9 +402,11 @@ export async function createParcelRequest(data, files) {
         pickupAddress,
         deliveryAddress,
         suggestedPrice,
-        surgeMultiplier: data._surgeMultiplier || 1,
-        surgeReasons: data._surgeReasons || [],
+        distanceCharge: data._distanceCharge || null,
+        weightCharge: data._weightCharge || null,
         basePrice: data._basePrice || suggestedPrice,
+        platformFee: data._platformFee || null,
+        gstAmount: data._gstAmount || null,
       };
     } catch (error) {
       await t.rollback();
@@ -417,11 +432,16 @@ export async function createParcelRequest(data, files) {
 }
 
 export async function getUserParcelRequests(userId, query = {}) {
-  const { page = 1, limit = 20 } = query;
+  const { status, page = 1, limit = 20 } = query;
   const { limit: parsedLimit, offset, page: parsedPage } = getPagination(page, limit);
+  const where = { user_id: userId };
+
+  if (status) {
+    where.status = { [Op.in]: status.split(",").map((s) => s.trim()).filter(Boolean) };
+  }
 
   const result = await Parcel.findAndCountAll({
-    where: { user_id: userId },
+    where,
     include: [
       { model: Address, as: "pickupAddress" },
       { model: Address, as: "deliveryAddress" },

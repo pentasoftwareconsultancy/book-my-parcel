@@ -86,7 +86,7 @@ export const validatePositiveNumber = (value, fieldName = "Value", max = null) =
 };
 
 // Name typing pattern (for blocking invalid typing)
-export const nameTypingPattern = /^[A-Za-z\s]*$/;
+export const nameTypingPattern =  /^[\p{L}\s'-]+$/u;
 
 // PIN code typing pattern (for input)
 export const pinTypingPattern = /^\d{0,6}$/;

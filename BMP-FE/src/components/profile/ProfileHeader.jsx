@@ -28,16 +28,16 @@ const ProfileHeader = ({
     if (!file) return;
 
     try {
-      const response = user.avatar 
+      const response = user.avatar
         ? await ApiService.updateProfilePhoto(file)
         : await ApiService.uploadProfilePhoto(file);
-      
-      const photoUrl = response.data?.avatar_url 
-        || response.data?.photoUrl 
-        || response.data?.avatar 
+
+      const photoUrl = response.data?.avatar_url
+        || response.data?.photoUrl
+        || response.data?.avatar
         || response.data?.data?.avatar_url
         || response.data?.data?.photoUrl;
-      
+
       if (photoUrl && onPhotoUpdate) {
         await onPhotoUpdate(photoUrl);
       } else {
@@ -50,12 +50,12 @@ const ProfileHeader = ({
   };
   return (
     <div className="bg-white rounded-xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm border border-gray-100">
-      
+
       {/* LEFT */}
       <div className="flex items-center gap-4 sm:gap-5">
         {/* Avatar */}
         <div className="relative flex-shrink-0">
-          <div 
+          <div
             className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-full bg-primary flex items-center justify-center overflow-hidden cursor-pointer"
             onClick={handlePhotoClick}
           >
@@ -75,7 +75,7 @@ const ProfileHeader = ({
 
           {isEditing && (
             <>
-              <button 
+              <button
                 onClick={handlePhotoClick}
                 type="button"
                 className="absolute bottom-0 right-0 w-4 h-4 sm:w-5 sm:h-5 bg-primary border-2 border-blue rounded-full flex items-center justify-center hover:bg-primary transition-colors"
@@ -117,22 +117,21 @@ const ProfileHeader = ({
               <CheckCircle size={11} /> KYC Verified
             </span> */}
             {user.kycStatus && (
-             <span className={`flex items-center gap-1 border text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full ${
-              user.kycStatus === KYC_STATUS.APPROVED 
-                ? 'border-green-400 text-green-600' 
-                : user.kycStatus === KYC_STATUS.PENDING
-                ? 'border-yellow-400 text-yellow-600'
-                : user.kycStatus === KYC_STATUS.REJECTED
-                ? 'border-red-400 text-red-600'
-                : 'border-gray-400 text-gray-600'
-            }`}>
-              <CheckCircle size={11} /> 
-              {user.kycStatus === KYC_STATUS.APPROVED ? 'KYC Verified' 
-                : user.kycStatus === KYC_STATUS.PENDING ? 'KYC Pending'
-                : user.kycStatus === KYC_STATUS.REJECTED ? 'KYC Rejected'
-                : 'KYC Not Started'}
-            </span>
-          )}
+              <span className={`flex items-center gap-1 border text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full ${user.kycStatus === KYC_STATUS.APPROVED
+                  ? 'border-green-400 text-green-600'
+                  : user.kycStatus === KYC_STATUS.PENDING
+                    ? 'border-yellow-400 text-yellow-600'
+                    : user.kycStatus === KYC_STATUS.REJECTED
+                      ? 'border-red-400 text-red-600'
+                      : 'border-gray-400 text-gray-600'
+                }`}>
+                <CheckCircle size={11} />
+                {user.kycStatus === KYC_STATUS.APPROVED ? 'KYC Verified'
+                  : user.kycStatus === KYC_STATUS.PENDING ? 'KYC Pending'
+                    : user.kycStatus === KYC_STATUS.REJECTED ? 'KYC Rejected'
+                      : 'KYC Not Started'}
+              </span>
+            )}
 
 
             <span className="flex items-center gap-1 text-gray-500 text-[10px] sm:text-xs">
@@ -164,24 +163,23 @@ const ProfileHeader = ({
         {role === "USER" && user.kycStatus !== KYC_STATUS.APPROVED && (
           <button
             onClick={() => navigate(RoutePath.KYC_PAN)}
-            className={`flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-colors ${
-              user.kycStatus === KYC_STATUS.PENDING
+            className={`flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-colors ${user.kycStatus === KYC_STATUS.PENDING
                 ? "bg-yellow-500 hover:bg-yellow-600 text-white"
                 : user.kycStatus === KYC_STATUS.REJECTED
-                ? "bg-red-500 hover:bg-red-600 text-white"
-                : "bg-orange-500 hover:bg-orange-600 text-white"
-            }`}
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
+              }`}
           >
             <CheckCircle size={14} />
             {user.kycStatus === KYC_STATUS.PENDING ? "KYC Pending — Check Status"
               : user.kycStatus === KYC_STATUS.REJECTED ? "KYC Rejected — Resubmit"
-              : "Complete KYC"}
+                : "Complete KYC"}
           </button>
         )}
 
         {role === "TRAVELLER" && (
           <button
-            onClick={onAddRoute}
+            onClick={() => navigate(RoutePath.TRAVELLER_ROUTE)}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg transition-colors"
           >
             <span className="text-base font-bold">+</span>
