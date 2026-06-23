@@ -13,6 +13,7 @@ const iconMap = {
   IN_TRANSIT:       <MdOutlineLocalShipping size={11} />,
   DELIVERED:        <FiCheckCircle size={11} />,
   CANCELLED:        <FiXCircle size={11} />,
+  AUTO_CANCELLED:   <FiClock size={11} />,
   FAILED:           <FiXCircle size={11} />,
   REJECTED:         <FiXCircle size={11} />,
   PENDING:          <FiClock size={11} />,

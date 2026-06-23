@@ -65,6 +65,7 @@ const Parcel = sequelize.define(
         "IN_TRANSIT",
         "DELIVERED",
         "CANCELLED",
+        "AUTO_CANCELLED",
       ),
       defaultValue: "CREATED",
     },

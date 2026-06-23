@@ -97,7 +97,11 @@ const UserDetailsPage = () => {
               weight: data.weight ? `${data.weight} kg` : "—",
               value: data.value || "—",
               speed: data.delivery_speed || "Standard",
-              est_delivery: "3-5 Days",
+              est_delivery: data.route_duration_minutes 
+                ? data.route_duration_minutes < 60
+                  ? `${Math.round(data.route_duration_minutes)} mins`
+                  : `${Math.round(data.route_duration_minutes / 60)} hrs`
+                : "—",
               description: data.description || "—",
               type: data.parcel_type || "—",
               length: data.length ? formatDimensionInches(data.length) : "—",
@@ -119,7 +123,11 @@ const UserDetailsPage = () => {
               vehicleNumber: data.booking.traveller.travellerProfile?.vehicle_number || "—",
               rating: data.booking.traveller.travellerProfile?.rating || "N/A",
               totalDeliveries: data.booking.traveller.travellerProfile?.total_deliveries || 0,
-              estimatedDelivery: "Today",
+              estimatedDelivery: data.route_duration_minutes 
+                ? data.route_duration_minutes < 60
+                  ? `${Math.round(data.route_duration_minutes)} mins`
+                  : `${Math.round(data.route_duration_minutes / 60)} hrs`
+                : "—",
               route: `${data.pickupAddress?.city} → ${data.deliveryAddress?.city}`,
               price: data.price_quote || "—",
               avatar: data.booking.traveller.profile?.avatar || null,
@@ -127,10 +135,14 @@ const UserDetailsPage = () => {
             
             // Pricing info
             price: {
-              basePrice: data.price_quote || "—",
-              deliverySpeedCharge: 0,
-              gst: 0,
-              total: data.price_quote || "—",
+              distanceCharge: data.distanceCharge || "—",
+              weightCharge: data.weightCharge || "—",
+              vehicleMultiplier: data.vehicleMultiplier || 1,
+              basePrice: data.basePrice || data.price_quote || "—",
+              platformFee: data.platformFee || "—",
+              gstAmount: data.gstAmount || "—",
+              subtotal: data.subtotal || "—",
+              finalPrice: data.price_quote || data.finalPrice || "—",
             },
 
             // Route & performance fields (Defect 18/19)

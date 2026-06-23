@@ -16,11 +16,17 @@ export async function createDisputeService({ booking_id, dispute_type, descripti
   if (!booking) throw new Error("Booking not found");
 
   // Only allow disputes on active/completed bookings
-  const allowedStatuses = ["CONFIRMED", "PICKUP", "IN_TRANSIT", "DELIVERED"];
+  const allowedStatuses = [ "CONFIRMED",
+  "PICKUP",
+  "IN_TRANSIT",
+  "DELIVERED",
+  "CANCELLED"];
   if (!allowedStatuses.includes(booking.status)) {
     throw new Error("Disputes can only be raised for active or completed bookings");
   }
 
+  console.log("Booking ID:", booking_id);
+console.log("Booking Status:", booking?.status);
   // One dispute per user per booking
   const existing = await Dispute.findOne({ where: { booking_id, raised_by: user.id } });
   if (existing) throw new Error("You have already raised a dispute for this booking");

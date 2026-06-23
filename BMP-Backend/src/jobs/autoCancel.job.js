@@ -3,7 +3,7 @@
  *
  * Runs on a schedule to:
  * 1. Expire ParcelRequest records whose expires_at has passed (status: SENT → EXPIRED)
- * 2. Cancel MATCHING parcels that have no remaining active requests
+ * 2. Auto-cancel MATCHING parcels that have no remaining active requests
  *    (all requests expired/rejected — no traveller responded in time)
  */
 
@@ -104,10 +104,10 @@ export async function expireStaleRequests() {
 }
 
 /**
- * Cancel MATCHING parcels that have no remaining active requests.
+ * Auto-cancel MATCHING parcels that have no remaining active requests.
  * A parcel is considered abandoned when every request sent to travellers
  * has been EXPIRED, REJECTED, or NOT_SELECTED — meaning no one accepted.
- * @returns {number} count of cancelled parcels
+ * @returns {number} count of auto-cancelled parcels
  */
 export async function cancelAbandonedParcels() {
   // Find MATCHING parcels whose last request expired more than 5 minutes ago
@@ -158,7 +158,7 @@ export async function cancelAbandonedParcels() {
   if (toCancel.length === 0) return 0;
 
   const [cancelledCount] = await Parcel.update(
-    { status: "CANCELLED" },
+    { status: "AUTO_CANCELLED" },
     {
       where: {
         id: { [Op.in]: toCancel },
@@ -169,7 +169,7 @@ export async function cancelAbandonedParcels() {
 
   if (cancelledCount > 0) {
     console.log(
-      `[AutoCancel] Cancelled ${cancelledCount} abandoned parcel(s) with no traveller responses: [${toCancel.join(", ")}]`
+      `[AutoCancel] Auto-cancelled ${cancelledCount} abandoned parcel(s) with no traveller responses: [${toCancel.join(", ")}]`
     );
   }
 

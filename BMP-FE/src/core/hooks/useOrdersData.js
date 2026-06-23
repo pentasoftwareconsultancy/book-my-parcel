@@ -14,10 +14,10 @@ export const PATH_STATUS_MAP = {
   [RoutePath.USER_ACTIVE]: [
     DELIVERY_STATUS.CREATED, DELIVERY_STATUS.MATCHING, DELIVERY_STATUS.PARTNER_SELECTED,
     DELIVERY_STATUS.CONFIRMED, DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.ASSIGNED,
-    DELIVERY_STATUS.PICKED_UP, DELIVERY_STATUS.PENDING,
+    DELIVERY_STATUS.PICKED_UP, DELIVERY_STATUS.PENDING, DELIVERY_STATUS.PICKUP,
   ],
   [RoutePath.USER_COMPLETED]: [DELIVERY_STATUS.DELIVERED],
-  [RoutePath.USER_CANCELLED]: [DELIVERY_STATUS.CANCELLED],
+  [RoutePath.USER_CANCELLED]: [DELIVERY_STATUS.CANCELLED, DELIVERY_STATUS.AUTO_CANCELLED],
 };
 
 /** Maps a raw API order object to the shape used by the UI */
@@ -162,9 +162,14 @@ export function useOrdersData() {
   }, []);
 
   const handlePickupOTPGenerated = useCallback((data) => {
+    console.log("📍 [OTP Event] Pickup OTP generated:", data);
     setOtpData((prev) => ({ ...prev, [data.booking_id]: { ...prev[data.booking_id], pickup_otp: data.pickup_otp, traveller_name: data.traveller_name } }));
     setOrders((prev) =>
-      prev.map((o) => o.deliveryId === data.booking_id ? { ...o, status: DELIVERY_STATUS.PICKUP, pickup_otp: data.pickup_otp } : o)
+      prev.map((o) => 
+        o.deliveryId === data.booking_id 
+          ? { ...o, status: data.status || DELIVERY_STATUS.PICKUP, pickup_otp: data.pickup_otp } 
+          : o
+      )
     );
   }, []);
 

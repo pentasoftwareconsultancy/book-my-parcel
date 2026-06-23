@@ -110,13 +110,14 @@ const StatusMessage = ({ order, otpData }) => {
   const show = [
     DELIVERY_STATUS.PARTNER_SELECTED, DELIVERY_STATUS.CONFIRMED,
     DELIVERY_STATUS.PICKUP, DELIVERY_STATUS.IN_TRANSIT,
+    DELIVERY_STATUS.AUTO_CANCELLED,
   ].includes(order.status);
   if (!show) return null;
 
   return (
     <div className="mb-4">
       <p className="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">Delivery Status</p>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+      <div className={`${order.status === DELIVERY_STATUS.AUTO_CANCELLED ? "bg-orange-50 border-orange-200" : "bg-blue-50 border-blue-200"} border rounded-lg p-3 sm:p-4`}>
 
         {order.status === DELIVERY_STATUS.PARTNER_SELECTED && (
           <p className="text-sm text-blue-700 flex items-start gap-1.5">
@@ -178,6 +179,12 @@ const StatusMessage = ({ order, otpData }) => {
           </div>
         )}
 
+        {order.status === DELIVERY_STATUS.AUTO_CANCELLED && (
+          <p className="text-sm text-orange-700">
+            This parcel request expired because no traveller accepted within the allowed time.
+          </p>
+        )}
+
       </div>
     </div>
   );
@@ -199,12 +206,26 @@ function getPrimaryAction({ order, handlers }) {
       return { label: "Confirm & Pay", icon: <Send />, onClick: handleCompleteParcel, className: "bg-green-600 text-white hover:bg-green-700" };
     case DELIVERY_STATUS.CONFIRMED:
       return { label: "View Booking Details", icon: <Package />, onClick: handleDetails, className: "bg-indigo-600 text-white hover:bg-indigo-700" };
+    case DELIVERY_STATUS.PICKUP:
+      return { label: "View Booking Details", icon: <Package />, onClick: handleDetails, className: "bg-yellow-600 text-white hover:bg-yellow-700" };
     case DELIVERY_STATUS.IN_TRANSIT:
       return { label: "Track Delivery", icon: <Send />, onClick: handleTrack, className: "bg-blue-700 text-white hover:bg-blue-800" };
     case DELIVERY_STATUS.DELIVERED:
       return { label: order.has_feedback ? "Edit Feedback" : "Give Feedback", icon: <MessageSquare />, onClick: () => onFeedback(order), className: "bg-green-600 text-white hover:bg-green-700" };
-    default:
-      return { label: "Track Delivery", icon: <Send />, onClick: handleTrack, className: "bg-blue-700 text-white hover:bg-blue-800" };
+    case DELIVERY_STATUS.CANCELLED:
+      return {
+        label: "View Details",
+        icon: <Package />,
+        onClick: handleDetails,
+        className: "bg-red-600 text-white hover:bg-red-700"
+      };
+    case DELIVERY_STATUS.AUTO_CANCELLED:
+      return {
+        label: "View Details",
+        icon: <Package />,
+        onClick: handleDetails,
+        className: "bg-orange-600 text-white hover:bg-orange-700"
+      };
   }
 }
 
@@ -250,7 +271,8 @@ const ActionButtons = ({ primaryAction, onContact, onDetails, onDispute, onCance
 /* ── Main OrderCard export ───────────────────────────────── */
 const OrderCard = ({ order, navigate, onCancel, onSelectTraveller, onFeedback, onContact, otpData }) => {
   const handleDetails = () => navigate(RoutePath.USER_PARCEL_DETAILS, { state: { parcelId: order.parcelId } });
-  const handleTrack   = () => navigate(RoutePath.USER_TRACK_PARCEL.replace(":id", order.deliveryId));
+  const handleTrack = () => navigate(RoutePath.USER_TRACK_PARCEL.replace(":id", order.deliveryId));
+  console.log("ORDER FOR DISPUTE", order);
   const handleDispute = () => navigate(RoutePath.USER_DISPUTE, { state: { order } });
 
   const handleContact = () => {
@@ -266,8 +288,25 @@ const OrderCard = ({ order, navigate, onCancel, onSelectTraveller, onFeedback, o
 
   const handleSelectTraveller = () => onSelectTraveller(order.id);
 
-  const canDispute = [DELIVERY_STATUS.CONFIRMED, DELIVERY_STATUS.PICKUP, DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.DELIVERED].includes(order.status);
-  const canCancel  = [DELIVERY_STATUS.CREATED, DELIVERY_STATUS.MATCHING, DELIVERY_STATUS.PARTNER_SELECTED, DELIVERY_STATUS.CONFIRMED].includes(order.status);
+  // const canDispute = [DELIVERY_STATUS.CONFIRMED, DELIVERY_STATUS.PICKUP, DELIVERY_STATUS.IN_TRANSIT, DELIVERY_STATUS.DELIVERED].includes(order.status);
+  const isDelivered = order.status === DELIVERY_STATUS.DELIVERED;
+
+  const isDeliveryDelayed =
+    order.expected_delivery_date &&
+    new Date() > new Date(order.expected_delivery_date) &&
+    order.status !== DELIVERY_STATUS.DELIVERED &&
+    order.status !== DELIVERY_STATUS.CANCELLED &&
+    order.status !== DELIVERY_STATUS.AUTO_CANCELLED;
+
+  const canDispute = [
+    DELIVERY_STATUS.CONFIRMED,
+    DELIVERY_STATUS.PICKUP,
+    DELIVERY_STATUS.IN_TRANSIT,
+    DELIVERY_STATUS.DELIVERED,
+    DELIVERY_STATUS.CANCELLED, // user/traveller cancelled after booking
+  ].includes(order.status);
+
+  const canCancel = [DELIVERY_STATUS.CREATED, DELIVERY_STATUS.MATCHING, DELIVERY_STATUS.PARTNER_SELECTED, DELIVERY_STATUS.CONFIRMED].includes(order.status);
 
   const primaryAction = getPrimaryAction({ order, handlers: { handleCompleteParcel, handleSelectTraveller, handleDetails, handleTrack, onFeedback } });
   if (!primaryAction?.onClick) return null;

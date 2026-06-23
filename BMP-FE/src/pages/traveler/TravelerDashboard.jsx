@@ -390,8 +390,8 @@ if (error) {
 
 return (
   <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
-      {/* HEADER */}
-      <div className="flex flex-wrap justify-between items-start gap-2 mb-4 sm:mb-6">
+      {/* HEADER with TABS */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 sm:mb-6">
         <div className="min-w-0">
           <h1 className="text-lg sm:text-2xl font-bold truncate">{currentView.title}</h1>
           <p className="text-xs sm:text-sm text-gray-500">{currentView.description}</p>
@@ -412,6 +412,51 @@ return (
           </Button>
         </div>
       </div>
+
+      {/* TAB NAVIGATION */}
+      <div className="flex gap-1 sm:gap-2 mb-6 overflow-x-auto pb-2 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
+        <button
+          onClick={() => navigate(RoutePath.TRAVELER_AVAILABLE_REQUEST)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+            viewType === 'AVAILABLE'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          Available
+        </button>
+        <button
+          onClick={() => navigate(RoutePath.TRAVELER_DASHBOARD)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+            viewType === 'ACTIVE'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          Active
+        </button>
+        <button
+          onClick={() => navigate(RoutePath.TRAVELER_COMPLETED)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+            viewType === 'COMPLETED'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          Completed
+        </button>
+        <button
+          onClick={() => navigate(RoutePath.TRAVELER_CANCELLED)}
+          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
+            viewType === 'CANCELLED'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          Cancelled
+        </button>
+      </div>
+
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
       {statsCards.map((stat, index) => (
         <div key={index} onClick={stat.onClick} className="cursor-pointer">

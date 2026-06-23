@@ -153,6 +153,7 @@ class BookingService {
         traveller_name: travellerName,
         traveller_phone: travellerProfile?.user?.phone,
         message: "Traveller has arrived at pickup location",
+        status: "PICKUP",  // ADD THIS - status update frontend ko
       };
       const travellerEventData = {
         booking_id: booking.id,
