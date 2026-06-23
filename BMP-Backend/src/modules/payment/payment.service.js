@@ -3,6 +3,7 @@ import Payment from "./payment.model.js";
 import Booking from "../booking/booking.model.js";
 import Parcel from "../parcel/parcel.model.js";
 import User from "../user/user.model.js";
+import UserProfile from "../user/userProfile.model.js";
 import Address from "../parcel/address.model.js";
 import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
@@ -54,7 +55,29 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     },
   });
 
-  const user = await User.findByPk(parcel.user_id);
+  const user = await User.findByPk(parcel.user_id, {
+    include: [{ model: UserProfile, as: "profile" }],
+  });
+
+  if (!user) throw new Error("User not found");
+
+  // phone is required by Cashfree — reject early with a clear message
+  const phone = user.phone_number?.replace(/\D/g, "");
+  if (!phone || phone.length < 10) {
+    throw new Error("User does not have a valid phone number on file. Please update your profile.");
+  }
+
+  // email is optional but Cashfree requires something — use a derived placeholder
+  // only if the account was created via Firebase (no real email supplied)
+  const email = user.email?.includes("firebase:") ? null : user.email;
+  if (!email) {
+    throw new Error("User does not have a valid email address on file. Please update your profile.");
+  }
+
+  const customerName = user.profile?.name || null;
+  if (!customerName) {
+    throw new Error("User profile name is missing. Please complete your profile before paying.");
+  }
 
   const orderId = `ORDER_${Date.now()}_${parcel.id}`;
 
@@ -63,7 +86,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
   console.log("🔥 CASHFREE REQUEST:", {
     orderId,
     amount,
-    user: user?.id,
+    userId: user?.id,
   });
 
   const request = {
@@ -73,9 +96,9 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
 
     customer_details: {
       customer_id: String(user.id),
-      customer_name: user.name || "Customer",
-      customer_email: user.email || "test@example.com",
-      customer_phone: user.phone_number || "9999999999",
+      customer_name: customerName,
+      customer_email: email,
+      customer_phone: phone.slice(-10), // Cashfree expects 10-digit Indian number
     },
 
     order_meta: {
@@ -85,7 +108,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
 
   const response = await cashfree.PGCreateOrder(request);
 
-  console.log("🔥 CASHFREE RAW RESPONSE:", response);
+  console.log("✅ [Cashfree] Order created:", response?.data?.order_id, "| status:", response?.data?.order_status);
 
   await Payment.create({
     parcel_id,
@@ -330,7 +353,7 @@ export async function refundPaymentForParcel(parcelId, reason = "Parcel cancelle
     // Find the successful payment for this parcel
     const payment = await Payment.findOne({
       where: {
-        cashfree_order_id: order_id,
+        parcel_id: parcelId,
         status: PAYMENT_STATUS.SUCCESS,
       },
     });
@@ -345,39 +368,36 @@ export async function refundPaymentForParcel(parcelId, reason = "Parcel cancelle
       return { refunded: false };
     }
 
-    if (!payment.razorpay_payment_id) {
+    if (!payment.cashfree_payment_id) {
       return { refunded: false };
     }
 
-    const amountPaise = Math.round(parseFloat(payment.amount) * 100); // Razorpay uses paise
+    const cashfree = getCashfree();
 
-    // Call Razorpay refund API
-    const refundResponse = await getRazorpay().payments.refund(payment.razorpay_payment_id, {
-      amount: amountPaise,
-      notes: { reason, parcel_id: parcelId },
+    // Cashfree refund API
+    const refundId = `REFUND_${Date.now()}_${parcelId.slice(0, 8)}`;
+    const refundResponse = await cashfree.PGOrderCreateRefund(payment.cashfree_order_id, {
+      refund_amount: Number(payment.amount),
+      refund_id: refundId,
+      refund_note: reason,
     });
 
-    // Lazy-import Refund model to avoid circular deps
     const { default: Refund } = await import("./refund.model.js");
 
-    // Persist refund record
     await Refund.create({
       payment_id: payment.id,
       amount: payment.amount,
       status: "COMPLETED",
     });
 
-    // Mark payment as refunded
     await payment.update({ status: PAYMENT_STATUS.REFUNDED });
 
     return {
       refunded: true,
       amount: payment.amount,
-      refundId: refundResponse.id,
+      refundId: refundResponse?.data?.refund_id || refundId,
     };
   } catch (error) {
-    // Non-fatal — log the failure so it can be investigated and retried manually.
-    // TODO: Wire this to an error tracking service (Sentry) and a retry queue (BullMQ).
     console.error(`[Payment] Refund FAILED for parcel ${parcelId}:`, error.message);
     return { refunded: false, error: error.message };
   }
