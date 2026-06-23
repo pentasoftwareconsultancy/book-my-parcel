@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   FiStar,
   FiTruck,
@@ -6,6 +7,10 @@ import {
   FiPackage,
   FiUser,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import RoutePath from "../../../core/constants/routes.constant"
+
+
 
 const SearchTravellerInfo = ({
   travellerName,
@@ -18,6 +23,7 @@ const SearchTravellerInfo = ({
   weight,
   transitInfo,
 }) => {
+  const navigate = useNavigate ()
   const shortOrigin = cardOrigin?.split(",")[0] || cardOrigin;
   const shortDestination =
     cardDestination?.split(",")[0] || cardDestination;
@@ -115,10 +121,13 @@ const SearchTravellerInfo = ({
 
           {/* Button */}
           <div className="mt-4">
-            <button className="w-full sm:w-32 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2">
-              <FiPackage />
-              Book Now
-            </button>
+            <button
+  onClick={() => navigate(RoutePath.USER_REQUEST_FORM)}
+  className="w-full sm:w-32 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
+>
+  <FiPackage />
+  Book Now
+</button>
           </div>
         </div>
       </div>

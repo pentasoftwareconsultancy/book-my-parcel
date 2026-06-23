@@ -215,9 +215,7 @@ const AuthForm = ({
                       }`}
                   />
                 </div>
-                {errors.phone_number && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phone_number}</p>
-                )}
+                
               </div>
             ) : field.name === "password" || field.name === "confirmPassword" ? (
               <div className="space-y-1">
@@ -291,28 +289,6 @@ const AuthForm = ({
           </div>
         ))}
       </div>
-
-      {/* Terms */}
-      {/* {isSignupPage && (
-        <label className="flex items-center gap-2 text-xs text-gray-600 mt-2 cursor-pointer">
-          <input
-            type="checkbox"
-            required
-            className="w-4 h-4 min-w-[16px] min-h-[16px] accent-blue-600 border border-gray-300 rounded-sm cursor-pointer"
-          />
-          <span>
-            I agree to the{" "}
-            <Link to={RoutePath.PUBLIC_TERMSANDCONDITION} className="text-blue-600 hover:underline">
-              Terms & Conditions
-            </Link>
-            {"  "}and{"  "}
-            <Link to={RoutePath.PUBLIC_POLICY} className="text-blue-600 hover:underline">
-              Privacy Policy
-            </Link>
-
-          </span>
-        </label>
-      )} */}
       {isSignupPage && (
         <div className="mt-2">
           <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">

@@ -185,13 +185,13 @@ const TravellerDetailsPage = () => {
             `${ServerUrl.API_FEEDBACK_BASE}/booking/${parcelData.bookingId}`
           );
           
-          console.log("📦 Feedback response:", response);
+          console.log("Feedback response:", response);
           
           if (response?.data?.data) {
             setFeedback(response.data.data);
             console.log("✅ Feedback set:", response.data.data);
           } else if (response?.data === null) {
-            console.log("ℹ️ No feedback yet for this booking");
+            console.log(" No feedback yet for this booking");
             setFeedback(null);
           }
         }
