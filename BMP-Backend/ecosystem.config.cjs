@@ -28,13 +28,18 @@ module.exports = {
       node_args: "--max-old-space-size=2048",
 
       // ── Environment ────────────────────────────────────────────────────────
+      // CASHFREE_ENV is set explicitly here so PM2 cluster workers always have
+      // the correct value — dotenv alone is not reliable in cluster mode because
+      // workers may initialise the Cashfree singleton before dotenv runs.
       env: {
         NODE_ENV: "development",
         PORT: 3000,
+        CASHFREE_ENV: "PRODUCTION",
       },
       env_production: {
         NODE_ENV: "production",
         PORT: 3000,
+        CASHFREE_ENV: "PRODUCTION",
       },
 
       // ── Logging ────────────────────────────────────────────────────────────
