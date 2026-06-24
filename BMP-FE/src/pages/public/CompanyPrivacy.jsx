@@ -18,6 +18,9 @@ export default function CompanyPrivacy() {
             Your privacy is important to us. This policy explains how we collect,
             use, protect, and manage your personal information.
           </p>
+          <p className="text-xs opacity-75 mt-2">
+            Last Updated: {companyPrivacyPolicyData.lastUpdated} &nbsp;·&nbsp; Company: BOOK MY PERCEL LLP &nbsp;·&nbsp; Governing Law: India
+          </p>
         </header>
 
         {/* Body */}

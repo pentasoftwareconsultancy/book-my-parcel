@@ -110,25 +110,36 @@ export async function updateFeedback(userId, bookingId, data) {
   if (!feedback) throw new Error("Feedback not found");
   if (feedback.user_id !== userId) throw new Error("Unauthorized");
 
-  await feedback.update({
-    rating,
-    tags: tags || feedback.tags,
-    comment: comment ?? feedback.comment,
-  });
+  const t = await sequelize.transaction();
+  try {
+    await feedback.update({
+      rating,
+      tags: tags || feedback.tags,
+      comment: comment ?? feedback.comment,
+    }, { transaction: t });
 
-  // Recalculate traveller's average rating
-  const [avgResult] = await sequelize.query(
-    `SELECT ROUND(AVG(rating)::numeric, 1) AS avg_rating, COUNT(*)::integer AS total_count
-     FROM feedbacks WHERE traveller_id = :traveller_id`,
-    { replacements: { traveller_id: feedback.traveller_id }, type: sequelize.QueryTypes.SELECT }
-  );
+    // Recalculate traveller's average rating inside the same transaction
+    const [avgResult] = await sequelize.query(
+      `SELECT ROUND(AVG(rating)::numeric, 1) AS avg_rating, COUNT(*)::integer AS total_count
+       FROM feedbacks WHERE traveller_id = :traveller_id`,
+      {
+        replacements: { traveller_id: feedback.traveller_id },
+        type: sequelize.QueryTypes.SELECT,
+        transaction: t,
+      }
+    );
 
-  await TravellerProfile.update(
-    { rating: parseFloat(avgResult.avg_rating) },
-    { where: { id: feedback.traveller_id } }
-  );
+    await TravellerProfile.update(
+      { rating: parseFloat(avgResult.avg_rating) },
+      { where: { id: feedback.traveller_id }, transaction: t }
+    );
 
-  return feedback;
+    await t.commit();
+    return feedback;
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
 }
 // Used on the traveller's public profile to display their reviews.
 export async function getTravellerFeedback(travellerId) {
@@ -138,11 +149,19 @@ export async function getTravellerFeedback(travellerId) {
       {
         model: User,
         as: "reviewer",
-        attributes: ["id", "name", "email", "phone"],
+        attributes: ["id", "phone_number"],
         required: false, // LEFT JOIN in case user is deleted
+        include: [
+          {
+            model: (await import("../user/userProfile.model.js")).default,
+            as: "profile",
+            attributes: ["name"],
+            required: false,
+          },
+        ],
       },
     ],
-    order: [["createdAt", "DESC"]], // newest first (use camelCase for Sequelize)
-    limit: 50,                       // cap at 50 to avoid huge payloads
+    order: [["createdAt", "DESC"]],
+    limit: 50,
   });
 }

@@ -2,7 +2,6 @@ import TextInput from "../../core/common/CommonUi";
 import AddressAutoComplete from "../../core/common/AddressAutocomplete";
 import {
   nameTypingPattern,
-  validatePincode,
   pinTypingPattern,
   numberTypingPattern,
 } from "../../core/utils/validation.js";
@@ -34,7 +33,7 @@ const DeliverySection = ({ data, updateFields, geocodeAddress }) => {
           required={true}
           maxLength={6}
           onChange={pat(pinTypingPattern, "deliveryPincode")}
-          onBlur={() => { const e = validatePincode(data.deliveryPincode); if (e) alert(e); }} />
+        />
       </div>
 
       <div className="grid gap-4 mt-4 sm:grid-cols-2 md:grid-cols-3">

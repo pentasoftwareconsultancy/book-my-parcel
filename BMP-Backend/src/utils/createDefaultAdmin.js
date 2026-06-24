@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
+import sequelize from "../config/database.config.js";
 import User from "../modules/user/user.model.js";
+import UserProfile from "../modules/user/userProfile.model.js";
 import Role from "../modules/user/role.model.js";
 import UserRole from "../modules/user/userRole.model.js";
 import { ROLES } from "./constants.js";
@@ -47,21 +49,30 @@ export const createDefaultAdmin = async () => {
 
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
-  const adminUser = await User.create({
-    email:        adminEmail,
-    password:     hashedPassword,
-    phone_number: adminPhone,
-  });
+  const { Op } = await import("sequelize");
 
-  const adminRole = await Role.findOne({ where: { name: ROLES.ADMIN } });
-  if (!adminRole) {
-    console.error("❌ [Admin] ADMIN role not found in DB. Run seedRoles first.");
-    return;
-  }
+  await sequelize.transaction(async (t) => {
+    const adminUser = await User.create({
+      email:        adminEmail,
+      password:     hashedPassword,
+      phone_number: adminPhone,
+    }, { transaction: t });
 
-  await UserRole.create({
-    user_id: adminUser.id,
-    role_id: adminRole.id,
+    // Create a matching UserProfile so admin dashboard queries don't break
+    await UserProfile.create({
+      user_id: adminUser.id,
+      name: "Admin",
+    }, { transaction: t });
+
+    const adminRole = await Role.findOne({ where: { name: ROLES.ADMIN }, transaction: t });
+    if (!adminRole) {
+      throw new Error("ADMIN role not found in DB. Run seedRoles first.");
+    }
+
+    await UserRole.create({
+      user_id: adminUser.id,
+      role_id: adminRole.id,
+    }, { transaction: t });
   });
 
   console.log(`✅ [Admin] Default admin created: ${adminEmail}`);

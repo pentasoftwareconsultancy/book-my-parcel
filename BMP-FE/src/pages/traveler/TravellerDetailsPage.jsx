@@ -374,7 +374,7 @@ const TravellerDetailsPage = () => {
                   <p className="text-sm font-semibold text-gray-900">₹{parcelData.price.actualPrice}</p>
                 </div>
                 <div className="border-t border-green-200 pt-3">
-                  <p className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">Your Earnings (80%)</p>
+                  <p className="text-xs text-gray-600 font-medium mb-1 uppercase tracking-wide">Your Earnings (after platform fee)</p>
                   <p className="text-2xl font-bold text-green-600">₹{parcelData.price.travellersEarnings}</p>
                 </div>
                 <div className="border-t border-green-200 pt-3">

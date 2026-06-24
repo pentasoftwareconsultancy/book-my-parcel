@@ -9,11 +9,18 @@ export const useNotifications = (role) => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  // Separate unread count state so the header badge updates immediately
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const user = useSelector((state) => state.auth.user);
 
   const notificationsRef = useRef([]);
   notificationsRef.current = notifications;
+
+  // Keep unreadCount in sync with the notifications list
+  useEffect(() => {
+    setUnreadCount((notifications || []).filter((n) => !n.is_read).length);
+  }, [notifications]);
 
   // ✅ FETCH NOTIFICATIONS (FIXED)
   const fetchNotifications = useCallback(async (pageNum = 1) => {
@@ -137,9 +144,6 @@ export const useNotifications = (role) => {
       fetchNotifications(page + 1);
     }
   }, [loading, hasMore, page, fetchNotifications]);
-
-  // ✅ UNREAD COUNT SAFE
-  const unreadCount = (notifications || []).filter((n) => !n.is_read).length;
 
   return {
     notifications: notifications || [],

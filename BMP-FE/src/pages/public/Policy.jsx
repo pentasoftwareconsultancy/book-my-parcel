@@ -15,6 +15,8 @@ export default function Policy() {
           <p className="text-m font-bold opacity-90 mt-1">
            By registering as a traveler, you agree to all privacy policies.
           </p>
+          <p className="text-xs opacity-75 mt-2">Last Updated: June 11, 2026 &nbsp;·&nbsp; Effective Date: June 11, 2026</p>
+          <p className="text-xs opacity-75 mt-1">Company: BOOK MY PERCEL LLP &nbsp;·&nbsp; Governing Law: India</p>
         </header>
 
         {/* BODY */}

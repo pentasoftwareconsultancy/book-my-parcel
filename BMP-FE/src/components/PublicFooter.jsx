@@ -6,18 +6,16 @@ import whitelogo from '../assets/whiteLogo.png';
 const CONFIGS = {
   user: {
     bg: "linear-gradient(177.15deg, #1F2AFF -7.03%, #5C9DF2 105.42%)",
-    quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"],["/contact","Contact Us"]],
+    quickLinks: [["/","Home"],["/about","About Us"],["/services","Services"]],
     supportTitle: "Support",
-    supportLinks: [["/traveler-guidelines","Safety Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/company-privacy","Company Privacy Policy"]],
-    
+    supportLinks: [["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/company-privacy","Company Privacy Policy"],["/contact","Contact Us"]],
     badge: false, stats: false, verified: false,
   },
   traveler: {
     bg: "linear-gradient(105deg, #1F2AFF 0%, #3f7de1 50%, #3393c0 100%)",
-    quickLinks: [["/travelerhome","Become a Traveler"],["/traveler-guidelines","Traveler Guidelines"],["/about","About Us"],],
+    quickLinks: [["/travelerhome","Become a Traveler"],["/about","About Us"]],
     supportTitle: "Support and help",
     supportLinks: [["/traveler-guidelines","Traveler Guidelines"],["/termsandcondition","Terms & Conditions"],["/policy","Privacy Policy"],["/refund-policy","Refund & Cancellation Policy"],["/contact","Contact Us"]],
-    
     badge: true, stats: true, verified: true,
   },
 };

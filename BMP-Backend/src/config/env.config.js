@@ -5,6 +5,10 @@
 
 const REQUIRED = [
   "JWT_SECRET",
+  "CASHFREE_APP_ID",
+  "CASHFREE_SECRET_KEY",
+  "GOOGLE_API_KEY",
+  "FIREBASE_SERVICE_ACCOUNT_KEY",
 ];
 
 const REQUIRED_LOCAL_DB = [
@@ -15,20 +19,13 @@ const REQUIRED_LOCAL_DB = [
 ];
 
 const RECOMMENDED = [
-  // "RAZORPAY_KEY_ID",
-  // "RAZORPAY_KEY_SECRET",
-  "CASHFREE_APP_ID",
-  "CASHFREE_SECRET_KEY",
   "CASHFREE_ENV",
-
   "CASHFREE_P_SECRET_ID",
   "CASHFREE_P_SECRET_KEY",
-
-  "GOOGLE_API_KEY",
+  "TWILIO_AUTH_TOKEN",
   "BASE_URL",
   "FRONTEND_URL",
   "ALLOWED_ORIGINS",
-  "FIREBASE_SERVICE_ACCOUNT_KEY",
 ];
 
 // Known insecure placeholder values that must never reach production

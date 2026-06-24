@@ -89,12 +89,14 @@ export async function releaseDeliveredPayments() {
       const [updated] = await Payment.update(
         {
           released_at: new Date(),
+          wallet_credit_released: true,
           wallet_txn_id: payment.id, // optional but recommended
         },
         {
           where: {
             id: payment.id,
             released_at: null,
+            wallet_credit_released: false,
             status: PAYMENT_STATUS.SUCCESS,
           },
           transaction: t,

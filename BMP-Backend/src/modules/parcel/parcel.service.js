@@ -634,49 +634,12 @@ export async function updateParcelStep(parcelId, stepData, req = null) {
       updateData.pickup_time = stepData.pickup_time || null;
     }
 
-    // ✅ NEW: Generate Booking ID when Step 3 is completed (payment)
-    let booking = null;
+    // ✅ Step 3 is payment confirmation — booking was already created by verifyPaymentService.
+    // Here we only update the parcel status and persist the partner selection.
+    // DO NOT create a booking here to avoid duplicates.
     if (stepData.form_step === 3) {
-
-      // Update parcel status to CONFIRMED when payment is done
+      // Mark parcel as CONFIRMED
       updateData.status = "CONFIRMED";
-
-      // Check if booking already exists
-      booking = await Booking.findOne({
-        where: { parcel_id: parcelId },
-        transaction: t
-      });
-
-      // Use selected_partner_id from stepData (MUST be provided) or from parcel as fallback
-      const selectedPartnerId = stepData.selected_partner_id || parcel.selected_partner_id;
-
-      if (!selectedPartnerId) {
-        // Warning: No traveller ID provided for booking creation
-      }
-      // All bookings use PAY_NOW mode
-      const paymentMode = 'PAY_NOW';
-
-      if (!booking && selectedPartnerId) {
-        // Generate Booking ID
-        const { generateBookingId } = await import("../../utils/idGenerator.js");
-        const bookingRef = await generateBookingId();
-
-        // Create booking with Booking ID (but NO tracking ID yet)
-        booking = await Booking.create({
-          parcel_id: parcelId,
-          traveller_id: selectedPartnerId,
-          status: "CONFIRMED",
-          booking_ref: bookingRef,
-          tracking_ref: null, // Will be generated when IN_TRANSIT
-          payment_mode: paymentMode, // Track whether it's pay now or pay after delivery
-        }, { transaction: t });
-
-      } else if (booking && !booking.booking_ref) {
-        // Update existing booking with Booking ID
-        const { generateBookingId } = await import("../../utils/idGenerator.js");
-        const bookingRef = await generateBookingId();
-        await booking.update({ booking_ref: bookingRef }, { transaction: t });
-      }
     }
 
     await parcel.update(updateData, { transaction: t });

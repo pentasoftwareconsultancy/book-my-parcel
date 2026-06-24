@@ -40,7 +40,12 @@ export async function submitContact(req, res) {
     </table>
   `.trim();
 
-  await sendEmail(SUPPORT_EMAIL, supportSubject, supportBody);
+  try {
+    await sendEmail(SUPPORT_EMAIL, supportSubject, supportBody);
+  } catch (supportEmailErr) {
+    // Log the failure but do NOT surface it to the user — their message was received
+    console.error("[Contact] Failed to send support notification email:", supportEmailErr.message);
+  }
 
   // ── 2. Auto-reply to sender ───────────────────────────────────────────────
   const replySubject = "We received your message — Book My Parcel";
@@ -54,7 +59,12 @@ export async function submitContact(req, res) {
     <p>— The Book My Parcel Team</p>
   `.trim();
 
-  await sendEmail(email, replySubject, replyBody);
+  try {
+    await sendEmail(email, replySubject, replyBody);
+  } catch (replyEmailErr) {
+    // Auto-reply failure is non-fatal — user already got a 200 confirmation
+    console.error("[Contact] Failed to send auto-reply email:", replyEmailErr.message);
+  }
 
   return res.status(200).json({ success: true, message: "Message sent successfully." });
 }

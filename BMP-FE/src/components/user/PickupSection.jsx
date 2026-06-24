@@ -1,7 +1,6 @@
 import TextInput from "../../core/common/CommonUi";
 import AddressAutoComplete from "../../core/common/AddressAutocomplete.jsx";
 import TimePicker12h from "../../components/common/TimePicker12h.jsx"
-import { validateFutureDate } from "../../core/utils/validation.js";
 import { Home } from "lucide-react";
 import {
   nameTypingPattern,
@@ -59,7 +58,7 @@ const PickupSection = ({ data, updateFields, geocodeAddress }) => {
           required={true}
           maxLength={6}
           onChange={pat(pinTypingPattern, "pickupPincode")}
-          onBlur={() => { const e = validatePincode(data.pickupPincode); if (e) alert(e); }} />
+        />
       </div>
 
       <div className="grid gap-4 mt-4 sm:grid-cols-2 md:grid-cols-3">
@@ -81,13 +80,11 @@ const PickupSection = ({ data, updateFields, geocodeAddress }) => {
           min={new Date().toISOString().split("T")[0]}
           onChange={(e) => {
             const date = e.target.value;
-
-            const error = validateFutureDate(date);
-            if (error) {
-              alert(error); // or toast.error(error)
+            const today = new Date().toISOString().split("T")[0];
+            if (date && date < today) {
+              // Silently ignore past dates — the min attribute already prevents it in most browsers
               return;
             }
-
             updateFields({ pickupDate: date });
           }}
         />

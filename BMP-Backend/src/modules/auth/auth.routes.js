@@ -381,7 +381,7 @@ router.get("/profile", authMiddleware, getProfileController);
 router.put("/update-profile", authMiddleware, profileLimiter, updateUserProfile);
 
 // Sensitive routes with stricter rate limiting
-router.post("/profile/photo", authMiddleware, sensitiveLimiter, uploadProfile.single("photo"), uploadProfilePhotoController);
+// PUT /profile/photo is the canonical endpoint — POST variant removed (duplicate)
 router.put("/profile/photo", authMiddleware, sensitiveLimiter, uploadProfile.single("photo"), uploadProfilePhotoController);
 router.put("/update-password", authMiddleware, profileLimiter, sensitiveLimiter, updatePasswordController);
 

@@ -753,8 +753,7 @@ export async function selectTraveller(req, res) {
 
     // Get traveller profile
     const travellerProfile = await TravellerProfile.findOne(
-      { where: { user_id: traveller_id } },
-      { transaction: t }
+      { where: { user_id: traveller_id }, transaction: t }
     );
 
     if (!travellerProfile) {
@@ -946,40 +945,40 @@ export async function getTravellerRequests(req, res) {
       order: [["sent_at", "DESC"]],
     });
 
-    const formattedRequests = requests.map((req) => ({
-      request_id: req.id,
+    const formattedRequests = requests.map((parcelRequest) => ({
+      request_id: parcelRequest.id,
       parcel: {
-        id: req.parcel.id,
-        parcel_ref: req.parcel.parcel_ref,
-        weight: req.parcel.weight,
-        type: req.parcel.parcel_type,
-        price_quote: req.parcel.price_quote,
+        id: parcelRequest.parcel.id,
+        parcel_ref: parcelRequest.parcel.parcel_ref,
+        weight: parcelRequest.parcel.weight,
+        type: parcelRequest.parcel.parcel_type,
+        price_quote: parcelRequest.parcel.price_quote,
         pickup: {
-          city: req.parcel.pickupAddress.city,
-          locality: req.parcel.pickupAddress.locality,
-          address: req.parcel.pickupAddress.formatted_address,
+          city: parcelRequest.parcel.pickupAddress.city,
+          locality: parcelRequest.parcel.pickupAddress.locality,
+          address: parcelRequest.parcel.pickupAddress.formatted_address,
         },
         delivery: {
-          city: req.parcel.deliveryAddress.city,
-          locality: req.parcel.deliveryAddress.locality,
-          address: req.parcel.deliveryAddress.formatted_address,
+          city: parcelRequest.parcel.deliveryAddress.city,
+          locality: parcelRequest.parcel.deliveryAddress.locality,
+          address: parcelRequest.parcel.deliveryAddress.formatted_address,
         },
       },
       route: {
-        id: req.route.id,
-        distance_km: req.route.total_distance_km,
-        duration_minutes: req.route.total_duration_minutes,
-        departure_date: req.route.departure_date,
-        departure_time: to12h(req.route.departure_time),
-        arrival_date: req.route.arrival_date,
-        arrival_time: to12h(req.route.arrival_time),
+        id: parcelRequest.route.id,
+        distance_km: parcelRequest.route.total_distance_km,
+        duration_minutes: parcelRequest.route.total_duration_minutes,
+        departure_date: parcelRequest.route.departure_date,
+        departure_time: to12h(parcelRequest.route.departure_time),
+        arrival_date: parcelRequest.route.arrival_date,
+        arrival_time: to12h(parcelRequest.route.arrival_time),
       },
-      detour_km: req.detour_km,
-      detour_percentage: req.detour_percentage,
-      match_score: req.match_score,
-      status: req.status,
-      sent_at: req.sent_at,
-      expires_at: req.expires_at,
+      detour_km: parcelRequest.detour_km,
+      detour_percentage: parcelRequest.detour_percentage,
+      match_score: parcelRequest.match_score,
+      status: parcelRequest.status,
+      sent_at: parcelRequest.sent_at,
+      expires_at: parcelRequest.expires_at,
     }));
 
     return responseSuccess(res, formattedRequests, "Requests retrieved successfully");

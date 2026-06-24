@@ -44,11 +44,11 @@ export function validateSignupData(userData) {
         errors.push("Enter valid 10 digit Indian mobile number for alternate phone");
     }
 
-    // ✅ Name — only letters and spaces, min 2 characters
+    // ✅ Name — Unicode-aware: accepts any language's letters, spaces, hyphens and apostrophes
     if (!userData.name || !userData.name.trim()) {
         errors.push("Full name is required");
     } else {
-        if (!/^[A-Za-z\s]+$/.test(userData.name))
+        if (!/^[\p{L}\s'\-]+$/u.test(userData.name))
             errors.push("Full name must contain only letters");
         if (userData.name.trim().length < 2)
             errors.push("Full name must be at least 2 characters");

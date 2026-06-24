@@ -12,6 +12,7 @@ import { seedRoles } from "./src/utils/seedRoles.js";
 import { createDefaultAdmin } from "./src/utils/createDefaultAdmin.js";
 import { setupSocketHandlers } from "./src/utils/socketHandlers.js";
 import runMigrations from "./src/utils/runMigrations.js";
+import { setIO } from "./src/socket.js";
 import { runAutoCancelJob } from "./src/jobs/autoCancel.job.js";
 import { runPaymentReleaseJob } from "./src/jobs/paymentRelease.job.js";
 import {expireRoutes} from "./src/jobs/autoExpiry.job.js";
@@ -91,6 +92,8 @@ const startServer = async () => {
 
     // Make io accessible in controllers via req.app.get("io")
     app.set("io", io);
+    // Also register in the singleton so services can use it without app import
+    setIO(io);
 
     // All socket event handlers live here
     setupSocketHandlers(io);
@@ -136,6 +139,14 @@ const startServer = async () => {
     let paymentReleaseRunning = false;
     let routeExpiryRunning = false;
 
+    // Store lock tokens so we can release them properly on shutdown
+    const lockTokens = {
+      "lock:jobs:auto-cancel": null,
+      "lock:jobs:payment-release": null,
+      "lock:jobs:expire-old-requests": null,
+      "lock:jobs:route-expiry": null,
+    };
+
     // Wrapper: checks DB health before running, prevents overlap
     const safeRun = async (name, flag, job, setFlag, lockKey, lockTtlMs = 4 * 60 * 1000) => {
       if (flag) {
@@ -146,6 +157,7 @@ const startServer = async () => {
       let lockToken = null;
       try {
         lockToken = await acquireRedisLock(lockKey, lockTtlMs);
+        if (lockToken) lockTokens[lockKey] = lockToken;
       } catch (lockErr) {
         console.warn(`[${name}] Redis lock acquire failed:`, lockErr.message);
       }
@@ -172,6 +184,7 @@ const startServer = async () => {
       } finally {
         setFlag(false);
         if (lockToken) {
+          lockTokens[lockKey] = null;
           try {
             await releaseRedisLock(lockKey, lockToken);
           } catch (unlockErr) {
@@ -227,12 +240,11 @@ const startServer = async () => {
       server.close();
       try {
         if (redis) {
-          await Promise.allSettled([
-            releaseRedisLock("lock:jobs:auto-cancel", "*"),
-            releaseRedisLock("lock:jobs:payment-release", "*"),
-            releaseRedisLock("lock:jobs:expire-old-requests", "*"),
-            releaseRedisLock("lock:jobs:route-expiry", "*"),
-          ]);
+          // Release only locks this instance actually holds (never use "*" wildcard token)
+          const releasePromises = Object.entries(lockTokens)
+            .filter(([, token]) => token !== null)
+            .map(([key, token]) => releaseRedisLock(key, token));
+          await Promise.allSettled(releasePromises);
           await redis.quit();
         }
       } catch (e) {

@@ -390,68 +390,6 @@ export const getTravelersForKYC = async ({ page = 1, limit = 10, status = null }
       }
     };
   }
-
-  // Query to get travelers with their KYC status
-  const travelers = await sequelize.query(
-    `
-    SELECT 
-      u.id AS user_id,
-      u.name,
-      u.email,
-      u.phone_number,
-      u."createdAt" AS user_created_at,
-      kyc.id AS kyc_id,
-      kyc.status AS kyc_status,
-      kyc.address,
-      kyc.aadhar_front,
-      kyc.aadhar_back,
-      kyc.pan_front,
-      kyc.pan_back,
-      kyc.driving_photo,
-      kyc.selfie,
-      kyc.created_at AS kyc_created_at,
-      kyc.updated_at AS kyc_updated_at
-    FROM users u
-    JOIN traveller_kyc kyc ON u.id = kyc.user_id
-
-    LEFT JOIN user_profiles up   -- ✅ ADD THIS
-  ON u.id = up.user_id
-  
-    ${whereClause}
-    ORDER BY kyc.created_at DESC
-    LIMIT :limit OFFSET :offset
-    `,
-    {
-      replacements,
-      type: QueryTypes.SELECT
-    }
-  );
-
-  // Count total travelers for pagination
-  const countResult = await sequelize.query(
-    `
-    SELECT COUNT(*) as total 
-    FROM traveller_kyc kyc
-    JOIN users u ON u.id = kyc.user_id
-    ${whereClause}
-    `,
-    {
-      replacements: status ? { status } : {},
-      type: QueryTypes.SELECT
-    }
-  );
-
-  const total = parseInt(countResult[0].total);
-
-  return {
-    travelers,
-    pagination: {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / limit)
-    }
-  };
 };
 
 /**
@@ -839,10 +777,15 @@ export const getAllDisputes = async ({ page = 1, limit = 10, status = null }) =>
 };
 
 // GET ADMIN SERVICE PAYMENTS 
-export const getAllPaymentsAdminService = async () => {
+export const getAllPaymentsAdminService = async ({ page = 1, limit = 20 } = {}) => {
   try {
-    const payments = await Payment.findAll({
+    const safeLimit = Math.min(Math.max(1, parseInt(limit) || 20), 100);
+    const offset = (Math.max(parseInt(page) || 1, 1) - 1) * safeLimit;
+
+    const { count, rows: payments } = await Payment.findAndCountAll({
       order: [["createdAt", "DESC"]],
+      limit: safeLimit,
+      offset,
       include: [
         {
           model: Booking,
@@ -883,7 +826,15 @@ export const getAllPaymentsAdminService = async () => {
       ],
     });
 
-    return payments;
+    return {
+      payments,
+      pagination: {
+        total: count,
+        page: Number(page),
+        limit: safeLimit,
+        totalPages: Math.ceil(count / safeLimit),
+      },
+    };
   } catch (error) {
     console.error("Admin Payment Service Error:", error);
     throw error;
@@ -893,6 +844,11 @@ export const getAllPaymentsAdminService = async () => {
 // ---------------------------------- TRAVELER DETAILS SERVICES -------------------------------------------
 
 export const getTravelerDetailsService = async (userId) => {
+  // Fetch platform fee from settings (cached)
+  const { getPlatformFeePercent } = await import("../../redis/cache/platformSettingsCache.service.js");
+  const platformFeePercent = await getPlatformFeePercent();
+  const partnerShare = (100 - platformFeePercent) / 100;
+
   const rows = await sequelize.query(`
     SELECT
       u.id,
@@ -935,7 +891,7 @@ export const getTravelerDetailsService = async (userId) => {
       tp.vehicle_number AS license_number,
       COUNT(DISTINCT b.id) AS total_deliveries,
       COUNT(DISTINCT CASE WHEN b.status = 'DELIVERED' THEN b.id END) AS completed_deliveries,
-      COALESCE(SUM(CASE WHEN pay.status = 'SUCCESS' THEN pay.amount * 0.9 ELSE 0 END), 0) AS total_earnings,
+      COALESCE(SUM(CASE WHEN pay.status = 'SUCCESS' THEN pay.amount * :partnerShare ELSE 0 END), 0) AS total_earnings,
       COUNT(DISTINCT tr.id) AS active_routes,
       COALESCE(AVG(f.rating), 0) AS average_rating,
       COUNT(DISTINCT f.id) AS total_reviews
@@ -954,7 +910,7 @@ export const getTravelerDetailsService = async (userId) => {
       tk.aadhar_front, tk.aadhar_back, tk.pan_front, tk.pan_back, tk.driving_photo, tk.selfie,
       tk.account_number, tk.account_holder, tk.ifsc, tk.bank_name, tk.bank_verified,
       tp.vehicle_type, tp.vehicle_number
-  `, { type: QueryTypes.SELECT, replacements: { userId } });
+  `, { type: QueryTypes.SELECT, replacements: { userId, partnerShare } });
 
   return rows[0] || null;
 };
@@ -993,10 +949,14 @@ export const getTravelerBookingsService = async (userId) => {
 };
 
 export const getTravelerPaymentsService = async (userId) => {
+  const { getPlatformFeePercent } = await import("../../redis/cache/platformSettingsCache.service.js");
+  const platformFeePercent = await getPlatformFeePercent();
+  const partnerShare = (100 - platformFeePercent) / 100;
+
   const rows = await sequelize.query(`
     SELECT
       pay.id,
-      pay.amount * 0.9 AS amount,
+      pay.amount * :partnerShare AS amount,
       pay.status,
       pay.cashfree_payment_id,
       pay.cashfree_order_id,
@@ -1009,7 +969,7 @@ export const getTravelerPaymentsService = async (userId) => {
     LEFT JOIN parcel parc ON parc.id = b.parcel_id
     WHERE b.traveller_id = :userId
     ORDER BY pay."createdAt" DESC
-  `, { type: QueryTypes.SELECT, replacements: { userId } });
+  `, { type: QueryTypes.SELECT, replacements: { userId, partnerShare } });
 
   return rows;
 };
