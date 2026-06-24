@@ -57,7 +57,7 @@ const startServer = async () => {
     // Initialize Firebase Admin once at startup — not lazily per notification
     initializeFirebase();
 
-    const PORT = process.env.PORT || 3000;
+    const PORT = parseInt(process.env.PORT, 10) || 3000;
     const server = createServer(app);
 
     const io = new Server(server, {
