@@ -7,6 +7,10 @@ import Assignment from "@mui/icons-material/Assignment";
 import Gavel from "@mui/icons-material/Gavel";
 import AccountBox from "@mui/icons-material/AccountBox";
 import Dashboard from "@mui/icons-material/Dashboard";
+import BookOnline from "@mui/icons-material/BookOnline";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import ReportProblem from "@mui/icons-material/ReportProblem";
+import Settings from "@mui/icons-material/Settings";
 import { Package, Truck, CheckCircle, XCircle, ChevronRight, X } from "lucide-react";
 import RoutePath from "../core/constants/routes.constant";
 
@@ -26,13 +30,13 @@ const menuItems = {
     { text: "Cancelled",          icon: <XCircle size={16} />,             path: RoutePath.TRAVELER_CANCELLED },
   ],
   ADMIN: [
-    { text: "Overview",        icon: <Dashboard fontSize="small" />,  path: RoutePath.ADMIN_OVERVIEW },
-    { text: "User Management", icon: <Assignment fontSize="small" />, path: RoutePath.ADMIN_USERMANAGEMENT },
-    { text: "Traveler",        icon: <People fontSize="small" />,     path: RoutePath.ADMIN_TRAVELER },
-    { text: "Bookings",        icon: <Gavel fontSize="small" />,      path: RoutePath.ADMIN_BOOKINGS },
-    { text: "Payments",        icon: <Dashboard fontSize="small" />,  path: RoutePath.ADMIN_PAYMENTS },
-    { text: "Disputes",        icon: <AccountBox fontSize="small" />, path: RoutePath.ADMIN_DISPUTES },
-    { text: "Setting",         icon: <AccountBox fontSize="small" />, path: RoutePath.ADMIN_SETTINGS },
+    { text: "Overview",        icon: <Dashboard fontSize="small" />,     path: RoutePath.ADMIN_OVERVIEW },
+    { text: "User Management", icon: <People fontSize="small" />,        path: RoutePath.ADMIN_USERMANAGEMENT },
+    { text: "Traveler",        icon: <Assignment fontSize="small" />,    path: RoutePath.ADMIN_TRAVELER },
+    { text: "Bookings",        icon: <BookOnline fontSize="small" />,    path: RoutePath.ADMIN_BOOKINGS },
+    { text: "Payments",        icon: <PaymentsIcon fontSize="small" />,  path: RoutePath.ADMIN_PAYMENTS },
+    { text: "Disputes",        icon: <ReportProblem fontSize="small" />, path: RoutePath.ADMIN_DISPUTES },
+    { text: "Setting",         icon: <Settings fontSize="small" />,      path: RoutePath.ADMIN_SETTINGS },
   ],
 };
 

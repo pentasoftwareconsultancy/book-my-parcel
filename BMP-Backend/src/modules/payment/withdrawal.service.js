@@ -109,11 +109,17 @@ export async function requestWithdrawalService(userId, amount) {
       );
     }
 
-    // Check wallet balance
-    const balance = await getWalletBalanceService(userId);
-    if (balance.balance < withdrawAmount) {
+    // Check wallet balance — use SELECT FOR UPDATE to prevent double-withdrawal race
+    const Wallet = (await import("./wallet.model.js")).default;
+    const wallet = await Wallet.findOne({
+      where: { user_id: userId },
+      lock: t.LOCK.UPDATE,
+      transaction: t,
+    });
+    const currentBalance = wallet ? Number(wallet.balance) : 0;
+    if (currentBalance < withdrawAmount) {
       throw new Error(
-        `Insufficient balance. Available: ₹${balance.balance}, Requested: ₹${withdrawAmount}`
+        `Insufficient balance. Available: ₹${currentBalance}, Requested: ₹${withdrawAmount}`
       );
     }
 

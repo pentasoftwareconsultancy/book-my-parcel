@@ -126,13 +126,13 @@ const AddressTab = ({ addresses: initialAddresses = [] }) => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      {/* <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6">
         <h2 className="text-[17px] font-bold text-gray-900">Saved Addresses</h2>
         <button onClick={() => setShowModal(true)}
           className="flex items-center gap-1.5 bg-primary text-white border border-dashed border-blue-400 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-primary transition-colors">
           <Plus size={15} /> Add New Address
         </button>
-      </div> */}
+      </div>
 
       {addresses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">

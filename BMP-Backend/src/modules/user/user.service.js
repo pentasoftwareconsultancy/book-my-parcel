@@ -299,9 +299,12 @@ export async function fetchUserStats(userId) {
     }
   });
 
-  // Total spent = sum of price_quote across ALL parcels (not just delivered)
-  parcels.forEach(parcel => {
-    stats.totalSpent += Number(parcel.price_quote) || 0;
+  // Total spent = sum of price_quote for completed/active bookings only (not cancelled)
+  bookings.forEach(booking => {
+    const status = booking.status;
+    if (["DELIVERED", "CONFIRMED", "IN_TRANSIT", "PICKUP"].includes(status)) {
+      stats.totalSpent += Number(booking.parcel?.price_quote) || 0;
+    }
   });
 
   return stats;

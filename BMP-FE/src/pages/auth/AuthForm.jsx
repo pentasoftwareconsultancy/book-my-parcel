@@ -226,7 +226,7 @@ const AuthForm = ({
                 )}
                 <div className="relative">
                   {field.icon && (
-                    <field.icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                    <field.icon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-base w-4 h-4" />
                   )}
                   <input
                     type={
@@ -240,7 +240,11 @@ const AuthForm = ({
                     onFocus={() => field.name === "password" && setShowPasswordHint(true)}
                     onBlur={() => field.name === "password" && setShowPasswordHint(false)}
                     placeholder={field.placeholder}
-                    autoComplete={isLoginPage ? (field.name === "password" ? "current-password" : "off") : "new-password"}
+                    autoComplete={
+                      isLoginPage
+                        ? (field.name === "password" ? "off" : "off")
+                        : "new-password"
+                    }
                     className={`w-full border rounded-md py-2 pr-10 text-sm outline-none focus:ring-1 focus:ring-blue-500 ${field.icon ? "pl-10" : "px-3"
                       } ${errors[field.name] ? "border-red-500" : "border-gray-300"
                       }`}

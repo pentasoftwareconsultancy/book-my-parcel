@@ -605,8 +605,8 @@ function applyTransportModeFilters(routes, parcelData) {
           console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): Parcel within walking distance of stops ✓`);
           return true;
         } else {
-          console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): Parcel NOT within 2km of stops → falling back to geographic proximity matching`);
-          return true;
+          console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): Parcel NOT within 2km of any stop — excluded`);
+          return false;
         }
       } else {
         console.log(`[Matching] Route ${route.id} (${getRouteName(route)}, ${transitType || 'public'}): No explicit stops data, using route geometry matching (direction cannot be verified)`);
@@ -1153,11 +1153,11 @@ export async function matchRouteWithExistingParcels(routeId) {
     console.log(`[Matching] Checking route ${routeId} (${routeName}) against existing parcels`);
 
     // Find all parcels that are still looking for travellers
-    // Include all statuses where the user hasn't confirmed a booking yet
+    // Only process CREATED or MATCHING — never touch PARTNER_SELECTED or beyond
     const matchingParcels = await Parcel.findAll({
       where: {
         status: {
-          [Op.in]: ["CREATED", "MATCHING", "PARTNER_SELECTED"] // Include PARTNER_SELECTED — user may still want more options
+          [Op.in]: ["CREATED", "MATCHING"]
         },
         createdAt: {
           [Op.gte]: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
@@ -1220,7 +1220,7 @@ export async function runPeriodicMatching() {
     const matchingParcels = await Parcel.findAll({
       where: {
         status: {
-          [Op.in]: ["CREATED", "MATCHING", "PARTNER_SELECTED"]
+          [Op.in]: ["CREATED", "MATCHING"]
         },
         createdAt: {
           [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24 hours

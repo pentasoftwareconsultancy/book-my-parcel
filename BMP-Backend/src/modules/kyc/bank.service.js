@@ -24,7 +24,11 @@ export const verifyBankAccountService = async ({ accountNumber, bankName, ifsc }
 
   // 🔥 REAL API (Razorpay Fund Account Validation or similar)
   // This would actually send ₹1 to verify the account
-  const response = await axios.post("BANK_VERIFICATION_API_URL", {
+  const bankVerifyUrl = process.env.BANK_VERIFICATION_API_URL;
+  if (!bankVerifyUrl) {
+    throw new Error("BANK_VERIFICATION_API_URL is not configured in environment variables");
+  }
+  const response = await axios.post(bankVerifyUrl, {
     account_number: accountNumber,
     ifsc: ifsc,
     name: bankName,
@@ -77,7 +81,11 @@ export const addBankRecipientService = async ({
   }
 
   // 🔥 REAL API - Save to payment gateway or database
-  const response = await axios.post("BANK_RECIPIENT_API_URL", {
+  const bankRecipientUrl = process.env.BANK_RECIPIENT_API_URL;
+  if (!bankRecipientUrl) {
+    throw new Error("BANK_RECIPIENT_API_URL is not configured in environment variables");
+  }
+  const response = await axios.post(bankRecipientUrl, {
     account_number: accountNumber,
     ifsc: ifsc,
     bank_name: bankName,

@@ -18,8 +18,9 @@ import { signInWithGoogle } from "../../core/services/firebaseAuth.service";
 
 // ── Redirect helper ───────────────────────────────────────────────────────────
 function getRedirectPath(activeRole) {
-  if (activeRole === USER_ROLES.ADMIN) return RoutePath.ADMIN_BASE;
-  if (activeRole === USER_ROLES.TRAVELLER) return RoutePath.TRAVELER_DASHBOARD;
+  if (activeRole === USER_ROLES.ADMIN)      return RoutePath.ADMIN_BASE;
+  if (activeRole === USER_ROLES.TRAVELLER)  return RoutePath.TRAVELER_DASHBOARD;
+  if (activeRole === USER_ROLES.INDIVIDUAL) return RoutePath.USER_ALL_ORDERS;
   return RoutePath.PUBLIC_HOME;
 }
 
@@ -71,8 +72,8 @@ const Login = () => {
       );
 
       if (loginWithEmailAndPassword.rejected.match(result)) {
-        // Thunk already called showError(); surface the message locally too
-        setError(result.payload || "Invalid email or password.");
+        // Thunk already shows a toast via showError() — don't also render an inline
+        // error paragraph to avoid the message appearing twice.
         return;
       }
 

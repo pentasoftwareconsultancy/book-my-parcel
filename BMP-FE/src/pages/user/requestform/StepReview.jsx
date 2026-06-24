@@ -56,11 +56,11 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
         {/* Main grid */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <Card title="Route Summary" color="gray"><AddressCard address={pickupAddress} label="Pickup" /></Card>
+            <Card title="Pickup Details" color="gray"><AddressCard address={pickupAddress} label="Pickup" /></Card>
             <Card title="Package Information" color="gray"><PackageInfo parcel={parcelData} /></Card>
           </div>
           <div className="space-y-4">
-            <Card title="Route Summary" color="gray"><AddressCard address={deliveryAddress} label="Delivery" /></Card>
+            <Card title="Delivery Details" color="gray"><AddressCard address={deliveryAddress} label="Delivery" /></Card>
             <Card title="Traveler details" color="gray">
               {selectedTraveler
                 ? <TravelerCard traveler={selectedTraveler} />

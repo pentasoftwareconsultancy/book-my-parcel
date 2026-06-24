@@ -1,4 +1,49 @@
 /* Shared display components for StepReview */
+import { useState } from "react";
+
+// Simple photo slider for parcel photos
+function PhotoSlider({ photos }) {
+  const [current, setCurrent] = useState(0);
+  return (
+    <div className="relative">
+      <img
+        src={photos[current]}
+        alt={`parcel-photo-${current + 1}`}
+        className="w-full max-h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
+      />
+      <div className="flex justify-between items-center mt-2">
+        <button
+          type="button"
+          onClick={() => setCurrent((c) => (c - 1 + photos.length) % photos.length)}
+          className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 disabled:opacity-40"
+          disabled={photos.length <= 1}
+        >
+          ‹ Prev
+        </button>
+        <span className="text-xs text-gray-400">{current + 1} / {photos.length}</span>
+        <button
+          type="button"
+          onClick={() => setCurrent((c) => (c + 1) % photos.length)}
+          className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg font-medium text-gray-700 disabled:opacity-40"
+          disabled={photos.length <= 1}
+        >
+          Next ›
+        </button>
+      </div>
+      {/* Dot indicators */}
+      <div className="flex justify-center gap-1 mt-1">
+        {photos.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setCurrent(i)}
+            className={`w-2 h-2 rounded-full transition-all ${i === current ? "bg-blue-500 scale-125" : "bg-gray-300"}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const COLOR_MAP = {
   primary: { border: "border-blue-500" },
@@ -77,30 +122,31 @@ export const PackageInfo = ({ parcel }) => (
     <div className="grid grid-cols-3 gap-4">
       <Info label="Package Size"  value={parcel.package_size} />
       <Info label="Weight"        value={parcel.weight ? `${parcel.weight} kg` : "—"} />
-      <Info label="Package value" value={parcel.value ? `${parcel.value}/-` : "—"} />
+      <Info label="Package value" value={parcel.value ? `₹${parcel.value}` : "—"} />
     </div>
     <div className="grid grid-cols-3 gap-4">
-      <Info label="Est. Delivery" value={parcel.est_delivery || "3-5 Days"} />
+      <Info label="Est. Delivery" value={parcel.est_delivery || "3–5 Days"} />
       <Info label="Description"   value={parcel.description} />
     </div>
     <div className="grid grid-cols-3 gap-4">
       <div className="space-y-0.5">
-        <p className="text-xs text-gray-400">Dimensions</p>
-        <p className="font-semibold text-gray-900 text-xs">Length- {parcel.length || "—"} Cm</p>
-        <p className="font-semibold text-gray-900 text-xs">Width-  {parcel.width  || "—"} Cm</p>
-        <p className="font-semibold text-gray-900 text-xs">Height- {parcel.height || "—"} Cm</p>
+        <p className="text-xs text-gray-400">Dimensions (in)</p>
+        <p className="font-semibold text-gray-900 text-xs">L: {parcel.length || "—"} in</p>
+        <p className="font-semibold text-gray-900 text-xs">W: {parcel.width  || "—"} in</p>
+        <p className="font-semibold text-gray-900 text-xs">H: {parcel.height || "—"} in</p>
       </div>
       <Info label="Additional note" value={parcel.notes} />
       <Info label="Parcel type"     value={parcel.parcel_type} />
     </div>
     {parcel.photos?.length > 0 && (
-      <div className="flex gap-5 pt-1 border-t border-gray-100">
-        {parcel.photos.map((photo, idx) => (
-          <div key={idx} className="flex flex-col gap-1.5">
-            <p className="text-xs text-gray-400 font-medium">Photo {idx + 1}</p>
-            <img src={photo} alt={`parcel-img-${idx + 1}`} className="w-[90px] h-[90px] object-cover rounded-lg border border-gray-200 shadow-sm" />
-          </div>
-        ))}
+      <div className="pt-1 border-t border-gray-100">
+        <p className="text-xs text-gray-400 font-medium mb-2">Parcel Photos</p>
+        {parcel.photos.length === 1 ? (
+          <img src={parcel.photos[0]} alt="parcel-photo-1"
+            className="w-full max-h-48 object-cover rounded-lg border border-gray-200 shadow-sm" />
+        ) : (
+          <PhotoSlider photos={parcel.photos} />
+        )}
       </div>
     )}
   </div>
@@ -132,7 +178,7 @@ export const TravelerCard = ({ traveler }) => (
     </div>
     <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
       <Info label="Route"        value={traveler.from && traveler.to ? `${traveler.from} To ${traveler.to}` : traveler.route || "—"} />
-      <Info label="Est. Delivery" value={traveler.estDelivery || traveler.est_delivery || "Today"} />
+      <Info label="Est. Delivery" value={traveler.estDelivery || traveler.est_delivery || traveler.duration || "3–5 Days"} />
       <Info label="Price"        value={traveler.price ? `₹${traveler.price}` : "—"} />
     </div>
   </div>

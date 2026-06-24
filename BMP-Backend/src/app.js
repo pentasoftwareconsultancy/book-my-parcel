@@ -1,4 +1,5 @@
 import express from "express";
+import { createRequire } from "module";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
@@ -9,6 +10,8 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 import { sanitizeBody } from "./middlewares/sanitize.middleware.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.config.js";
 import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
+
+const require = createRequire(import.meta.url);
 
 const app = express();
 
@@ -123,7 +126,7 @@ app.use("/api",    routes);
 // ── Health check ──────────────────────────────────────────────────────────────
 // Returns basic server status. Safe to expose publicly — no sensitive data.
 app.get("/api/health", (req, res) => {
-  // Import admin lazily — avoids a hard dependency if firebase-admin isn't installed
+  // Check Firebase admin using the module-level createRequire (ESM-safe)
   let firebaseInitialized = false;
   try {
     const admin = require("firebase-admin");

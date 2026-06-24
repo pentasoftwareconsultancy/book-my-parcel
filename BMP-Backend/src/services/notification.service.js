@@ -4,7 +4,7 @@ import sequelize from "../config/database.config.js";
 import { createNotification } from "../modules/notification/notification.service.js";
 import { sendEmail } from "./email.service.js";
 import { sendWhatsApp } from "./whatsapp.service.js";
-import app from "../app.js";
+import { getIO } from "../socket.js";
 
 // ─── Firebase initialization ──────────────────────────────────────────────────
 // Initialized once at module load time (called from server.js startup).
@@ -91,7 +91,7 @@ async function sendFCMWithCleanup(token, message, userId) {
 export async function sendToTraveller(travellerId, title, body, data = {}) {
   // 1. Persist in-app notification + socket emit
   try {
-    const io = app.get("io");
+    const io = getIO();
     await createNotification(io, {
       user_id:   travellerId,
       role:      "traveller",
@@ -150,7 +150,7 @@ export async function sendToTraveller(travellerId, title, body, data = {}) {
 export async function sendToUser(userId, title, body, data = {}) {
   // 1. Persist in-app notification + socket emit
   try {
-    const io = app.get("io");
+    const io = getIO();
     await createNotification(io, {
       user_id:   userId,
       role:      "user",

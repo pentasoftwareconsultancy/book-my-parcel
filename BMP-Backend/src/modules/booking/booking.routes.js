@@ -544,9 +544,28 @@ router.post(
 
 // ── Chat history ──────────────────────────────────────────────────────────────
 // GET /api/booking/:bookingId/chat — load last 100 messages for a booking
+// Ownership check: only the sender (user) or the assigned traveller may read chat
 router.get("/:bookingId/chat", generalLimiter, async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    // Verify the booking exists and the caller is a participant
+    const booking = await Booking.findByPk(bookingId, {
+      include: [{ model: Parcel, as: "parcel", attributes: ["user_id"] }],
+    });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    const callerId = req.user.id;
+    const isSender    = booking.parcel?.user_id === callerId;
+    const isTraveller = booking.traveller_id    === callerId;
+
+    if (!isSender && !isTraveller) {
+      return res.status(403).json({ success: false, message: "Forbidden: you are not a participant in this booking" });
+    }
+
     const limit  = Math.min(parseInt(req.query.limit)  || 100, 200);
     const offset = parseInt(req.query.offset) || 0;
 
@@ -605,7 +624,7 @@ router.post(
 
       // Build photo URL if uploaded
       const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-      const photoUrl = req.file ? `${baseUrl}/uploads/${req.file.filename}` : null;
+      const photoUrl = req.file ? `${baseUrl}/uploads/parcels/${req.file.filename}` : null;
 
       // Create attempt record
       const attempt = await DeliveryAttempt.create({

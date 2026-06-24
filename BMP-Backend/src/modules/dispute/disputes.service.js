@@ -7,7 +7,7 @@ import User from "../user/user.model.js";
 import { refundPaymentForParcel } from "../payment/payment.service.js";
 import { createNotification } from "../notification/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
-import app from "../../app.js";
+import { getIO } from "../../socket.js";
 
 // ─── Create Dispute ───────────────────────────────────────────────────────────
 export async function createDisputeService({ booking_id, dispute_type, description, user, role }) {
@@ -195,6 +195,21 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   } else if (resolution === "RELEASE_TRAVELLER") {
     // Credit traveller wallet with partner amount (after platform fee)
     if (partnerAmount > 0 && travellerId) {
+      const { creditWalletService } = await import("../payment/wallet.service.js");
+      const releaseTx = await sequelize.transaction();
+      try {
+        await creditWalletService(
+          travellerId,
+          partnerAmount,
+          `Dispute ${disputeId} resolved — payment released to traveller by admin`,
+          releaseTx,
+          disputeId
+        );
+        await releaseTx.commit();
+      } catch (walletErr) {
+        await releaseTx.rollback();
+        throw walletErr;
+      }
       financialSummary = { action: "wallet_credit_traveller", amount: partnerAmount, platformFee };
     } else {
       financialSummary = { action: "no_amount_to_release" };
@@ -227,7 +242,7 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   });
 
   // ── Notify both parties (non-fatal) ─────────────────────────────────────────
-  const io = app.get("io");
+  const io = getIO();
   try {
     const resolutionLabel =
       resolution === "REFUND_USER"       ? "Refund issued to sender"

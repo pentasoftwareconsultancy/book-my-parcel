@@ -204,7 +204,7 @@ export const verifyPaymentService = async (data, req = null) => {
 
       if (updatedCount === 0) {
         throw new Error(
-          `Payment record not found for order ${cashfree_order_id}`
+          `Payment record not found for order ${order_id}`
         );
       }
 

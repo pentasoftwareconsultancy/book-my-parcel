@@ -97,17 +97,17 @@ const TravellerNotifications = () => {
   } = useNotifications("traveller");
 
   // Navigate to the relevant page based on notification type and meta
-  // const handleViewDetails = (n) => {
-  //   markAsRead(n.id);
-  //   const meta = n.meta || {};
-  //   if (meta.booking_id) {
-  //     navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.booking_id}`);
-  //   } else if (meta.parcel_id) {
-  //     navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.parcel_id}`);
-  //   } else {
-  //     navigate(RoutePath.TRAVELER_DELIVERIES);
-  //   }
-  // };
+  const handleViewDetails = (n) => {
+    markAsRead(n.id);
+    const meta = n.meta || {};
+    if (meta.booking_id) {
+      navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.booking_id}`);
+    } else if (meta.parcel_id) {
+      navigate(`${RoutePath.TRAVELER_BASE}/parcel/${meta.parcel_id}`);
+    } else {
+      navigate(RoutePath.TRAVELER_DELIVERIES);
+    }
+  };
 
   const filtered = notifications.filter((n) => {
     if (activeTab === "all")    return true;
@@ -262,12 +262,12 @@ const TravellerNotifications = () => {
                         Accept
                       </button>
                     )}
-                    {/* <button
+                    <button
                       onClick={() => handleViewDetails(n)}
                       className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-full"
                     >
                       View Details
-                    </button> */}
+                    </button>
                     {!n.is_read && (
                       <button
                         onClick={() => markAsRead(n.id)}

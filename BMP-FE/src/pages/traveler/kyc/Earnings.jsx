@@ -101,6 +101,7 @@ const Earnings = () => {
           navigate(RoutePath.KYC_PAN, { state: { from: RoutePath.TRAVELLER_EARNINGS } });
         }
       } else if (!kycStatus?.bank_verified) {
+        console.log("KYC",kycStatus);
         // Bank not verified - redirect to Bank verification
         const confirmBank = window.confirm(
           `Bank Verification Required\n\nYour bank account is not verified. You need to verify your bank account to withdraw funds.\n\nClick OK to complete bank verification now.`

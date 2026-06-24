@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FiTruck, FiCheckCircle, FiPackage,
   FiDollarSign, FiClock,
@@ -11,6 +12,7 @@ import { MdNotificationsNone } from "react-icons/md";
 
 import { useNotifications } from "../../core/hooks/useNotification";
 import { notificationConfig } from "../../core/constants/Notification.constants";
+import RoutePath from "../../core/constants/routes.constant";
 
 const iconMap = {
   truck:   <FiTruck />,
@@ -71,6 +73,7 @@ const groupNotificationsByDate = (notifications) => {
 
 const UserNotifications = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const navigate = useNavigate();
   const config = notificationConfig.user;
 
   const {
@@ -81,6 +84,19 @@ const UserNotifications = () => {
     markAllAsRead,
     deleteNotification,
   } = useNotifications("user");
+
+  // Navigate to relevant page and mark as read
+  const handleView = (n) => {
+    markAsRead(n.id);
+    const meta = n.meta || {};
+    if (meta.booking_id) {
+      navigate(`${RoutePath.USER_ALL_ORDERS}/${meta.booking_id}`);
+    } else if (meta.parcel_id) {
+      navigate(`${RoutePath.USER_ALL_ORDERS}`);
+    } else {
+      navigate(RoutePath.USER_ALL_ORDERS);
+    }
+  };
 
   // ✅ FILTER
   const filtered = (notifications || []).filter((n) => {
@@ -252,7 +268,7 @@ const UserNotifications = () => {
 
                         <div className="flex gap-2 mt-3">
                           <button
-                            onClick={() => markAsRead(n.id)}
+                            onClick={() => handleView(n)}
                             className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-full"
                           >
                             View

@@ -11,6 +11,17 @@ const InfoRow = ({ label, value, bg = "bg-gray-50", border = "" }) => (
   </div>
 );
 
+/** Returns the correct icon for a vehicle type string */
+function getVehicleHeaderIcon(vehicleType, isBus, isTrain, isPlane) {
+  if (isBus)   return <FaBus className="text-blue-500" />;
+  if (isTrain) return <FaTrainSubway className="text-red-500" />;
+  if (isPlane) return <FaPlane className="text-blue-500" />;
+  const vt = (vehicleType || "").toLowerCase();
+  if (vt === "bike" || vt === "motorcycle") return <FaMotorcycle className="text-blue-500" />;
+  if (vt === "truck" || vt === "tempo")     return <FaTruck className="text-orange-500" />;
+  return <FaCar className="text-blue-500" />;  // car / suv / van / default
+}
+
 export default function VehicleDetailsCard({ d, isEditing, setField }) {
   const mode = d.transport_mode || d.transportMode;
   const transitType = d.transitDetails?.type || d.transit_details?.type;
@@ -26,9 +37,9 @@ export default function VehicleDetailsCard({ d, isEditing, setField }) {
 
   return (
     <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-<h2 className="font-semibold text-sm mb-4 flex items-center gap-2">
-        {isBus ? <FaBus className="text-blue-500" /> : isTrain ? <FaTrainSubway className="text-red-500" /> : isPlane ? <FaPlane className="text-blue-500" /> : <FaTruck className="text-purple-500" />} Vehicle Details
-        </h2>
+      <h2 className="font-semibold text-sm mb-4 flex items-center gap-2">
+        {getVehicleHeaderIcon(displayVehicleType, isBus, isTrain, isPlane)} Vehicle Details
+      </h2>
       <div className="space-y-3">
 
         <InfoRow label="Transport Mode" value={<span className="capitalize">{mode || "Private"}</span>} />

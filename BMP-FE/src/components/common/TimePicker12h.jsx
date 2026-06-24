@@ -188,10 +188,13 @@ export default function TimePicker12h({ value, onChange, minTime, label, error, 
           ${error ? "border-red-500" : open ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-300 hover:border-gray-400"}`}
       >
         <span className={`font-semibold tracking-wide ${value ? "text-gray-800" : "text-gray-400"}`}>
-          {value ? display : "Select time"}
+          {value ? display : "HH:MM AM/PM"}
         </span>
         <span className="text-gray-400 text-xs">🕐</span>
       </button>
+      {!value && (
+        <p className="text-[10px] text-gray-400 mt-0.5 ml-0.5">Format: 12-hour (e.g. 09:30 AM)</p>
+      )}
 
       {/* Drum picker dropdown */}
       {open && (

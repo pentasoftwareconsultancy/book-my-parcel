@@ -531,12 +531,11 @@ export async function requestPasswordResetOtp(email) {
 
   if (!user.phone_number) throw new Error("No phone number on file for this account");
 
-  // Generate OTP
+  // Generate OTP using cryptographically secure random — never Math.random()
   const otpConfig = (await import("../../config/otp.config.js")).default;
-  const otp = Math.floor(
-    Math.pow(10, otpConfig.OTP_LENGTH - 1) +
-    Math.random() * (Math.pow(10, otpConfig.OTP_LENGTH) - Math.pow(10, otpConfig.OTP_LENGTH - 1))
-  ).toString();
+  const min = Math.pow(10, otpConfig.OTP_LENGTH - 1);
+  const max = Math.pow(10, otpConfig.OTP_LENGTH);
+  const otp = crypto.randomInt(min, max).toString();
 
   const expiresAt = new Date(Date.now() + otpConfig.EXPIRY_MINUTES * 60 * 1000);
 

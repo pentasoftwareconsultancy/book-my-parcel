@@ -191,8 +191,8 @@ export async function fetchTravellerDeliveries(travellerUserId, query) {
       bookingRef: booking.booking_ref || "",
       paymentMode: booking.payment_mode || "PAY_NOW",
       // ✅ Detour & transport mode from linked ParcelRequest
-      detour_km: pr ? Math.max(1, parseFloat(pr.detour_km) || 5) : 5, // Minimum 1km, default 5km
-      detour_percentage: pr ? Math.max(1, parseFloat(pr.detour_percentage) || 10) : 10, // Minimum 1%, default 10%
+      detour_km: pr ? parseFloat(pr.detour_km) || null : null,
+      detour_percentage: pr ? parseFloat(pr.detour_percentage) || null : null,
       transport_mode: pr?.route?.transport_mode || "private",
       // OTP information
       pickup_otp: booking.pickup_otp || null,
@@ -341,9 +341,9 @@ export async function fetchTravellerParcelRequests(travellerUserId, query = {}) 
         weight: `${parcel?.weight || 0} kg`, // ✅ Add top-level weight field
         matchScore: request.match_score,
         detourKm: request.detour_km,
-        detour_km: Math.max(1, parseFloat(request.detour_km) || 8), // Minimum 1km, default 8km
+        detour_km: parseFloat(request.detour_km) || null,
         detourPercentage: request.detour_percentage,
-        detour_percentage: Math.max(1, parseFloat(request.detour_percentage) || 15), // Minimum 1%, default 15%
+        detour_percentage: parseFloat(request.detour_percentage) || null,
         expiresAt: request.expires_at,
         route: {
           id: request.route?.id,
