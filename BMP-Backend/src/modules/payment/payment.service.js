@@ -79,7 +79,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     throw new Error("User profile name is missing. Please complete your profile before paying.");
   }
 
-  const orderId = `ORDER_${Date.now()}_${parcel.id}`;
+  const orderId = `ORD_${Date.now()}_${parcel.id.slice(0, 8)}`;
 
   const cashfree = getCashfree();
 
@@ -204,7 +204,7 @@ export const verifyPaymentService = async (data, req = null) => {
 
       if (updatedCount === 0) {
         throw new Error(
-          `Payment record not found for order ${cashfree_order_id}`
+          `Payment record not found for order ${order_id}`
         );
       }
 
