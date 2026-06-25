@@ -16,17 +16,17 @@ export async function createDisputeService({ booking_id, dispute_type, descripti
   if (!booking) throw new Error("Booking not found");
 
   // Only allow disputes on active/completed bookings
-  const allowedStatuses = [ "CONFIRMED",
-  "PICKUP",
-  "IN_TRANSIT",
-  "DELIVERED",
-  "CANCELLED"];
+  const allowedStatuses = ["CONFIRMED",
+    "PICKUP",
+    "IN_TRANSIT",
+    "DELIVERED",
+    "CANCELLED"];
   if (!allowedStatuses.includes(booking.status)) {
     throw new Error("Disputes can only be raised for active or completed bookings");
   }
 
   console.log("Booking ID:", booking_id);
-console.log("Booking Status:", booking?.status);
+  console.log("Booking Status:", booking?.status);
   // One dispute per user per booking
   const existing = await Dispute.findOne({ where: { booking_id, raised_by: user.id } });
   if (existing) throw new Error("You have already raised a dispute for this booking");
@@ -127,6 +127,9 @@ export async function getUserDisputesAgainstMeService(userId) {
  * @param {{ resolution: string, admin_note?: string, adminId: string }} opts
  */
 export async function resolveDisputeService({ disputeId, resolution, admin_note = "", adminId }) {
+  console.log("🚀 STEP 1: resolveDisputeService called");
+  console.log("Input:", { disputeId, resolution, adminId, admin_note });
+
   const VALID_RESOLUTIONS = ["REFUND_USER", "RELEASE_TRAVELLER", "NO_ACTION"];
 
   if (!VALID_RESOLUTIONS.includes(resolution)) {
@@ -139,6 +142,7 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
 
   // ── Load dispute with booking + parcel ──────────────────────────────────────
   const dispute = await Dispute.findByPk(disputeId, {
+
     include: [
       {
         model: Booking,
@@ -148,6 +152,8 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
       },
     ],
   });
+  console.log(" STEP 2: Dispute loaded", disputeId);
+  console.log("Dispute status:", dispute?.status);
 
   if (!dispute) {
     const err = new Error("Dispute not found");
@@ -162,7 +168,11 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   }
 
   const booking = dispute.Booking;
-  const parcel  = booking?.parcel;
+  const parcel = booking?.parcel;
+
+  console.log(" STEP 3: Booking & Parcel loaded");
+  console.log("Booking:", booking?.id);
+  console.log("Parcel:", parcel?.id);
 
   if (!booking) {
     const err = new Error("Booking linked to this dispute no longer exists");
@@ -171,8 +181,8 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   }
 
   const bookingAmount = Number(parcel?.price_quote || booking.amount || 0);
-  const senderId      = parcel?.user_id;
-  const travellerId   = booking.traveller_id;
+  const senderId = parcel?.user_id;
+  const travellerId = booking.traveller_id;
 
   // Calculate platform fee and partner amount
   const { getPlatformFeePercent } = await import("../../redis/cache/platformSettingsCache.service.js");
@@ -219,7 +229,7 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
 
   // ── Mark dispute as RESOLVED ────────────────────────────────────────────────
   await dispute.update({
-    status:     "RESOLVED",
+    status: "RESOLVED",
     resolution,
     admin_note: admin_note || null,
     resolved_at: new Date(),
@@ -228,15 +238,15 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
 
   // ── Audit log ───────────────────────────────────────────────────────────────
   auditLog({
-    action:       "DISPUTE_RESOLVED",
-    actorId:      adminId,
-    actorRole:    "admin",
+    action: "DISPUTE_RESOLVED",
+    actorId: adminId,
+    actorRole: "admin",
     resourceType: "dispute",
-    resourceId:   disputeId,
+    resourceId: disputeId,
     meta: {
       resolution,
       admin_note,
-      booking_id:       booking.id,
+      booking_id: booking.id,
       financial_action: financialSummary,
     },
   });
@@ -245,31 +255,31 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   const io = getIO();
   try {
     const resolutionLabel =
-      resolution === "REFUND_USER"       ? "Refund issued to sender"
-      : resolution === "RELEASE_TRAVELLER" ? "Payment released to traveller"
-      : "Closed without financial action";
+      resolution === "REFUND_USER" ? "Refund issued to sender"
+        : resolution === "RELEASE_TRAVELLER" ? "Payment released to traveller"
+          : "Closed without financial action";
 
     // Notify the person who raised the dispute
     await createNotification(io, {
-      user_id:   dispute.raised_by,
-      role:      dispute.role === "TRAVELLER" ? "traveller" : "user",
+      user_id: dispute.raised_by,
+      role: dispute.role === "TRAVELLER" ? "traveller" : "user",
       type_code: "dispute_resolved",
-      title:     "Your Dispute Has Been Resolved",
-      message:   `Dispute for booking ${booking.booking_ref || booking.id} has been resolved. Outcome: ${resolutionLabel}.${admin_note ? ` Admin note: ${admin_note}` : ""}`,
-      meta:      { dispute_id: disputeId, resolution, booking_id: booking.id },
+      title: "Your Dispute Has Been Resolved",
+      message: `Dispute for booking ${booking.booking_ref || booking.id} has been resolved. Outcome: ${resolutionLabel}.${admin_note ? ` Admin note: ${admin_note}` : ""}`,
+      meta: { dispute_id: disputeId, resolution, booking_id: booking.id },
     });
 
     // Notify the other party
-    const otherPartyId   = dispute.role === "TRAVELLER" ? senderId   : travellerId;
-    const otherPartyRole = dispute.role === "TRAVELLER" ? "user"      : "traveller";
+    const otherPartyId = dispute.role === "TRAVELLER" ? senderId : travellerId;
+    const otherPartyRole = dispute.role === "TRAVELLER" ? "user" : "traveller";
     if (otherPartyId) {
       await createNotification(io, {
-        user_id:   otherPartyId,
-        role:      otherPartyRole,
+        user_id: otherPartyId,
+        role: otherPartyRole,
         type_code: "dispute_resolved",
-        title:     "Dispute Resolved",
-        message:   `A dispute for booking ${booking.booking_ref || booking.id} has been resolved by admin. Outcome: ${resolutionLabel}.`,
-        meta:      { dispute_id: disputeId, resolution, booking_id: booking.id },
+        title: "Dispute Resolved",
+        message: `A dispute for booking ${booking.booking_ref || booking.id} has been resolved by admin. Outcome: ${resolutionLabel}.`,
+        meta: { dispute_id: disputeId, resolution, booking_id: booking.id },
       });
     }
   } catch (notifErr) {
@@ -277,10 +287,10 @@ export async function resolveDisputeService({ disputeId, resolution, admin_note 
   }
 
   return {
-    dispute_id:       disputeId,
+    dispute_id: disputeId,
     resolution,
     financial_action: financialSummary,
-    resolved_at:      dispute.resolved_at,
+    resolved_at: dispute.resolved_at,
   };
 }
 
@@ -312,12 +322,12 @@ export async function updateDisputeStatusService({ disputeId, status, adminId })
   await dispute.update({ status });
 
   auditLog({
-    action:       "DISPUTE_STATUS_UPDATED",
-    actorId:      adminId,
-    actorRole:    "admin",
+    action: "DISPUTE_STATUS_UPDATED",
+    actorId: adminId,
+    actorRole: "admin",
     resourceType: "dispute",
-    resourceId:   disputeId,
-    meta:         { new_status: status },
+    resourceId: disputeId,
+    meta: { new_status: status },
   });
 
   return dispute;
