@@ -232,7 +232,7 @@ export function useStepReview({ data, readOnly }) {
       const order_id = order.id;
 
       const cashfree = await load({
-        mode: (import.meta.env.VITE_CASHFREE_ENV || "PRODUCTION") === "PRODUCTION" ? "production" : "sandbox",
+        mode: (import.meta.env.VITE_CASHFREE_ENV || "PRODUCTION") === "PRODUCTION" ? "production" : "PRODUCTION",
       });
 
       const checkoutOptions = {
