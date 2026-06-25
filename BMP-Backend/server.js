@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ override: true });
 import { createServer } from "http";
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
@@ -57,7 +57,7 @@ const startServer = async () => {
     // Initialize Firebase Admin once at startup — not lazily per notification
     initializeFirebase();
 
-    const PORT = process.env.PORT || 3000;
+    const PORT = parseInt(process.env.PORT, 10) || 3000;
     const server = createServer(app);
 
     const io = new Server(server, {

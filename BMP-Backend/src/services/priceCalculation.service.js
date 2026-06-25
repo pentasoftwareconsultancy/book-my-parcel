@@ -68,13 +68,22 @@ export async function calculatePriceWithSurge(
 
   // Calculate Platform Fee
   const platformFeePercent = await getPlatformFeePercent();
-  const platformFee = Math.round(basePrice * (platformFeePercent / 100));
 
-  // Subtotal = Base Price + Platform Fee
+  const platformFee = Math.round(
+    basePrice * (platformFeePercent / 100)
+  );
+
+
+  // GST Percentage
+  const gstPercent = 18;
+
   const subtotal = basePrice + platformFee;
 
+
   // Calculate GST on Subtotal
-  const gstAmount = Math.round(subtotal * 0.18); // 18% GST
+  const gstAmount = Math.round(
+    subtotal * (gstPercent / 100)
+  );
 
   // Final Price = Subtotal + GST
   const finalPrice = subtotal + gstAmount;
@@ -83,17 +92,23 @@ export async function calculatePriceWithSurge(
   const partnerAmount = basePrice;
 
   return {
-    distanceCharge,
-    weightCharge,
-    vehicleMultiplier,
-    basePrice,
-    platformFee,
-    gstAmount,
-    subtotal,
-    finalPrice,
-    partnerAmount,
-    // Remove all surge-related fields
-  };
+  distanceCharge,
+  weightCharge,
+  vehicleMultiplier,
+
+  basePrice,
+
+  platformFeePercent,
+  platformFee,
+
+  gstPercent,
+  gstAmount,
+
+  subtotal,
+  finalPrice,
+
+  partnerAmount,
+};
 }
 
 /**

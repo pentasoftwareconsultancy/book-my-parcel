@@ -386,6 +386,14 @@ export async function createParcelRequest(data, files) {
           pickup_time: data.pickup_time || data.pickupTime || null,
           // Use calculated suggestedPrice as the final price_quote
           price_quote: suggestedPrice || data.price_quote || null,
+          pricing_breakdown: {
+  distanceCharge: data._distanceCharge || 0,
+  weightCharge: data._weightCharge || 0,
+  basePrice: data._basePrice || 0,
+  platformFee: data._platformFee || 0,
+  gstAmount: data._gstAmount || 0,
+  finalPrice: suggestedPrice || data.price_quote || 0,
+},
           route_distance_km: routeDistance,
           route_duration_minutes: routeDuration,
           intermediate_cities: intermediateCities,
