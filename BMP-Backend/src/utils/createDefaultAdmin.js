@@ -49,7 +49,7 @@ export const createDefaultAdmin = async () => {
 
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
-  const { Op } = await import("sequelize");
+  // const { Op } = await import("sequelize");
 
   await sequelize.transaction(async (t) => {
     const adminUser = await User.create({

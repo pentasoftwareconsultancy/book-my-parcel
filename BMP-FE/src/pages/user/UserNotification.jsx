@@ -7,7 +7,6 @@ import {
 } from "react-icons/fi";
 import { IoGiftOutline } from "react-icons/io5";
 import { CiUnread } from "react-icons/ci";
-
 import { MdNotificationsNone } from "react-icons/md";
 
 import { useNotifications } from "../../core/hooks/useNotification";
