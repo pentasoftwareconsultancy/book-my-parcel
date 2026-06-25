@@ -61,25 +61,45 @@ export function useStepReview({ data, readOnly }) {
 
   // Fetch API data (booking info, status, parcel_ref, photo URLs)
   useEffect(() => {
-    if (!data.createdParcelId) return;
-    ApiService.apiget(ServerUrl.API_GET_PARCEL_BY_ID(data.createdParcelId))
-      .then((res) => {
-        if (res?.data?.success) {
-          const d = res.data.data;
-          const apiPhotos = (d.photos || []).map((p) => p?.startsWith("http") ? p : `${ServerUrl.BASE_URL}${p}`);
-          setParcelData((prev) => ({
-            ...prev,
-            parcel_ref: d.parcel_ref || prev?.parcel_ref,
-            price_quote: d.price_quote || prev?.price_quote,
-            status: d.status || prev?.status,
-            booking: d.booking || prev?.booking,
-            booking_id: d.booking?.id,
-            photos: apiPhotos.length > 0 ? apiPhotos : prev?.photos || [],
-          }));
-        }
-      })
-      .catch(() => { });
-  }, [data.createdParcelId, data.selectedPartnerId]);
+  if (!data.createdParcelId) return;
+
+  ApiService.apiget(
+    ServerUrl.API_GET_PARCEL_BY_ID(data.createdParcelId)
+  )
+    .then((res) => {
+      if (res?.data?.success) {
+        const d = res.data.data;
+
+        console.log("API PARCEL =>", d);
+        console.log("PRICING BREAKDOWN =>", d.pricing_breakdown);
+
+        const apiPhotos = (d.photos || []).map((p) =>
+          p?.startsWith("http")
+            ? p
+            : `${ServerUrl.BASE_URL}${p}`
+        );
+
+        setParcelData((prev) => ({
+          ...prev,
+          parcel_ref: d.parcel_ref || prev?.parcel_ref,
+          price_quote: d.price_quote || prev?.price_quote,
+
+          // ADD THIS
+          pricing_breakdown:
+            d.pricing_breakdown || prev?.pricing_breakdown,
+
+          status: d.status || prev?.status,
+          booking: d.booking || prev?.booking,
+          booking_id: d.booking?.id,
+          photos:
+            apiPhotos.length > 0
+              ? apiPhotos
+              : prev?.photos || [],
+        }));
+      }
+    })
+    .catch(() => {});
+}, [data.createdParcelId, data.selectedPartnerId]);
 
   // Fetch selected traveller
   useEffect(() => {

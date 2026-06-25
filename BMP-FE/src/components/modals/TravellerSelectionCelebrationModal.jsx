@@ -277,7 +277,7 @@ const TravellerSelectionCelebrationModal = ({ open, onClose, bookingData }) => {
                       )}
                       {bookingData.traveller.totalDeliveries > 0 && (
                         <Typography variant="caption" color="text.secondary">
-                          📦 {bookingData.traveller.totalDeliveries} deliveries
+                           {bookingData.traveller.totalDeliveries} deliveries
                         </Typography>
                       )}
                     </Box>
