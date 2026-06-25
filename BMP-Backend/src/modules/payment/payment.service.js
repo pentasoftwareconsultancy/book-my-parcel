@@ -79,7 +79,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     throw new Error("User profile name is missing. Please complete your profile before paying.");
   }
 
-  const orderId = `ORDER_${Date.now()}_${parcel.id}`;
+  const orderId = `ORD_${Date.now()}_${parcel.id.slice(0, 8)}`;
 
   const cashfree = getCashfree();
 

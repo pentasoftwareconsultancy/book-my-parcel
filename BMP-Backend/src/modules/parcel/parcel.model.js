@@ -36,6 +36,11 @@ const Parcel = sequelize.define(
     selected_partner_id: { type: DataTypes.UUID },
     price_quote: { type: DataTypes.FLOAT },
 
+    pricing_breakdown: {
+  type: DataTypes.JSONB, // PostgreSQL
+  allowNull: true,
+},
+
     // --- Form progress tracking ---
     form_step: { 
       type: DataTypes.INTEGER, 

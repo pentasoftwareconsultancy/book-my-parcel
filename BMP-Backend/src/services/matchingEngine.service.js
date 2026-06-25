@@ -120,6 +120,7 @@ async function findCandidateTravellers(parcelData) {
           AND (
             rp1.sequence_order IS NULL
             OR rp2.sequence_order IS NULL
+            OR :pickupPlaceId = :deliveryPlaceId
             OR rp1.sequence_order < rp2.sequence_order
           )
       ),
@@ -143,7 +144,7 @@ async function findCandidateTravellers(parcelData) {
                 AND rp2.place_name = :deliveryLocalityName
                 AND rp1.sequence_order IS NOT NULL
                 AND rp2.sequence_order IS NOT NULL
-                AND rp1.sequence_order < rp2.sequence_order
+                AND (:pickupLocalityName = :deliveryLocalityName OR rp1.sequence_order < rp2.sequence_order)
             )
             OR (
               :includeSpatial = true
@@ -158,12 +159,15 @@ async function findCandidateTravellers(parcelData) {
                 ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
                 :geometryThresholdMeters
               )
-              AND ST_LineLocatePoint(
-                tr.route_geom,
-                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
-              ) < ST_LineLocatePoint(
-                tr.route_geom,
-                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+              AND (
+                :pickupLat = :deliveryLat AND :pickupLng = :deliveryLng
+                OR ST_LineLocatePoint(
+                  tr.route_geom,
+                  ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+                ) < ST_LineLocatePoint(
+                  tr.route_geom,
+                  ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+                )
               )
             )
           )
@@ -181,6 +185,7 @@ async function findCandidateTravellers(parcelData) {
           AND (:isSameCity = true OR tr.cities_passed @> :deliveryCity)
           AND (
             :isSameCity = true
+            OR :pickupCityName = :deliveryCityName
             OR EXISTS (
               SELECT 1
               FROM route_places rp1
@@ -207,12 +212,15 @@ async function findCandidateTravellers(parcelData) {
                 ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
                 :geometryThresholdMeters
               )
-              AND ST_LineLocatePoint(
-                tr.route_geom,
-                ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
-              ) < ST_LineLocatePoint(
-                tr.route_geom,
-                ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+              AND (
+                :pickupLat = :deliveryLat AND :pickupLng = :deliveryLng
+                OR ST_LineLocatePoint(
+                  tr.route_geom,
+                  ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+                ) < ST_LineLocatePoint(
+                  tr.route_geom,
+                  ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+                )
               )
             )
           )
@@ -235,12 +243,15 @@ async function findCandidateTravellers(parcelData) {
             ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
             :spatialPointThresholdMeters
           )
-          AND ST_LineLocatePoint(
-            route_geom,
-            ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
-          ) < ST_LineLocatePoint(
-            route_geom,
-            ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+          AND (
+            :pickupLat = :deliveryLat AND :pickupLng = :deliveryLng
+            OR ST_LineLocatePoint(
+              route_geom,
+              ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+            ) < ST_LineLocatePoint(
+              route_geom,
+              ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+            )
           )
       ),
       -- Method E: Buffer-based spatial matching (routes near pickup point)
@@ -533,8 +544,17 @@ function applyTemporalFilters(routes, parcelData) {
 
   return routes.filter((route) => {
     if (!route.is_recurring) {
-      // One-time route: departure_date must be >= today
+      // One-time route: if departure_date is null, treat as "always available"
+      if (!route.departure_date) {
+        return true;
+      }
+
       const departureDate = new Date(route.departure_date);
+
+      // If departure_date is invalid, reject the route
+      if (isNaN(departureDate.getTime())) {
+        return false;
+      }
 
       if (departureDate < today) {
         return false;

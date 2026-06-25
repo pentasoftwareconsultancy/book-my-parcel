@@ -1,12 +1,7 @@
-// src/core/common/AddressAutocomplete.jsx
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { IoSearchOutline, IoLocationOutline } from "react-icons/io5";
 import ApiService from "../services/api.service";
 
-/**
- * Address input with Google Places Autocomplete dropdown.
- * Calls the backend proxy (/api/places/autocomplete) to avoid browser CORS restrictions.
- */
 const AddressAutoComplete = ({
   value,
   onChange,
@@ -21,12 +16,17 @@ const AddressAutoComplete = ({
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const debounceRef = useRef(null);
   const containerRef = useRef(null);
+  const requestCountRef = useRef(0);   // ← Debug counter
 
-  const API_URL = import.meta.env.VITE_API_URL; // e.g. http://localhost:3000/api
+  console.log(`[DEBUG] Component rendered with value: "${value}"`);
 
-  const fetchSuggestions = async (input) => {
+  const fetchSuggestions = useCallback(async (input) => {
+    requestCountRef.current += 1;
+    console.log(`[DEBUG] 🔥 fetchSuggestions called #${requestCountRef.current} for: "${input}"`);
+
     if (!input || input.trim().length < 3) {
       setSuggestions([]);
       setShowDropdown(false);
@@ -34,18 +34,11 @@ const AddressAutoComplete = ({
     }
 
     setLoading(true);
+
     try {
       const res = await ApiService.getPlacesAutocomplete(input);
-      const data = res.data;
+      const data = res.data || {};
       const list = data.predictions || [];
-
-      if ((data.status && data.status !== "OK") || data.error_message) {
-        console.warn("[Autocomplete] Backend status:", {
-          status: data.status,
-          error: data.error_message,
-          input,
-        });
-      }
 
       setSuggestions(list);
       setShowDropdown(list.length > 0);
@@ -54,26 +47,42 @@ const AddressAutoComplete = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Strongest debounce
+  useEffect(() => {
+    console.log(`[DEBUG] useEffect triggered for value: "${value}"`);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      console.log(`[DEBUG] Cleared previous timer`);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      console.log(`[DEBUG] Executing debounced fetch for: "${value}"`);
+      fetchSuggestions(value);
+    }, 600);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [value, fetchSuggestions]);
 
   const handleInputChange = (e) => {
-    // Slice to maxLength — handles typing, key-hold, and paste in one shot
     const val = e.target.value.slice(0, maxLength);
+    console.log(`[DEBUG] Input changed to: "${val}"`);
     onChange(val);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => fetchSuggestions(val), 350);
   };
 
+  // ... rest of your component (handleSelect, return JSX) remains same
   const handleSelect = (prediction) => {
     const text = (prediction.description || "").slice(0, maxLength);
-    const placeId = prediction.place_id || "";
     onChange(text);
     setSuggestions([]);
     setShowDropdown(false);
-    if (onSelect) onSelect(text, placeId);
+    if (onSelect) onSelect(text, prediction.place_id);
   };
 
-  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -81,21 +90,18 @@ const AddressAutoComplete = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      clearTimeout(debounceRef.current);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
+      {/* ... same JSX as before ... */}
       {label && (
         <label className="block mb-1 text-[11px] text-gray-600 font-medium">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
-      {/* Input row */}
       <div className="relative flex items-center">
         <input
           type="text"
@@ -111,20 +117,11 @@ const AddressAutoComplete = ({
           maxLength={maxLength}
         />
 
-        {/* Spinner while loading, search icon otherwise */}
         <span className="absolute right-3 text-gray-400 pointer-events-none">
           {loading ? (
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle
-                className="opacity-25"
-                cx="12" cy="12" r="10"
-                stroke="currentColor" strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8z"
-              />
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
           ) : (
             <IoSearchOutline className="w-4 h-4" />
@@ -132,14 +129,13 @@ const AddressAutoComplete = ({
         </span>
       </div>
 
-      {/* Character counter — shown when approaching/at limit */}
+      {/* ... rest of return (character counter + dropdown) same as previous version */}
       {value && value.length > maxLength * 0.8 && (
         <p className={`text-xs mt-1 text-right ${value.length >= maxLength ? "text-red-500 font-medium" : "text-gray-400"}`}>
           {value.length}/{maxLength}
         </p>
       )}
 
-      {/* Dropdown */}
       {showDropdown && suggestions.length > 0 && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
           {suggestions.map((prediction) => {
@@ -155,9 +151,7 @@ const AddressAutoComplete = ({
                 <span>
                   <span className="font-medium text-gray-800">{main}</span>
                   {secondary && (
-                    <span className="block text-xs text-gray-500 mt-0.5">
-                      {secondary}
-                    </span>
+                    <span className="block text-xs text-gray-500 mt-0.5">{secondary}</span>
                   )}
                 </span>
               </li>

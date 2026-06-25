@@ -20,14 +20,16 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
     getOrderStatus, shouldShowPaymentOptions, shouldShowConfirmButton,
     getStatusMessage, createOrderFromForm, handlePayment,
   } = useStepReview({ data, readOnly });
+  console.log("PARCEL DATA =>", parcelData);
+
 
   if (!parcelData) return <p className="text-center p-10">No parcel found.</p>;
-  if (loading)     return <p className="text-center p-10">Loading parcel details...</p>;
+  if (loading) return <p className="text-center p-10">Loading parcel details...</p>;
 
-  const pickupAddress   = parcelData.addresses?.find((a) => a.type === "pickup");
+  const pickupAddress = parcelData.addresses?.find((a) => a.type === "pickup");
   const deliveryAddress = parcelData.addresses?.find((a) => a.type === "delivery");
-  const orderStatus     = getOrderStatus();
-  const statusMsg       = getStatusMessage();
+  const orderStatus = getOrderStatus();
+  const statusMsg = getStatusMessage();
 
   return (
     <>
@@ -69,7 +71,7 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
                   : <p className="text-gray-500">No traveler selected</p>
               }
             </Card>
-            <Card title="Price Breakdown" color="emerald" greenBg>
+            {/* <Card title="Price Breakdown" color="emerald" greenBg>
               {(() => {
                 const base = Number(parcelData.price_quote) || 0;
                 return (
@@ -78,6 +80,37 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
                     <div className="border-t border-emerald-200 mt-4 pt-3 flex justify-between">
                       <span className="font-bold">Total</span>
                       <span className="text-xl font-bold text-primary">₹{base}</span>
+                    </div>
+                  </>
+                );
+              })()}
+            </Card> */}
+            <Card title="Price Breakdown" color="emerald" greenBg>
+              {(() => {
+                const breakdown = parcelData?.pricing_breakdown || {};
+
+                return (
+                  <>
+                    <Row
+                      label="Base Price"
+                      value={`₹${breakdown.basePrice || 0}`}
+                    />
+
+                   <Row
+  label={`Platform Fee (${breakdown.platformFeePercent || 12}%)`}
+  value={`₹${breakdown.platformFee || 0}`}
+/>
+
+<Row
+  label={`GST (${breakdown.gstPercent || 18}%)`}
+  value={`₹${breakdown.gstAmount || 0}`}
+/>
+
+                    <div className="border-t border-emerald-200 mt-4 pt-3 flex justify-between">
+                      <span className="font-bold">Total</span>
+                      <span className="text-xl font-bold text-primary">
+                        ₹{breakdown.finalPrice || parcelData.price_quote || 0}
+                      </span>
                     </div>
                   </>
                 );

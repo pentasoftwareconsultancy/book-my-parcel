@@ -11,7 +11,7 @@ function safeImageFilename(file) {
   return `${Date.now()}-${randomUUID()}${ext}`;
 }
 
-// Explicit MIME type allowlist validated from magic bytes (not client header)
+// Allowed MIME types (real validation after reading file)
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -20,67 +20,68 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/heif",
 ]);
 
-/**
- * Magic-bytes file filter — ignores the client-supplied Content-Type header.
- * Reads actual bytes from the buffer to determine the real MIME type.
- * Falls back to the client header only when file-type can't detect (e.g. HEIC).
- */
-const fileFilter = async (req, file, cb) => {
-  try {
-    // Collect the full buffer via stream so we can inspect bytes
-    const chunks = [];
-    file.stream.on("data", (chunk) => chunks.push(chunk));
-    file.stream.on("end", async () => {
-      const buffer = Buffer.concat(chunks);
-      // Attach buffer so storage can write it without re-reading
-      file._buffer = buffer;
-
-      const detected = await fileTypeFromBuffer(buffer);
-      const mime = detected?.mime || file.mimetype;
-
-      if (ALLOWED_MIME_TYPES.has(mime)) {
-        cb(null, true);
-      } else {
-        cb(new Error(`File type not allowed: ${mime}. Only JPEG, PNG, WebP, or HEIC images are accepted.`), false);
-      }
-    });
-    file.stream.on("error", (err) => cb(err, false));
-  } catch (err) {
-    cb(err, false);
+// ✅ SAFE fileFilter (NO STREAM USAGE HERE)
+const fileFilter = (req, file, cb) => {
+  if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+    return cb(new Error("Only image files are allowed"), false);
   }
+  cb(null, true);
 };
 
-// ── Storage: write buffer to disk after magic-bytes validation ───────────────
+// ─── Custom Buffer Storage ────────────────────────────────────────────────
 function makeBufferStorage(uploadDir) {
   return {
     _handleFile(req, file, cb) {
-      const destDir = path.join(uploadDir);
-      fs.mkdirSync(destDir, { recursive: true });
-      const filename = safeImageFilename(file);
-      const dest = path.join(destDir, filename);
+      const chunks = [];
 
-      const finish = (buffer) => {
-        fs.writeFile(dest, buffer, (err) => {
-          if (err) return cb(err);
-          cb(null, { destination: destDir, filename, path: dest, size: buffer.length });
-        });
-      };
+      file.stream.on("data", (chunk) => chunks.push(chunk));
 
-      if (file._buffer) {
-        finish(file._buffer);
-      } else {
-        const chunks = [];
-        file.stream.on("data", (c) => chunks.push(c));
-        file.stream.on("end", () => finish(Buffer.concat(chunks)));
-        file.stream.on("error", cb);
-      }
+      file.stream.on("end", async () => {
+        try {
+          const buffer = Buffer.concat(chunks);
+
+          // 🔥 Magic-byte validation (REAL security check)
+          const detected = await fileTypeFromBuffer(buffer);
+          const mime = detected?.mime || file.mimetype;
+
+          if (!ALLOWED_MIME_TYPES.has(mime)) {
+            return cb(
+              new Error(`Invalid file type: ${mime}`)
+            );
+          }
+
+          const destDir = path.join(uploadDir);
+          fs.mkdirSync(destDir, { recursive: true });
+
+          const filename = safeImageFilename(file);
+          const dest = path.join(destDir, filename);
+
+          fs.writeFile(dest, buffer, (err) => {
+            if (err) return cb(err);
+
+            cb(null, {
+              destination: destDir,
+              filename,
+              path: dest,
+              size: buffer.length,
+            });
+          });
+
+        } catch (err) {
+          cb(err);
+        }
+      });
+
+      file.stream.on("error", cb);
     },
+
     _removeFile(req, file, cb) {
       fs.unlink(file.path, cb);
     },
   };
 }
 
+// ─── Upload Instances ─────────────────────────────────────────────────────
 export const upload = multer({
   storage: makeBufferStorage(path.join("uploads", "parcels")),
   fileFilter,
@@ -93,17 +94,14 @@ export const uploadProfile = multer({
   limits: { fileSize: MAX_IMAGE_SIZE_BYTES, files: 1 },
 });
 
-// KYC document uploads — stored in uploads/kyc/
 export const uploadKyc = multer({
   storage: makeBufferStorage(path.join("uploads", "kyc")),
   fileFilter,
   limits: { fileSize: MAX_IMAGE_SIZE_BYTES, files: 5 },
 });
 
-// Helper to return array of uploaded file paths
+// ─── Helper ───────────────────────────────────────────────────────────────
 export async function uploadFiles(files) {
   if (!files || files.length === 0) return [];
   return files.map((file) => `/uploads/parcels/${file.filename}`);
 }
-
-
