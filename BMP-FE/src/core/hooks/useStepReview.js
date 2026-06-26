@@ -248,11 +248,26 @@ export function useStepReview({ data, readOnly }) {
         checkoutOptions
       );
 
-      if (result?.error) {
-        showToast(
-          result.error.message || "Payment failed",
-          "error"
+      let verifyRes = null;
+
+      for (let i = 0; i < 10; i++) {
+        verifyRes = await ApiService.apipost(
+          ServerUrl.API_PAYMENT_VERIFY,
+          {
+            order_id,
+            parcel_id: parcelId,
+          }
         );
+      
+        if (verifyRes?.data?.success) {
+          break;
+        }
+      
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      
+      if (!verifyRes?.data?.success) {
+        showToast("Payment verification failed.", "error");
         return;
       }
 
