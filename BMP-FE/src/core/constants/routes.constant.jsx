@@ -48,7 +48,7 @@ class RoutePath {
   static USER_DISPUTE = `${this.USER_BASE}/dispute`;
   static USER_FEEDBACK = `${this.USER_BASE}/feedback/:bookingId`;
   static USER_FEEDBACK_BASE = `${this.USER_BASE}/feedback`;
-
+  static USER_PAYMENT_SUCCESS = `${this.USER_BASE}/payment-success`;
   static USER_TRAVELLER_SEARCH = `${this.USER_BASE}/traveller-search`;
 
   // ==================== TRAVELER ROUTES ====================
