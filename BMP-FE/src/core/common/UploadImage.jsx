@@ -69,9 +69,6 @@ const UploadImage = ({
 
       console.log("Final URL:", finalUrl);
 
-      const finalUrl = `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
-
-      console.log("Final URL:", finalUrl);
 
       return finalUrl;
     }
