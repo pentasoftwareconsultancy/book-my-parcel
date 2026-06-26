@@ -33,28 +33,36 @@ export const createOrder = async (req, res) => {
 /* VERIFY PAYMENT */
 export const verifyPayment = async (req, res) => {
   try {
-    const {
-      order_id,
-      parcel_id,
-    } = req.body;
+    const { order_id } = req.body;
 
-    if (!order_id || !parcel_id) {
-      return responseError(
-        res,
-        "Missing required payment verification fields",
-        400
-      );
+    if (!order_id) {
+      return responseError(res, "order_id is required", 400);
     }
 
     const result = await verifyPaymentService(req.body, req);
 
-    if (result.success) {
-      return responseSuccess(res, { booking_id: result.booking_id }, "Payment verified successfully");
-    } else {
-      return responseError(res, "Payment verification failed", 400);
+    if (!result.success) {
+      return responseError(
+        res,
+        "Payment verification failed",
+        400
+      );
     }
 
+    return responseSuccess(
+      res,
+      {
+        booking_id: result.booking_id,
+        parcel_id: result.parcel_id,
+        booking_ref: result.booking_ref,
+      },
+      "Payment verified successfully"
+    );
   } catch (error) {
-    return responseError(res, error.message || "Verification failed", 500);
+    return responseError(
+      res,
+      error.message || "Verification failed",
+      500
+    );
   }
 };

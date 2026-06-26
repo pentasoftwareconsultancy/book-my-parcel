@@ -51,6 +51,7 @@ const Track                   = lazy(() => import("../pages/user/Track"));
 const RequestFormPage         = lazy(() => import("../pages/user/requestform/RequestFormPage"));
 const UserDetailsPage         = lazy(() => import("../pages/user/UserDetailsPage"));
 const FeedbackPage            = lazy(() => import("../pages/user/Feedbackpage"));
+const PaymentSuccessPage       = lazy(() => import("../pages/user/requestform/PaymentSuccessPage"));
 
 // Traveler pages
 const TravelerDashboard    = lazy(() => import("../pages/traveler/TravelerDashboard"));
@@ -160,6 +161,7 @@ const AppRoutes = () => {
             <Route path={RoutePath.USER_DISPUTE}               element={<S><DisputePage /></S>} />
             <Route path={RoutePath.USER_FEEDBACK}              element={<S><FeedbackPage /></S>} />
             <Route path={RoutePath.USER_TRAVELLER_SEARCH}      element={<S><TravellerSearchPage /></S>} />
+            <Route path={RoutePath.USER_PAYMENT_SUCCESS}       element={<S><PaymentSuccessPage /></S>} />
           </Route>
         </Route>
 
