@@ -241,7 +241,7 @@ export function useStepReview({ data, readOnly }) {
 
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
-        redirectTarget: "_modal",
+        redirectTarget: "_self",
       };
 
       const result = await cashfree.checkout(
