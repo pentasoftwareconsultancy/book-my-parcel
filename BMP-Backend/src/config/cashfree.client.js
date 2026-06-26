@@ -3,9 +3,11 @@ import axios from "axios";
 const CASHFREE_API_VERSION = "2023-08-01";
 
 function getCashfreeBaseUrl() {
-  return process.env.CASHFREE_ENV === "PRODUCTION"
-    ? "https://api.cashfree.com/pg"
-    : "https://sandbox.cashfree.com/pg";
+  // return process.env.CASHFREE_ENV === "PRODUCTION"
+  //   ? "https://api.cashfree.com/pg"
+  //   : "https://sandbox.cashfree.com/pg";
+
+  return "https://api.cashfree.com/pg";
 }
 
 function getCashfreeHeaders() {
@@ -28,6 +30,7 @@ function getCashfreeHeaders() {
 // to avoid the SDK's environment-detection bugs in PM2 cluster mode.
 export const cashfreeClient = {
   async createOrder(orderData) {
+    console.log("[Cashfree] Creating order:.........................................................", getCashfreeBaseUrl());
     const url = `${getCashfreeBaseUrl()}/orders`;
     console.log(`[Cashfree] Creating order → ${url} (ENV: ${process.env.CASHFREE_ENV})`);
     const response = await axios.post(url, orderData, { headers: getCashfreeHeaders() });

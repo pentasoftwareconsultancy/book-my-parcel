@@ -231,8 +231,12 @@ export function useStepReview({ data, readOnly }) {
       const payment_session_id = order.payment_session_id;
       const order_id = order.id;
 
-      const cashfree = await load({
-        mode: (import.meta.env.VITE_CASHFREE_ENV || "sandbox") === "PRODUCTION" ? "production" : "sandbox",
+      // const cashfree = await load({
+      //   mode: (import.meta.env.VITE_CASHFREE_ENV || "PRODUCTION") === "PRODUCTION" ? "production" : "PRODUCTION",
+      // });
+
+       const cashfree = await load({
+        mode: (import.meta.env.PROD || import.meta.env.VITE_CASHFREE_ENV === "PRODUCTION") ? "production" : "sandbox",
       });
 
       const checkoutOptions = {
