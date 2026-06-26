@@ -205,20 +205,19 @@ export function useStepReview({ data, readOnly }) {
   const handlePayment = async (pickupAddress) => {
     try {
       const parcelId = data.createdParcelId || parcelData?.id;
-    
+
       if (!parcelId) {
         showToast("Parcel ID not available.", "error");
         return;
       }
-    
-      // Create Cashfree Order
+
       const orderRes = await ApiService.apipost(
         ServerUrl.API_PAYMENT_CREATE_ORDER,
         {
           parcel_id: parcelId,
         }
       );
-    
+
       if (!orderRes?.data?.success) {
         showToast(
           orderRes?.data?.message || "Order creation failed.",
@@ -226,102 +225,101 @@ export function useStepReview({ data, readOnly }) {
         );
         return;
       }
-    
+
       const order = orderRes.data.data.order;
+
       const payment_session_id = order.payment_session_id;
       const order_id = order.id;
-    
-      const cashfree = await load({
-        mode:
-          import.meta.env.PROD ||
-          import.meta.env.VITE_CASHFREE_ENV === "PRODUCTION"
-            ? "production"
-            : "sandbox",
+
+      // const cashfree = await load({
+      //   mode: (import.meta.env.VITE_CASHFREE_ENV || "PRODUCTION") === "PRODUCTION" ? "production" : "PRODUCTION",
+      // });
+
+       const cashfree = await load({
+        mode: (import.meta.env.PROD || import.meta.env.VITE_CASHFREE_ENV === "PRODUCTION") ? "production" : "sandbox",
       });
-    
+
       const checkoutOptions = {
         paymentSessionId: payment_session_id,
         redirectTarget: "_modal",
       };
-    
-      const result = await cashfree.checkout(checkoutOptions);
-    
-      // User cancelled / SDK error
+
+      const result = await cashfree.checkout(
+        checkoutOptions
+      );
+
       if (result?.error) {
-        showToast(result.error.message || "Payment failed.", "error");
+        showToast(
+          result.error.message || "Payment failed",
+          "error"
+        );
         return;
       }
-    
-      // Wait for Cashfree to update payment status
-      let verifyRes = null;
-    
-      for (let i = 0; i < 10; i++) {
-        verifyRes = await ApiService.apipost(
-          ServerUrl.API_PAYMENT_VERIFY,
+
+      const verifyRes = await ApiService.apipost(
+        ServerUrl.API_PAYMENT_VERIFY,
+        {
+          order_id,
+          parcel_id: parcelId,
+        }
+      );
+
+      if (verifyRes?.data?.success) {
+        await ApiService.apipatch(
+          ServerUrl.API_UPDATE_PARCEL_STEP(parcelId),
           {
-            order_id,
-            parcel_id: parcelId,
+            form_step: 3,
+            payment_mode: "PAY_NOW",
+            selected_partner_id: data.selectedPartnerId,
           }
         );
-      
-        if (verifyRes?.data?.success) {
-          break;
+
+        setShowConfetti(true);
+
+        showToast(
+          "Payment successful! Booking confirmed.",
+          "success"
+        );
+
+        await new Promise((r) =>
+          setTimeout(r, 1000)
+        );
+
+        const updated = await ApiService.apiget(
+          ServerUrl.API_GET_PARCEL_BY_ID(parcelId)
+        );
+
+        if (updated?.data?.success) {
+          const u = updated.data.data;
+
+          setParcelData((prev) => ({
+            ...prev,
+            ...u,
+            booking: u.booking,
+            photos: (u.photos || []).map((p) =>
+              p?.startsWith("http")
+                ? p
+                : `${ServerUrl.BASE_URL}${p}`
+            ),
+          }));
+
+          data.bookingRef =
+            u.booking?.booking_ref;
+
+          data.bookingId =
+            u.booking?.id;
         }
-      
-        // Wait 2 seconds before retrying
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        setShowPopup(true);
+      } else {
+        showToast(
+          "Payment verification failed.",
+          "error"
+        );
       }
-    
-      if (!verifyRes?.data?.success) {
-        showToast("Payment verification failed.", "error");
-        return;
-      }
-    
-      // Update parcel step
-      await ApiService.apipatch(
-        ServerUrl.API_UPDATE_PARCEL_STEP(parcelId),
-        {
-          form_step: 3,
-          payment_mode: "PAY_NOW",
-          selected_partner_id: data.selectedPartnerId,
-        }
-      );
-    
-      setShowConfetti(true);
-    
-      showToast(
-        "Payment successful! Booking confirmed.",
-        "success"
-      );
-    
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-      const updated = await ApiService.apiget(
-        ServerUrl.API_GET_PARCEL_BY_ID(parcelId)
-      );
-    
-      if (updated?.data?.success) {
-        const u = updated.data.data;
-      
-        setParcelData((prev) => ({
-          ...prev,
-          ...u,
-          booking: u.booking,
-          photos: (u.photos || []).map((p) =>
-            p?.startsWith("http")
-              ? p
-              : `${ServerUrl.BASE_URL}${p}`
-          ),
-        }));
-      
-        data.bookingRef = u.booking?.booking_ref;
-        data.bookingId = u.booking?.id;
-      }
-    
-      setShowPopup(true);
     } catch (error) {
       console.error(error);
-    
+
       showToast(
         "Payment failed. Please try again.",
         "error"
