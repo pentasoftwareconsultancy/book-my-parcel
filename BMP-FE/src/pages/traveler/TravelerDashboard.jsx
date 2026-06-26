@@ -414,56 +414,19 @@ return (
       </div>
 
       {/* TAB NAVIGATION */}
-      <div className="flex gap-1 sm:gap-2 mb-6 overflow-x-auto pb-2 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
-        <button
-          onClick={() => navigate(RoutePath.TRAVELER_AVAILABLE_REQUEST)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-            viewType === 'AVAILABLE'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}
-        >
-          Available
-        </button>
-        <button
-          onClick={() => navigate(RoutePath.TRAVELER_DASHBOARD)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-            viewType === 'ACTIVE'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}
-        >
-          Active
-        </button>
-        <button
-          onClick={() => navigate(RoutePath.TRAVELER_COMPLETED)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-            viewType === 'COMPLETED'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}
-        >
-          Completed
-        </button>
-        <button
-          onClick={() => navigate(RoutePath.TRAVELER_CANCELLED)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition ${
-            viewType === 'CANCELLED'
-              ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}
-        >
-          Cancelled
-        </button>
-      </div>
+      
 
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-      {statsCards.map((stat, index) => (
-        <div key={index} onClick={stat.onClick} className="cursor-pointer">
-          <StatsCard {...stat} />
-        </div>
-      ))}
+   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+  {statsCards.map((stat, index) => (
+    <div
+      key={index}
+      onClick={stat.onClick}
+      className="w-full cursor-pointer"
+    >
+      <StatsCard {...stat} />
     </div>
+  ))}
+</div>
 
     {/* NOTIFICATION */}
     {notification && (

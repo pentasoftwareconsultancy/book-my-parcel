@@ -48,13 +48,13 @@ export default function PublicTransportForm({ formData, errors, onChange }) {
   return (
     <>
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm text-blue-800">
-        🚌 <strong>Public Transport Mode</strong> – You can carry parcels as luggage. Provide service details below.
+         <strong>Public Transport Mode</strong> – You can carry parcels as luggage. Provide service details below.
       </div>
 
       {/* BUS */}
       {transportMode === "bus" && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-blue-700 mb-3">🚌 Bus Details</p>
+          <p className="text-sm font-semibold text-blue-700 mb-3"> Bus Details</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Bus Service Name *" error={errors.busServiceName}>
               <Select value={formData.busServiceName} onChange={(e) => onChange("busServiceName", e.target.value)} error={!!errors.busServiceName}>
@@ -72,7 +72,7 @@ export default function PublicTransportForm({ formData, errors, onChange }) {
       {/* TRAIN */}
       {transportMode === "train" && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-red-700 mb-3">🚂 Train Details</p>
+          <p className="text-sm font-semibold text-red-700 mb-3">Train Details</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <Field label="Train Number *" error={errors.trainNumber} helper="5-digit train number">
               <Input
@@ -129,7 +129,7 @@ export default function PublicTransportForm({ formData, errors, onChange }) {
        {/* PLANE */}
        {transportMode === "plane" && (
          <div className="mb-4">
-           <p className="text-sm font-semibold text-blue-700 mb-3">✈️ Airline Details</p>
+           <p className="text-sm font-semibold text-blue-700 mb-3"> Airline Details</p>
            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <Field label="Airline Name *" error={errors.planeAirlineName}>
                <Input placeholder="e.g. Indigo, Air India" value={formData.planeAirlineName} onChange={(e) => onChange("planeAirlineName", e.target.value)} error={!!errors.planeAirlineName} />
