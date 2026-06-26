@@ -59,10 +59,7 @@ const UploadImage = ({
         return value;
       }
 
-      const backendUrl =
-        import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
-        "http://localhost:3000";
-
+      const backendUrl = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:3000";
       const finalUrl = `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
 
       console.log("backendUrl:", backendUrl);
