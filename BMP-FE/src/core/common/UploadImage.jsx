@@ -59,8 +59,7 @@ const UploadImage = ({
         return value;
       }
 
-      const backendUrl = import.meta.env.VITE_SERVER_BASE_URL;
-
+const backendUrl = import.meta.env.VITE_API_URL;
       if (!backendUrl) {
         console.error("VITE_SERVER_BASE_URL is missing");
       }
