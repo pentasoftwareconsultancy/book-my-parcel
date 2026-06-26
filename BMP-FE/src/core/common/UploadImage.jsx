@@ -59,7 +59,12 @@ const UploadImage = ({
         return value;
       }
 
-      const backendUrl = import.meta.env.VITE_SERVER_BASE_URL || "http://localhost:3000";
+      const backendUrl = import.meta.env.VITE_SERVER_BASE_URL;
+
+      if (!backendUrl) {
+        console.error("VITE_SERVER_BASE_URL is missing");
+      }
+
       const finalUrl = `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
 
       console.log("backendUrl:", backendUrl);
