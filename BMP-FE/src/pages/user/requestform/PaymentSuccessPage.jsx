@@ -59,7 +59,7 @@ export default function PaymentSuccessPage() {
             showToast("Payment Successful", "success");
 
             navigate(
-                `/user/request?parcelId=${parcelId}&step=3`,
+                `/user/request?parcelId=${result.parcel_id}&step=3`,
                 {
                     state: {
                         paymentSuccess: true,
