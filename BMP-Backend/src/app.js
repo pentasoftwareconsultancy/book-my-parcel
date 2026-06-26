@@ -10,6 +10,11 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 import { sanitizeBody } from "./middlewares/sanitize.middleware.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.config.js";
 import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const require = createRequire(import.meta.url);
 
@@ -135,7 +140,13 @@ const staticOptions = {
   },
 };
 app.use("/uploads/profiles", express.static("uploads/profiles", staticOptions));
-app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
+// app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
+
+app.use(
+  "/uploads/parcels",
+  express.static(path.join(__dirname, "uploads/parcels"), staticOptions)
+);
+
 app.use("/uploads/proofs",   express.static("uploads/proofs",   staticOptions));
 // NOTE: /uploads/kyc is NOT exposed — served via authenticated API route only.
 
