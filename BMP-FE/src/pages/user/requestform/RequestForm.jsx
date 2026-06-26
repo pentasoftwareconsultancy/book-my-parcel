@@ -20,6 +20,12 @@ const steps = [
 const RequestForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (location.state?.paymentSuccess) {
+      setPopupParcelId(location.state.parcelId);
+      setShowConfirmation(true);
+    }
+  }, [location.state]);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Check URL params first, then location state
@@ -108,7 +114,7 @@ const RequestForm = () => {
 
     // Always update local step first for immediate UI feedback
     setStep(newStep);
-    
+
     // ✅ FIX: Don't automatically update to Step 3 in database
     // Step 3 should only be updated when payment is actually completed
     if (createdParcelId && newStep !== 3) {
@@ -356,10 +362,9 @@ const RequestForm = () => {
 
                 {/* Label — desktop only */}
                 <span
-                  className={`hidden md:inline-block text-sm whitespace-nowrap ${
-                    isActive ? "text-[#294CFF] font-semibold" :
-                    isClickable ? "text-gray-500" : "text-gray-300"
-                  }`}
+                  className={`hidden md:inline-block text-sm whitespace-nowrap ${isActive ? "text-[#294CFF] font-semibold" :
+                      isClickable ? "text-gray-500" : "text-gray-300"
+                    }`}
                 >
                   {stepLabels[num - 1]}
                 </span>
@@ -407,21 +412,21 @@ const RequestForm = () => {
                       <p className="text-gray-600">Please wait while we fetch your parcel details.</p>
                     </div>
                   ) : (
-                  // Show normal Step 1 form for new parcel or editing
-                  <>
-                    <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold text-primary mb-4">
-                      Pickup Details
-                    </h2>
-                    <StepPickup
-                      data={formData}
-                      updateFields={updateFields}
-                      onNext={next}
-                      createdParcelId={createdParcelId}
-                      setCreatedParcelId={setCreatedParcelId}
-                      setShowConfirmation={setShowConfirmation}   // ✅ ADD
-                      setParcelId={setPopupParcelId}              // ✅ ADD
-                    />
-                  </>
+                    // Show normal Step 1 form for new parcel or editing
+                    <>
+                      <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold text-primary mb-4">
+                        Pickup Details
+                      </h2>
+                      <StepPickup
+                        data={formData}
+                        updateFields={updateFields}
+                        onNext={next}
+                        createdParcelId={createdParcelId}
+                        setCreatedParcelId={setCreatedParcelId}
+                        setShowConfirmation={setShowConfirmation}   // ✅ ADD
+                        setParcelId={setPopupParcelId}              // ✅ ADD
+                      />
+                    </>
                   )}
                 </div>
               )}

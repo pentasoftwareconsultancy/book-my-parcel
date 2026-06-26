@@ -140,7 +140,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     },
 
     order_meta: {
-      return_url: `${process.env.FRONTEND_URL}/user/request?parcelId=${parcel_id}&step=3`,
+      return_url: `${process.env.FRONTEND_URL}/user/request?parcelId=${parcel_id}&step=3&order_id={order_id}`,
     },
   };
 
