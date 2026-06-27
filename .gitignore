@@ -1,0 +1,22 @@
+# Claude AI
+.claude/
+
+# Environment files
+.env
+*.env.local
+*.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
