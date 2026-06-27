@@ -1,7 +1,12 @@
 class ServerUrl {
 
-  // Base URL — kept for constructing asset/upload URLs (not for API calls)
-  static BASE_URL = import.meta.env.VITE_BASE_URL || "";
+  // Base URL — used to construct asset/upload URLs from relative paths.
+  // Derives from VITE_BASE_URL, or strips /api from VITE_API_URL as fallback.
+  // e.g. VITE_API_URL=https://api.bookmyparcel.co.in/api → BASE_URL=https://api.bookmyparcel.co.in
+  static BASE_URL = import.meta.env.VITE_BASE_URL ||
+    (import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "")
+      : "");
 
 
   static API_MODULE_AUTH = "auth";
