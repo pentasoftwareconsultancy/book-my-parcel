@@ -118,15 +118,24 @@ export async function getActiveParcelRequests() {
       
       if (requestIds && requestIds.length > 0) {
         console.log(`[ParcelRequestCache] Cache HIT: ${requestIds.length} active requests`);
-        
+
         const pipeline = redis.pipeline();
         requestIds.forEach(id => pipeline.get(getRequestCacheKey(id)));
         const results = await pipeline.exec();
-        
+
+        // Remove IDs whose individual keys have expired from the Set to prevent stale accumulation
+        const staleIds = requestIds.filter((_, i) => {
+          const [err, data] = results[i];
+          return err || !data;
+        });
+        if (staleIds.length > 0) {
+          await redis.srem(getActiveRequestsKey(), ...staleIds);
+        }
+
         const requests = results
           .filter(([err, data]) => !err && data)
           .map(([, data]) => JSON.parse(data));
-        
+
         if (requests.length === requestIds.length) return requests;
       }
     }

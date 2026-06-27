@@ -29,7 +29,7 @@ const OTP_LENGTH           = otpConfig.OTP_LENGTH;           // default 4
 function generateRawOTP() {
   const min = Math.pow(10, OTP_LENGTH - 1);
   const max = Math.pow(10, OTP_LENGTH) - 1;
-  return (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+  return crypto.randomInt(min, max + 1).toString();
 }
 
 function hashOTP(otp) {

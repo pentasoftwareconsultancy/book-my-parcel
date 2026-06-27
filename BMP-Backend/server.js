@@ -19,7 +19,7 @@ import {expireRoutes} from "./src/jobs/autoExpiry.job.js";
 import redis from "./src/redis/redis.config.js";
 import { acquireRedisLock, releaseRedisLock } from "./src/redis/utils/redisLock.util.js";
 import "./src/jobs/asyncTasks.worker.js";
-import { setupRealtimeSubscriber } from "./src/redis/services/redisRealtime.service.js";
+import { setupRealtimeSubscriber, closeRealtimeSubscriber } from "./src/redis/services/redisRealtime.service.js";
 import { initializeFirebase } from "./src/services/notification.service.js";
 
 const startServer = async () => {
@@ -239,6 +239,7 @@ const startServer = async () => {
       console.log(`\n[Server] ${signal} received — shutting down gracefully...`);
       server.close();
       try {
+        await closeRealtimeSubscriber();
         if (redis) {
           // Release only locks this instance actually holds (never use "*" wildcard token)
           const releasePromises = Object.entries(lockTokens)

@@ -3,6 +3,8 @@ import { createBullMQConnection } from "../bullmq.connection.js";
 
 const REALTIME_CHANNEL = "realtime:events";
 
+let _subscriber = null;
+
 export async function publishRealtimeEvent(eventName, payload) {
   if (!redis) return false;
   try {
@@ -35,9 +37,21 @@ export async function setupRealtimeSubscriber(io) {
         console.warn("[RedisRealtime] Message parse failed:", error.message);
       }
     });
+    _subscriber = subscriber;
     return subscriber;
   } catch (error) {
     console.warn("[RedisRealtime] Subscriber setup failed:", error.message);
     return null;
+  }
+}
+
+export async function closeRealtimeSubscriber() {
+  if (!_subscriber) return;
+  try {
+    await _subscriber.quit();
+  } catch {
+    // best-effort on shutdown
+  } finally {
+    _subscriber = null;
   }
 }
