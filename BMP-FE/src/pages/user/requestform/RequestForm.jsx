@@ -32,6 +32,7 @@ const RequestForm = () => {
   // Check URL params first, then location state
   const urlParcelId = searchParams.get('parcelId');
   const urlStep = searchParams.get('step');
+  const urlOrderId = searchParams.get('order_id'); // Cashfree return redirect
 
   // Check if we're continuing from dashboard with existing parcel
   const { parcelId: existingParcelId, step: initialStep } = location.state || {};
@@ -102,6 +103,39 @@ const RequestForm = () => {
 
   const updateFields = (fields) =>
     setFormData((prev) => ({ ...prev, ...fields }));
+
+  // ── Handle Cashfree return redirect ─────────────────────────────────────
+  // After payment, Cashfree redirects to:
+  //   /user/request?parcelId=xxx&step=3&order_id=yyy
+  // We verify the payment here and show the success confirmation modal.
+  useEffect(() => {
+    if (!urlOrderId) return;
+
+    const verifyAfterRedirect = async () => {
+      try {
+        const verifyRes = await ApiService.apipost(
+          ServerUrl.API_PAYMENT_VERIFY,
+          { order_id: urlOrderId, parcel_id: urlParcelId || null }
+        );
+
+        if (verifyRes?.data?.success) {
+          showToast("Payment successful! Booking confirmed.", "success");
+          // Clean order_id from URL to prevent re-verification on refresh
+          setSearchParams({ parcelId: urlParcelId, step: "3" }, { replace: true });
+          setPopupParcelId(urlParcelId);
+          setShowConfirmation(true);
+        } else {
+          showToast("Payment verification failed.", "error");
+        }
+      } catch (err) {
+        console.error("[Payment verify after redirect]", err);
+        showToast("Payment verification failed.", "error");
+      }
+    };
+
+    verifyAfterRedirect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlOrderId]);
 
   // Update URL when parcel ID or step changes
   useEffect(() => {
