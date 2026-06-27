@@ -85,8 +85,7 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     }
   }
 
-  // const amount = Number(parcel.price_quote);
-  const amount = 1; // for testing purposes, we are using a fixed amount of 1 INR. In production, this should be parcel.price_quote.
+  const amount = Number(parcel.price_quote);
 
   if (!amount || amount <= 0) {
     throw new Error("Invalid parcel amount");
