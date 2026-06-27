@@ -622,9 +622,8 @@ router.post(
       const existingAttempts = await DeliveryAttempt.count({ where: { booking_id: bookingId } });
       const attemptNumber = existingAttempts + 1;
 
-      // Build photo URL if uploaded
-      const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-      const photoUrl = req.file ? `${baseUrl}/uploads/parcels/${req.file.filename}` : null;
+      // Build photo URL if uploaded — store relative path only
+      const photoUrl = req.file ? `/uploads/parcels/${req.file.filename}` : null;
 
       // Create attempt record
       const attempt = await DeliveryAttempt.create({
