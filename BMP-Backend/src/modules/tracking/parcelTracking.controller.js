@@ -119,9 +119,8 @@ export async function handleUploadProof(req, res) {
       return res.status(400).json({ message: "proof_photo file is required" });
     }
 
-    // Build URL — same pattern as parcel photos
-    const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // Build relative path — frontend prepends BASE_URL when displaying
+    const imageUrl = `/uploads/proofs/${req.file.filename}`;
 
     const proof = await saveProofPhoto(booking_id, type.toUpperCase(), imageUrl);
 
