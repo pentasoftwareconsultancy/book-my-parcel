@@ -44,6 +44,7 @@ const RequestForm = () => {
   const [loading, setLoading] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [popupParcelId, setPopupParcelId] = useState(null);
+  const [isPaymentConfirmation, setIsPaymentConfirmation] = useState(false);
 
   const [formData, setFormData] = useState({
     /* ================= PICKUP / SENDER ================= */
@@ -123,6 +124,7 @@ const RequestForm = () => {
           // Clean order_id from URL to prevent re-verification on refresh
           setSearchParams({ parcelId: urlParcelId, step: "3" }, { replace: true });
           setPopupParcelId(urlParcelId);
+          setIsPaymentConfirmation(true);
           setShowConfirmation(true);
         } else {
           showToast("Payment verification failed.", "error");
@@ -506,7 +508,7 @@ const RequestForm = () => {
       {showConfirmation && (
         <UserBookingConfirmationModal
           parcelId={popupParcelId}
-          isParcelOnly={true}
+          isParcelOnly={!isPaymentConfirmation}
           onClose={() => {
             setShowConfirmation(false);
             next(); // 👉 move to Step 2 AFTER popup
