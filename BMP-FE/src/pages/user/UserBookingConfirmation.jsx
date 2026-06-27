@@ -162,17 +162,11 @@ const UserBookingConfirmationModal = ({
                 Next: Select Partner →
               </button>
             ) : (
-              // ✅ Booking confirmed — Track + Dashboard
+              // ✅ Booking confirmed — Dashboard only
               <>
                 <button
-                  onClick={goToTracking}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition w-full sm:w-auto"
-                >
-                  Track Parcel
-                </button>
-                <button
                   onClick={goToDashboard}
-                  className="border border-blue-500 text-blue-500 hover:bg-blue-50 px-6 py-2.5 rounded-lg text-sm font-medium transition w-full sm:w-auto"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition w-full sm:w-auto"
                 >
                   Go to Dashboard
                 </button>
