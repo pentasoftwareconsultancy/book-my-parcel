@@ -1,7 +1,7 @@
 import React from "react";
 
 const MAX_DIMENSION = 1200;
-const JPEG_QUALITY  = 0.82;
+const JPEG_QUALITY = 0.82;
 
 /** Compress a File/Blob to a JPEG Blob, capped at MAX_DIMENSION on the longest side. */
 function compressImage(file) {
@@ -13,7 +13,7 @@ function compressImage(file) {
       let { width, height } = img;
       if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
         if (width > height) { height = Math.round((height * MAX_DIMENSION) / width); width = MAX_DIMENSION; }
-        else                { width  = Math.round((width  * MAX_DIMENSION) / height); height = MAX_DIMENSION; }
+        else { width = Math.round((width * MAX_DIMENSION) / height); height = MAX_DIMENSION; }
       }
       const canvas = document.createElement("canvas");
       canvas.width = width; canvas.height = height;
@@ -43,29 +43,36 @@ const UploadImage = ({
     onChange?.(result);
   };
 
+
   const getImageUrl = () => {
     if (!value) return "";
+
+    console.log("VITE_API_URL:", import.meta.env.VITE_API_URL);
+    console.log("value:", value);
 
     if (typeof value === "string") {
       if (
         value.startsWith("http://") ||
         value.startsWith("https://")
       ) {
+        console.log("Final URL:", value);
         return value;
       }
 
-      const backendUrl =
-        import.meta.env.VITE_API_URL?.replace("/api", "") ||
-        "http://localhost:3000";
+const backendUrl = import.meta.env.VITE_API_URL;
+      if (!backendUrl) {
+        console.error("VITE_SERVER_BASE_URL is missing");
+      }
 
-      return `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
+      const finalUrl = `${backendUrl}${value.startsWith("/") ? "" : "/"}${value}`;
+
+      console.log("backendUrl:", backendUrl);
+      console.log("Final URL:", finalUrl);
+
+      return finalUrl;
     }
 
-    try {
-      return URL.createObjectURL(value);
-    } catch {
-      return "";
-    }
+    return URL.createObjectURL(value);
   };
 
   return (

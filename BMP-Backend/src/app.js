@@ -10,6 +10,11 @@ import { errorHandler } from "./middlewares/error.middleware.js";
 import { sanitizeBody } from "./middlewares/sanitize.middleware.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.config.js";
 import { generalLimiter } from "./middlewares/rateLimit.middleware.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const require = createRequire(import.meta.url);
 
@@ -21,11 +26,36 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc:     ["'self'"],
-        scriptSrc:      ["'self'", "https://checkout.razorpay.com"],
-        connectSrc:     ["'self'", "https://api.razorpay.com", "https://lumberjack.razorpay.com"],
-        imgSrc:         ["'self'", "data:", "https:"],
-        styleSrc:       ["'self'", "'unsafe-inline'"],
-        frameSrc:       ["https://api.razorpay.com", "https://checkout.razorpay.com"],
+        scriptSrc: [
+          "'self'",
+          "blob:",
+          "https://sdk.cashfree.com",
+          "https://api.cashfree.com",
+          "https://*.cashfree.com",
+          "https://*.cashfree.net",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://api.cashfree.com",
+          "https://*.cashfree.com",
+          "https://*.cashfree.net",
+        ],
+        imgSrc: ["'self'","data:","https:",],
+        styleSrc: ["'self'","'unsafe-inline'",],
+        frameSrc: [
+          "'self'",
+          "https://sdk.cashfree.com",
+          "https://api.cashfree.com",
+          "https://*.cashfree.com",
+          "https://*.cashfree.net",
+        ],
+        workerSrc: [
+          "'self'",
+          "blob:",
+          "https://api.cashfree.com",
+          "https://*.cashfree.com",
+          "https://*.cashfree.net",
+        ],
         objectSrc:      ["'none'"],
         upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
       },
@@ -110,7 +140,13 @@ const staticOptions = {
   },
 };
 app.use("/uploads/profiles", express.static("uploads/profiles", staticOptions));
-app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
+// app.use("/uploads/parcels",  express.static("uploads/parcels",  staticOptions));
+
+app.use(
+  "/uploads/parcels",
+  express.static(path.join(__dirname, "uploads/parcels"), staticOptions)
+);
+
 app.use("/uploads/proofs",   express.static("uploads/proofs",   staticOptions));
 // NOTE: /uploads/kyc is NOT exposed — served via authenticated API route only.
 

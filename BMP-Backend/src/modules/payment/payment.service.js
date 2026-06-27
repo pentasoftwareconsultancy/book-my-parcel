@@ -29,25 +29,29 @@ import {
  */
 export const createOrderService = async (parcel_id, requestingUserId) => {
   const parcel = await Parcel.findByPk(parcel_id);
-  
+
   if (!parcel) {
     throw new Error("Parcel not found");
   }
 
   if (String(parcel.user_id) !== String(requestingUserId)) {
-    const err = new Error("Forbidden: you do not own this parcel");
+    const err = new Error("Forbidden");
     err.statusCode = 403;
     throw err;
   }
 
-  const amount = Number(parcel.price_quote);
+  // Don't allow payment again if booking already exists
+  const existingBooking = await Booking.findOne({
+    where: {
+      parcel_id,
+    },
+  });
 
-  if (!amount || amount <= 0) {
-    throw new Error(
-      "Parcel does not have a valid price quote."
-    );
+  if (existingBooking) {
+    throw new Error("This parcel has already been paid.");
   }
 
+  // Reuse existing pending order
   const existingPayment = await Payment.findOne({
     where: {
       parcel_id,
@@ -55,39 +59,73 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
     },
   });
 
+  if (existingPayment) {
+    const cashfree = getCashfree();
+
+    try {
+      const response = await cashfree.PGFetchOrder(
+        existingPayment.cashfree_order_id
+      );
+
+      const order = response.data;
+
+      if (
+        order.order_status === "ACTIVE" ||
+        order.order_status === "PENDING"
+      ) {
+        return {
+          order_id: existingPayment.cashfree_order_id,
+          payment_session_id: order.payment_session_id,
+          amount: existingPayment.amount,
+          currency: existingPayment.currency,
+        };
+      }
+    } catch (err) {
+      console.log("Old order expired. Creating new order...");
+    }
+  }
+
+  // const amount = Number(parcel.price_quote);
+  const amount = 1; // for testing purposes, we are using a fixed amount of 1 INR. In production, this should be parcel.price_quote.
+
+  if (!amount || amount <= 0) {
+    throw new Error("Invalid parcel amount");
+  }
+
   const user = await User.findByPk(parcel.user_id, {
-    include: [{ model: UserProfile, as: "profile" }],
+    include: [
+      {
+        model: UserProfile,
+        as: "profile",
+      },
+    ],
   });
 
   if (!user) throw new Error("User not found");
 
-  // phone is required by Cashfree — reject early with a clear message
   const phone = user.phone_number?.replace(/\D/g, "");
+
   if (!phone || phone.length < 10) {
-    throw new Error("User does not have a valid phone number on file. Please update your profile.");
+    throw new Error("Phone number missing");
   }
 
-  // email is optional but Cashfree requires something — use a derived placeholder
-  // only if the account was created via Firebase (no real email supplied)
-  const email = user.email?.includes("firebase:") ? null : user.email;
+  const email = user.email?.includes("firebase:")
+    ? null
+    : user.email;
+
   if (!email) {
-    throw new Error("User does not have a valid email address on file. Please update your profile.");
+    throw new Error("Email missing");
   }
 
-  const customerName = user.profile?.name || null;
+  const customerName = user.profile?.name;
+
   if (!customerName) {
-    throw new Error("User profile name is missing. Please complete your profile before paying.");
+    throw new Error("Profile incomplete");
   }
 
   const orderId = `ORD_${Date.now()}_${parcel.id.slice(0, 8)}`;
 
   const cashfree = getCashfree();
-
-  console.log("🔥 CASHFREE REQUEST:", {
-    orderId,
-    amount,
-    userId: user?.id,
-  });
 
   const request = {
     order_id: orderId,
@@ -98,37 +136,29 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
       customer_id: String(user.id),
       customer_name: customerName,
       customer_email: email,
-      customer_phone: phone.slice(-10), // Cashfree expects 10-digit Indian number
+      customer_phone: phone.slice(-10),
     },
 
     order_meta: {
-      return_url: `${process.env.FRONTEND_URL}/payment-success?order_id={order_id}`,
+      return_url: `${process.env.FRONTEND_URL}/user/request?parcelId=${parcel_id}&step=3&order_id={order_id}`,
     },
   };
 
   const response = await cashfree.PGCreateOrder(request);
 
-  console.log("✅ [Cashfree] Order created:", response?.data?.order_id, "| status:", response?.data?.order_status);
+  const order = response.data;
 
   await Payment.create({
     parcel_id,
     amount,
     currency: "INR",
-
     cashfree_order_id: orderId,
-
     status: PAYMENT_STATUS.PENDING,
   });
-  
-  const orderData = response?.data || response;
-
-  const paymentSessionId =
-    orderData.payment_session_id ||
-    orderData?.payment_session_id;
 
   return {
-    order_id: response.data.order_id,
-    payment_session_id: paymentSessionId,
+    order_id: order.order_id,
+    payment_session_id: order.payment_session_id,
     amount,
     currency: "INR",
   };
@@ -137,10 +167,42 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
 /* ================= VERIFY PAYMENT ================= */
 
 export const verifyPaymentService = async (data, req = null) => {
-  const {
-    order_id,
-    parcel_id,
-  } = data;
+  const { order_id } = data;
+  let { parcel_id } = data;
+
+  const existingPayment = await Payment.findOne({
+    where: {
+      cashfree_order_id: order_id,
+    },
+    include: [
+      {
+        model: Booking,
+        as: "booking",
+      },
+    ],
+  });
+
+  if (!existingPayment) {
+    throw new Error("Payment not found");
+  }
+
+  // If parcel_id wasn't supplied (Cashfree redirect),
+  // recover it from the payment record.
+  if (!parcel_id) {
+    parcel_id = existingPayment.parcel_id;
+  }
+
+  if (
+    existingPayment &&
+    existingPayment.status === PAYMENT_STATUS.SUCCESS
+  ) {
+    return {
+      success: true,
+      booking_id: existingPayment.booking_id,
+      parcel_id: existingPayment.parcel_id,
+      booking_ref: existingPayment.booking?.booking_ref,
+    };
+  }
 
   const cashfree = getCashfree();
 
@@ -330,7 +392,12 @@ export const verifyPaymentService = async (data, req = null) => {
     req,
   });
 
-  return { success: true, booking_id: booking.id };
+  return {
+    success: true,
+    booking_id: booking.id,
+    parcel_id: parcel.id,
+    booking_ref: booking.booking_ref,
+  };
 };
 
 /* ================= REFUND PAYMENT ================= */
