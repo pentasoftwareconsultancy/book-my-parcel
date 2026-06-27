@@ -11,8 +11,8 @@ function resolvePhotoUrl(photo) {
   if (photo instanceof File || photo instanceof Blob) return URL.createObjectURL(photo);
   if (typeof photo === "string" && photo.trim() !== "") {
     if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
-    const base = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:3000";
-    return `${base}${photo.startsWith("/") ? "" : "/"}${photo}`;
+    // ✅ Return relative path — Vite proxy forwards /uploads/* to localhost:3000
+    return photo.startsWith("/") ? photo : `/${photo}`;
   }
   return null;
 }
@@ -26,6 +26,11 @@ const OrderSummary = ({ data: propData }) => {
   const photo2 = React.useMemo(() => resolvePhotoUrl(propData?.parcelPhoto2), [propData?.parcelPhoto2]);
   const photo3 = React.useMemo(() => resolvePhotoUrl(propData?.parcelPhoto3), [propData?.parcelPhoto3]);
   const photos  = [photo1, photo2, photo3].filter(Boolean);
+
+  // ADD THIS TEMPORARILY
+console.log("parcelPhoto1 raw value:", propData?.parcelPhoto1);
+console.log("parcelPhoto2 raw value:", propData?.parcelPhoto2);
+console.log("parcelPhoto3 raw value:", propData?.parcelPhoto3);
 
   // Revoke object URLs on unmount to avoid memory leaks
   React.useEffect(() => {
