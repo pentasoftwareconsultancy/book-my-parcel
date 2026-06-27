@@ -269,11 +269,14 @@ export async function clearAllGoogleApiCache() {
 
     let totalDeleted = 0;
     for (const pattern of patterns) {
-      const keys = await redis.keys(pattern);
-      if (keys.length > 0) {
-        const deleted = await redis.del(...keys);
-        totalDeleted += deleted;
-      }
+      let cursor = "0";
+      do {
+        const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
+        cursor = nextCursor;
+        if (keys.length > 0) {
+          totalDeleted += await redis.del(...keys);
+        }
+      } while (cursor !== "0");
     }
 
     console.log(`[GoogleApiCache] CLEAR ALL: Deleted ${totalDeleted} keys`);
@@ -307,9 +310,15 @@ export async function getGoogleApiCacheStats() {
     };
 
     for (const [type, pattern] of Object.entries(patterns)) {
-      const keys = await redis.keys(pattern);
-      stats[type] = keys.length;
-      stats.total += keys.length;
+      let cursor = "0";
+      let count = 0;
+      do {
+        const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
+        cursor = nextCursor;
+        count += keys.length;
+      } while (cursor !== "0");
+      stats[type] = count;
+      stats.total += count;
     }
 
     return stats;

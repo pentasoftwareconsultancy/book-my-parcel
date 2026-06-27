@@ -60,11 +60,13 @@ export async function cacheAuthUser(userId, userData) {
   if (!redis) return false;
 
   try {
-    // Only cache minimal data needed for authentication
+    // Cache all fields needed by auth middleware — role, is_active, phone_number
     const cacheData = {
       id: userData.id,
       email: userData.email,
-      // Add any other fields needed by auth middleware
+      role: userData.role,
+      is_active: userData.is_active,
+      phone_number: userData.phone_number,
       cachedAt: new Date().toISOString(),
     };
 
@@ -130,14 +132,17 @@ export async function clearAllAuthCache() {
 
   try {
     const pattern = `${CACHE_PREFIX}*`;
-    const keys = await redis.keys(pattern);
-    
-    if (keys.length === 0) {
-      console.log(`[AuthCache] CLEAR ALL: No keys found`);
-      return 0;
-    }
+    let cursor = "0";
+    let deleted = 0;
 
-    const deleted = await redis.del(...keys);
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 100);
+      cursor = nextCursor;
+      if (keys.length > 0) {
+        deleted += await redis.del(...keys);
+      }
+    } while (cursor !== "0");
+
     console.log(`[AuthCache] CLEAR ALL: Deleted ${deleted} keys`);
     return deleted;
   } catch (error) {

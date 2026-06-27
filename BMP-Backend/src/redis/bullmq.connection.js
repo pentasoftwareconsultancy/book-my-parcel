@@ -42,6 +42,10 @@ export function createBullMQConnection() {
       maxRetriesPerRequest: null,
       enableReadyCheck:     false,
       lazyConnect:          true,
+      retryStrategy: (times) => {
+        if (times > 6) return null;
+        return Math.min(200 * Math.pow(2, times - 1), 3000);
+      },
     });
   } catch (err) {
     console.warn("[BullMQ] Failed to create Redis connection:", err.message);
