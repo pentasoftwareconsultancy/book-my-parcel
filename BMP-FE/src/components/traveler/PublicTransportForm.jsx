@@ -47,6 +47,12 @@ export default function PublicTransportForm({ formData, errors, onChange }) {
 
   return (
     <>
+
+
+
+
+
+    
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm text-blue-800">
          <strong>Public Transport Mode</strong> – You can carry parcels as luggage. Provide service details below.
       </div>
