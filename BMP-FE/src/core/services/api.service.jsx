@@ -24,7 +24,7 @@ class ApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
-          console.error("❌ 401 Unauthorized - Token expired किंवा invalid");
+          console.error(" 401 Unauthorized - Token expired invalid");
         }
         return Promise.reject(error);
       }
