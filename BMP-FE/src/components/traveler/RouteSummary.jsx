@@ -7,13 +7,14 @@ const Row = ({ label, value }) => (
 
 export default function RouteSummary({ step1Data, step2Data, parcelCount }) {
   // Get the vehicle display: for plane, show "Plane" instead of the mapped vehicle_type
-  const getVehicleDisplay = () => {
-    const transitType = step2Data.transitDetails?.type || step2Data.transit_details?.type;
-    if (transitType === "plane") return "Plane";
-    if (transitType === "bus") return "Bus";
-    if (transitType === "train") return "Train";
-    return step2Data.vehicleType || null;
-  };
+ const getVehicleDisplay = () => {
+  const mode = step2Data.transportMode;
+  if (mode === "bus")   return "Bus";
+  if (mode === "train") return "Train";
+  if (mode === "plane") return "Plane";
+  // private vehicle — show the specific type
+  return step2Data.vehicleType || null;
+};
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">

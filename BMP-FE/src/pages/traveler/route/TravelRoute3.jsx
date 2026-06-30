@@ -33,7 +33,10 @@ const buildPayload = (step1, step2, formData) => {
     arrival_date: step1.arrivalDate || null,
     arrival_time: step1.arrivalTime || null,
     is_recurring: step1.isRecurring || false,
-    vehicle_type: step2.transportMode === "private" ? (step2.vehicleType || "bike") : step2.transportMode,
+    // After
+    vehicle_type: step2.transportMode === "private"
+      ? (step2.vehicleType || "bike")
+      : step2.transportMode,   // ← "bus" | "train" | "plane" passed through directly
     transport_mode: step2.transportMode === "private" ? "private" : "public",
     max_weight_kg: Number(step2.maxWeightKg) || 0,
     accepted_parcel_types: formData.acceptedParcelTypes,
@@ -108,6 +111,7 @@ export default function TravelRoute3() {
     }));
     setErrors((prev) => ({ ...prev, acceptedParcelTypes: "" }));
   }, []);
+  
 
   const handleSaveRoute = async () => {
     const e = {};
