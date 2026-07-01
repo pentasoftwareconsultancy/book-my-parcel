@@ -302,23 +302,50 @@ class BookingService {
 
     // ── Persist notifications ──────────────────────────────────────────────
     const io2 = this.getIO();
+    
+    // Fetch user name for notification
+    const UserProfile = (await import("../user/userProfile.model.js")).default;
+    const senderUser = await User.findByPk(booking.parcel.user_id, {
+      include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+    });
+    const userName = senderUser?.profile?.name || senderUser?.email?.split("@")[0] || "User";
+    const parcelRef = booking.parcel?.parcel_ref || booking.id.substring(0, 8);
+    
+    // Fetch traveller name for notification
+    const travellerUser = await User.findByPk(travellerId, {
+      include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+    });
+    const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+    
     // Notify user: parcel picked up
     await createNotification(io2, {
       user_id: booking.parcel.user_id,
       role: "user",
-      type_code: "parcel_picked_up",
+      type_code: "Parcel_Picked_Up",
       title: "Parcel Picked Up",
       message: `Your parcel has been picked up by the traveller. Booking ref: ${booking.booking_ref}`,
-      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
+      meta: { 
+        booking_id: booking.id, 
+        booking_ref: booking.booking_ref,
+        var1: userName,
+        var2: parcelRef,
+        var3: booking.tracking_ref || booking.id
+      },
     });
     // Notify traveller: delivery started
     await createNotification(io2, {
       user_id: travellerId,
       role: "traveller",
-      type_code: "delivery_started",
+      type_code: "Pickup_Verified",
       title: "Pickup Verified",
       message: `Pickup verified for booking ${booking.booking_ref}. Head to the delivery address.`,
-      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
+      meta: { 
+        booking_id: booking.id, 
+        booking_ref: booking.booking_ref,
+        var1: travellerName,
+        var2: parcelRef,
+        var3: ""
+      },
     });
 
     // ── Send tracking link via SMS & WhatsApp ──────────────────────────────
@@ -595,21 +622,49 @@ class BookingService {
 
     // Persist notifications
     const io2 = this.getIO();
+    
+    // Fetch user name for notification
+    const UserProfile = (await import("../user/userProfile.model.js")).default;
+    const senderUser = await User.findByPk(booking.parcel.user_id, {
+      include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+    });
+    const userName = senderUser?.profile?.name || senderUser?.email?.split("@")[0] || "User";
+    const parcelRef = booking.parcel?.parcel_ref || booking.id.substring(0, 8);
+    
+    // Fetch traveller name for notification
+    const travellerUser = await User.findByPk(travellerId, {
+      include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+    });
+    const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+    
     await createNotification(io2, {
       user_id: booking.parcel.user_id,
       role: "user",
-      type_code: "parcel_delivered",
+      type_code: "Parcel_Delivered",
       title: "Parcel Delivered Successfully",
       message: `Your parcel has been delivered successfully. Booking ref: ${booking.booking_ref}`,
-      meta: { booking_id: booking.id, booking_ref: booking.booking_ref },
+      meta: { 
+        booking_id: booking.id, 
+        booking_ref: booking.booking_ref,
+        var1: userName,
+        var2: parcelRef,
+        var3: ""
+      },
     });
     await createNotification(io2, {
       user_id: travellerId,
       role: "traveller",
-      type_code: "delivery_completed",
+      type_code: "Delivery_Completed",
       title: "Delivery Completed",
       message: `You successfully delivered parcel ${booking.booking_ref}. ₹${partnerAmount} has been credited to your wallet.`,
-      meta: { booking_id: booking.id, booking_ref: booking.booking_ref, amount: partnerAmount },
+      meta: { 
+        booking_id: booking.id, 
+        booking_ref: booking.booking_ref, 
+        amount: partnerAmount,
+        var1: travellerName,
+        var2: `${partnerAmount}`,
+        var3: parcelRef
+      },
     });
 
     console.log(`✅ [Delivery] Booking ${booking.booking_ref} marked DELIVERED. ₹${partnerAmount} credited to traveller ${travellerId}.`);

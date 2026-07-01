@@ -258,17 +258,45 @@ export const verifyPaymentService = async (data, req = null) => {
         { model: Address, as: "deliveryAddress", attributes: ["city"] },
       ],
     });
-    const senderUser = await User.findByPk(parcel.user_id);
+    
+    // Fetch user with profile for proper name
+    const UserProfile = (await import("../user/userProfile.model.js")).default;
+    const senderUser = await User.findByPk(parcel.user_id, { 
+      attributes: ["email"],
+      include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+    });
+    const userName = senderUser?.profile?.name || senderUser?.email?.split("@")[0] || "User";
     const fromCity = parcelWithAddresses?.pickupAddress?.city || "pickup";
     const toCity = parcelWithAddresses?.deliveryAddress?.city || "delivery";
     const selectedPartnerId = parcel.selected_partner_id;
+    const parcelRef = parcel.parcel_ref || parcel_id.substring(0, 8);
+
+    // Fetch traveller name first (needed for user notification)
+    let travellerName = "assigned traveller";
+    if (selectedPartnerId) {
+      const travellerUser = await User.findByPk(selectedPartnerId, {
+        attributes: ["email"],
+        include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+      });
+      travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "traveller";
+    }
 
     // In-app notifications
     await sendToUser(
       parcel.user_id,
       "Booking Confirmed! 🎉",
       `Your parcel from ${fromCity} to ${toCity} is confirmed. Booking ref: ${bookingRef}`,
-      { type: "booking_confirmed", booking_id: booking.id, booking_ref: bookingRef }
+      { 
+        type: "booking_confirmed", 
+        type_code: "Booking_Confirmed",
+        booking_id: booking.id, 
+        booking_ref: bookingRef,
+        meta: {
+          var1: userName,
+          var2: travellerName,
+          var3: `${bookingRef}. Parcel ID: ${parcelRef}` // Merged bookingRef + parcelRef
+        }
+      }
     );
 
     if (selectedPartnerId) {
@@ -276,7 +304,17 @@ export const verifyPaymentService = async (data, req = null) => {
         selectedPartnerId,
         "New Delivery Assigned 📦",
         `You have a new delivery: ${fromCity} → ${toCity}. Booking ref: ${bookingRef}`,
-        { type: "booking_confirmed", booking_id: booking.id, booking_ref: bookingRef }
+        { 
+          type: "booking_confirmed", 
+          type_code: "Booking_Confirmed",
+          booking_id: booking.id, 
+          booking_ref: bookingRef,
+          meta: {
+            var1: travellerName,
+            var2: parcelRef,
+            var3: ""
+          }
+        }
       );
     }
 

@@ -58,8 +58,17 @@ export async function findTravellers(req, res) {
     // Send notifications to travellers
     if (result.requests && result.requests.length > 0) {
       const travellersToNotify = result.requests.map((r) => r.traveller_id);
+      const User = await import("../user/user.model.js");
+      const UserProfile = await import("../user/userProfile.model.js");
 
       for (const travellerId of travellersToNotify) {
+        // Fetch traveller name with profile
+        const travellerUser = await User.default.findByPk(travellerId, { 
+          attributes: ["email"],
+          include: [{ model: UserProfile.default, as: "profile", attributes: ["name"] }]
+        });
+        const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+
         await sendToTraveller(
           travellerId,
           "New Parcel Available",
@@ -67,6 +76,12 @@ export async function findTravellers(req, res) {
           {
             parcel_id: parcelId,
             type: "new_parcel_request",
+            type_code: "new_parcel_Available",
+            meta: {
+              var1: travellerName,
+              var2: parcel.parcel_ref || parcelId,
+              var3: ""
+            }
           }
         );
       }
@@ -194,7 +209,16 @@ export async function acceptRequest(req, res) {
       console.log(`[Socket] Emitted new_acceptance and request_accepted for request ${requestId}`);
     }
 
-    // Notify parcel owner
+    // Notify parcel owner - Traveller Interested
+    // Fetch user details
+    const User = await import("../user/user.model.js");
+    const UserProfile = await import("../user/userProfile.model.js");
+    const user = await User.default.findByPk(parcel.user_id, { 
+      attributes: ["email"],
+      include: [{ model: UserProfile.default, as: "profile", attributes: ["name"] }]
+    });
+    const userName = user?.profile?.name || user?.email?.split("@")[0] || "User";
+
     await sendToUser(
       parcel.user_id,
       "Traveller Accepted Your Parcel",
@@ -202,6 +226,12 @@ export async function acceptRequest(req, res) {
       {
         parcel_id: request.parcel_id,
         type: "acceptance_received",
+        type_code: "Traveller_Interested",
+        meta: {
+          var1: userName,
+          var2: parcel.parcel_ref || request.parcel_id,
+          var3: ""
+        }
       }
     );
 
@@ -871,6 +901,14 @@ export async function selectTraveller(req, res) {
     }
 
     // Notify selected traveller (selection only, not booking confirmation)
+    const User = await import("../user/user.model.js");
+    const UserProfile = await import("../user/userProfile.model.js");
+    const travellerUser = await User.default.findByPk(traveller_id, { 
+      attributes: ["email"],
+      include: [{ model: UserProfile.default, as: "profile", attributes: ["name"] }]
+    });
+    const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+
     await sendToTraveller(
       traveller_id,
       "You've Been Selected!",
@@ -878,6 +916,12 @@ export async function selectTraveller(req, res) {
       {
         parcel_id: parcelId,
         type: "parcel_selected_pending_payment",
+        type_code: "You_Have_Been_Selected",
+        meta: {
+          var1: travellerName,
+          var2: parcel.parcel_ref || parcelId,
+          var3: ""
+        }
       }
     );
 
