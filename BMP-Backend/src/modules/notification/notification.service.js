@@ -2,10 +2,19 @@ import Notification from "./notification.model.js";
 import { getPagination,getPagingData } from "../../utils/pagination.js";
 import { publishRealtimeEvent } from "../../redis/services/redisRealtime.service.js";
 import { incrementNotificationCount, decrementNotificationCount, invalidateNotificationCount } from "../../redis/cache/notificationCountCache.service.js";
+import redis from "../../redis/redis.config.js";
+import { Queue } from "bullmq";
+
+// Get notification queue
+function getNotificationQueue() {
+  if (!redis) return null;
+  return new Queue("notification-queue", { connection: redis });
+}
 
 // ─── Create & emit ────────────────────────────────────────────────────────────
 /**
  * Creates a notification row and emits "new_notification" via Socket.io.
+ * Also queues SMS sending job.
  * Call this from any service (booking, payment, matching, etc.)
  *
  * @param {object} io         - Socket.io server instance (req.app.get("io"))
@@ -34,6 +43,30 @@ export async function createNotification(io, { user_id, role, type_code, title, 
   const published = await publishRealtimeEvent("notification:new", { user_id, notification });
   if (!published && io) {
     io.to(`user_${user_id}`).emit("new_notification", notification);
+  }
+
+  // Queue SMS job (best-effort, non-fatal if queue fails)
+  try {
+    const notificationQueue = getNotificationQueue();
+    if (notificationQueue) {
+      await notificationQueue.add(
+        "send-sms",
+        {
+          user_id,
+          role,
+          type_code,
+          title,
+          message,
+          meta,
+        },
+        { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
+      );
+      console.log(`[createNotification] Queued SMS job for ${role} ${user_id}, type_code=${type_code}`);
+    } else {
+      console.warn(`[createNotification] Notification queue not available — SMS will not be sent`);
+    }
+  } catch (queueErr) {
+    console.error(`[createNotification] Failed to queue SMS job:`, queueErr.message);
   }
 
   return notification;
