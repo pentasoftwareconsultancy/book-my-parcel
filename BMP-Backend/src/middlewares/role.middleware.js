@@ -98,6 +98,16 @@ export const requireRole = (allowedRoles) => {
 export const requireAdmin = requireRole(ROLES.ADMIN);
 
 /**
+ * Check whether a user currently holds the ADMIN role.
+ * Use this for routes that need a soft admin check (e.g. "admin sees everything,
+ * non-admin sees only their own") rather than a hard requireAdmin gate.
+ */
+export async function isUserAdmin(userId) {
+  const userRoles = await getUserRoles(userId);
+  return Array.isArray(userRoles) && userRoles.includes(ROLES.ADMIN);
+}
+
+/**
  * Shorthand middleware for traveller-only routes
  */
 export const requireTraveller = requireRole(ROLES.TRAVELLER);

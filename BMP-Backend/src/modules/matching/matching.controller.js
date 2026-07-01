@@ -55,21 +55,25 @@ export async function findTravellers(req, res) {
       console.log(`[Socket] Emitted parcel_matching to user_${parcel.user_id}`);
     }
 
-    // Send notifications to travellers
+    // Send notifications to travellers — fired concurrently rather than awaited
+    // one-by-one, since each call is its own DB write + lookups and this loop
+    // runs inside the HTTP request's critical path (up to MAX_CANDIDATES=20).
     if (result.requests && result.requests.length > 0) {
       const travellersToNotify = result.requests.map((r) => r.traveller_id);
 
-      for (const travellerId of travellersToNotify) {
-        await sendToTraveller(
-          travellerId,
-          "New Parcel Available",
-          `A new parcel is available for delivery. Check your requests!`,
-          {
-            parcel_id: parcelId,
-            type: "new_parcel_request",
-          }
-        );
-      }
+      await Promise.all(
+        travellersToNotify.map((travellerId) =>
+          sendToTraveller(
+            travellerId,
+            "New Parcel Available",
+            `A new parcel is available for delivery. Check your requests!`,
+            {
+              parcel_id: parcelId,
+              type: "new_parcel_request",
+            }
+          )
+        )
+      );
     }
 
     return responseSuccess(res, {
@@ -91,8 +95,9 @@ export async function acceptRequest(req, res) {
     const { requestId } = req.params;
     const travellerId = req.user.id;
 
-    // Find request
-    const request = await ParcelRequest.findByPk(requestId, { transaction: t });
+    // Find request — row-locked so a concurrent accept/select on the same request
+    // can't both pass the status==="SENT" check before either commits.
+    const request = await ParcelRequest.findByPk(requestId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!request) {
       await t.rollback();
       return responseError(res, "Request not found", 404);
@@ -228,8 +233,9 @@ export async function expressInterest(req, res) {
 
     console.log(`[Matching] Express interest — requestId: ${requestId}, travellerId: ${travellerId}`);
 
-    // Find request
-    const request = await ParcelRequest.findByPk(requestId, { transaction: t });
+    // Find request — row-locked so a concurrent accept/select on the same request
+    // can't both pass the status==="SENT" check before either commits.
+    const request = await ParcelRequest.findByPk(requestId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!request) {
       await t.rollback();
       return responseError(res, "Request not found", 404);
@@ -342,8 +348,9 @@ export async function rejectRequest(req, res) {
     const { requestId } = req.params;
     const travellerId = req.user.id;
 
-    // Find request
-    const request = await ParcelRequest.findByPk(requestId, { transaction: t });
+    // Find request — row-locked so a concurrent accept/select on the same request
+    // can't both pass the status==="SENT" check before either commits.
+    const request = await ParcelRequest.findByPk(requestId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!request) {
       await t.rollback();
       return responseError(res, "Request not found", 404);
@@ -676,13 +683,17 @@ export async function selectTraveller(req, res) {
     const { id: parcelId } = req.params;
     const { traveller_id, acceptance_price } = req.body;
 
-    // Verify parcel exists and belongs to user
+    // Verify parcel exists and belongs to user. Row-locked (restricted to the
+    // Parcel table so the outer-joined Address includes don't break FOR UPDATE)
+    // so two concurrent select-traveller calls for the same parcel can't both
+    // pass the status check below before either commits.
     const parcel = await Parcel.findByPk(parcelId, {
       include: [
         { model: Address, as: "pickupAddress" },
         { model: Address, as: "deliveryAddress" }
       ],
-      transaction: t
+      transaction: t,
+      lock: { level: t.LOCK.UPDATE, of: Parcel },
     });
     if (!parcel) {
       await t.rollback();
@@ -804,18 +815,24 @@ export async function selectTraveller(req, res) {
       );
 
       rejectedTravellerIds.push(otherAcc.traveller_id);
-
-      // Notify rejected travellers via push notification
-      await sendToTraveller(
-        otherAcc.traveller_id,
-        "Parcel Assigned to Another Traveller",
-        "Thank you for your interest. The parcel has been assigned to another traveller.",
-        {
-          parcel_id: parcelId,
-          type: "parcel_not_selected",
-        }
-      );
     }
+
+    // Notify all rejected travellers concurrently rather than one-by-one —
+    // each call is its own DB write + lookups, and serializing this inside the
+    // request's critical path scales linearly with candidate count.
+    await Promise.all(
+      rejectedTravellerIds.map((travellerId) =>
+        sendToTraveller(
+          travellerId,
+          "Parcel Assigned to Another Traveller",
+          "Thank you for your interest. The parcel has been assigned to another traveller.",
+          {
+            parcel_id: parcelId,
+            type: "parcel_not_selected",
+          }
+        )
+      )
+    );
 
     await t.commit();
 

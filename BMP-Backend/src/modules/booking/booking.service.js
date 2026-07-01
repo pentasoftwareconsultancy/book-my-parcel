@@ -506,12 +506,16 @@ class BookingService {
         { transaction: t }
       );
 
+      // Row-locked: the 10-min paymentRelease safety-net job reads/credits this
+      // same payment row independently — without the lock both paths can read
+      // wallet_credit_released=false and double-credit the wallet.
       const payment = await Payment.findOne({
         where: {
           booking_id: booking.id,
           status: PAYMENT_STATUS.SUCCESS,
         },
         transaction: t,
+        lock: t.LOCK.UPDATE,
       });
 
       if (!payment) {

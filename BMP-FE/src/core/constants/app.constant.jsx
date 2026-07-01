@@ -121,14 +121,16 @@ export const statusColor = (status) =>
   Paused: "bg-orange-100 text-orange-500",
   Completed: "bg-blue-100 text-blue-600",
 }[status] ?? "bg-gray-100 text-gray-500");
-// FIX: OTP_CONFIG values updated to match production backend .env settings.
-// OTP_LENGTH must match OTP_LENGTH in backend .env (production: 6).
+// OTP_LENGTH must match backend's src/config/otp.config.js, which hard-caps the
+// value at 4 (the booking table's OTP columns are VARCHAR(4)) regardless of env —
+// it can never actually be 6. MAX_ATTEMPTS/EXPIRY_MINUTES mirror the backend's
+// fallback defaults (OTP_MAX_ATTEMPTS=5, OTP_EXPIRY_MINUTES=5); re-verify against
+// the real deployed OTP_* env vars if those are ever overridden in production.
 // These are used for UI only (input field length, countdown timers).
-// The backend is the authoritative source — keep these in sync.
 export const OTP_CONFIG = {
-  LENGTH: 6,   // was 4 — updated to match backend OTP_LENGTH=6
-  MAX_ATTEMPTS: 3,
-  EXPIRY_MINUTES: 10,  // was 30 — updated to match backend OTP_EXPIRY_MINUTES=10
+  LENGTH: 4,
+  MAX_ATTEMPTS: 5,
+  EXPIRY_MINUTES: 5,
   LOCKOUT_MINUTES: 15,
 };
 

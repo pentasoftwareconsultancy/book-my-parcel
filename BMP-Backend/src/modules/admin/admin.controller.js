@@ -104,7 +104,7 @@ export const updateKYCStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const result = await updateTravelerKYCStatus(id, status);
+    const result = await updateTravelerKYCStatus(id, status, req.user?.id);
 
     // ── Notify traveller via SMS + in-app notification ──────────────────
     try {

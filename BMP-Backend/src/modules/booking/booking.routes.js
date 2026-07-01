@@ -697,6 +697,25 @@ router.post(
 router.get("/:bookingId/delivery-attempts", authMiddleware, generalLimiter, async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    // Ownership check (same pattern as the chat route above): only the sender
+    // or the assigned traveller may view a booking's delivery-attempt history.
+    const booking = await Booking.findByPk(bookingId, {
+      include: [{ model: Parcel, as: "parcel", attributes: ["user_id"] }],
+    });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    const callerId = req.user.id;
+    const isSender    = booking.parcel?.user_id === callerId;
+    const isTraveller = booking.traveller_id    === callerId;
+
+    if (!isSender && !isTraveller) {
+      return res.status(403).json({ success: false, message: "Forbidden: you are not a participant in this booking" });
+    }
+
     const attempts = await DeliveryAttempt.findAll({
       where: { booking_id: bookingId },
       order: [["attempted_at", "ASC"]],
