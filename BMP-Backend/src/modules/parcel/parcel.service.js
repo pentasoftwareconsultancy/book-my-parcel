@@ -297,8 +297,8 @@ export async function createParcelRequest(data, files) {
           data._gstAmount = priceResult.gstAmount;
         } catch (priceError) {
           // Fallback to sync calculation (NO dimensions)
-          try { 
-            suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.vehicle_type); 
+          try {
+            suggestedPrice = calculatePrice(routeDistance, data.weight || 1, data.vehicle_type);
           } catch (syncPriceErr) {
             console.warn("[Parcel] Sync price calculation fallback failed (non-fatal):", syncPriceErr.message);
           }
@@ -387,13 +387,13 @@ export async function createParcelRequest(data, files) {
           // Use calculated suggestedPrice as the final price_quote
           price_quote: suggestedPrice || data.price_quote || null,
           pricing_breakdown: {
-  distanceCharge: data._distanceCharge || 0,
-  weightCharge: data._weightCharge || 0,
-  basePrice: data._basePrice || 0,
-  platformFee: data._platformFee || 0,
-  gstAmount: data._gstAmount || 0,
-  finalPrice: suggestedPrice || data.price_quote || 0,
-},
+            distanceCharge: data._distanceCharge || 0,
+            weightCharge: data._weightCharge || 0,
+            basePrice: data._basePrice || 0,
+            platformFee: data._platformFee || 0,
+            gstAmount: data._gstAmount || 0,
+            finalPrice: suggestedPrice || data.price_quote || 0,
+          },
           route_distance_km: routeDistance,
           route_duration_minutes: routeDuration,
           intermediate_cities: intermediateCities,
@@ -404,6 +404,37 @@ export async function createParcelRequest(data, files) {
       );
 
       await t.commit();
+
+      // Send SMS notification to user after parcel creation
+      try {
+        // Fetch user details for personalization (email only since name column doesn't exist)
+        const User = await import("../user/user.model.js");
+        const user = await User.default.findByPk(data.user_id, {
+          attributes: ["email"],
+        });
+
+        const userName = user?.email?.split("@")[0] || "User";
+
+        const { sendToUser } = await import("../../services/notification.service.js");
+        await sendToUser(
+          data.user_id,
+          "Parcel Created Successfully",
+          `Your parcel ${parcel_ref} has been created. We are finding travellers for you.`,
+
+          {
+            type: "parcel_created",
+            type_code: "Parcel_Create_Template1",
+            parcel_id: parcel.id,
+            parcel_ref: parcel_ref,
+            var1: userName,                                   // ← direct, meta शिवाय
+            var2: pickupEnriched.city || "Pickup City",
+            var3: deliveryEnriched.city || "Delivery City"
+          }
+
+        );
+      } catch (notifErr) {
+        console.error("[Parcel] Failed to send creation notification:", notifErr.message);
+      }
 
       return {
         parcel,
@@ -816,47 +847,65 @@ export async function cancelParcelRequest(parcelId, userId, cancellationData = {
     // ── SMS + push notifications (best-effort, non-fatal) ─────────────────
     try {
       const fromCity = parcel.pickupAddress?.city || "pickup";
-      const toCity = parcel.deliveryAddress?.city || "delivery";
+      const toCity = parcel.pickupAddress?.city || "delivery";
 
       // Notify sender (in-app)
       await sendToUser(
         userId,
         "Parcel Cancelled",
         `Your parcel ${parcel.parcel_ref || parcelId} (${fromCity} → ${toCity}) has been cancelled.`,
-        { type: "parcel_cancelled", parcel_id: parcelId }
+        {
+
+          type: "parcel_cancelled",
+          type_code: "Parcel_Cancelled",
+          parcel_id: parcelId,
+          var1: parcel.parcel_ref || parcelId,   // ← direct
+          var2: fromCity,                         // ← direct
+          var3: toCity                            // ← direct
+        
+        }
       );
 
-      // Notify traveller if a booking existed
-      if (booking?.traveller_id) {
-        await sendToTraveller(
-          booking.traveller_id,
-          "Booking Cancelled",
-          `The sender cancelled parcel ${parcel.parcel_ref || parcelId} (${fromCity} → ${toCity}). Booking ref: ${booking.booking_ref || "N/A"}.`,
-          { type: "booking_cancelled", booking_id: booking.id }
-        );
-
-        // SMS to traveller
-        const travellerUser = await User.findByPk(booking.traveller_id);
-        if (travellerUser?.phone_number) {
-          await twilioService.sendSMS(
-            travellerUser.phone_number,
-            `Book My Parcel: The sender has cancelled booking ${booking.booking_ref || ""}. Parcel: ${fromCity} → ${toCity}. No action needed.`
-          );
+    // Notify traveller if a booking existed
+    if (booking?.traveller_id) {
+      await sendToTraveller(
+        booking.traveller_id,
+        "Booking Cancelled",
+        `The sender cancelled parcel ${parcel.parcel_ref || parcelId} (${fromCity} → ${toCity}). Booking ref: ${booking.booking_ref || "N/A"}.`,
+        {
+          type: "booking_cancelled",
+          type_code: "Parcel_Cancelled",
+          booking_id: booking.id,
+          meta: {
+            var1: parcel.parcel_ref || parcelId,
+            var2: fromCity,
+            var3: toCity
+          }
         }
-      }
-    } catch (notifErr) {
-      console.warn("[Parcel] cancelParcelRequest notification failed (non-fatal):", notifErr.message);
-    }
+      );
 
-    return {
-      success: true,
-      parcel_id: parcelId,
-      parcel_ref: parcel.parcel_ref,
-      status: "CANCELLED",
-      message: "Parcel cancelled successfully",
-      cancelled_at: new Date(),
-    };
-  } catch (error) {
-    throw error;
+      // SMS to traveller
+      const travellerUser = await User.findByPk(booking.traveller_id);
+      if (travellerUser?.phone_number) {
+        await twilioService.sendSMS(
+          travellerUser.phone_number,
+          `Book My Parcel: The sender has cancelled booking ${booking.booking_ref || ""}. Parcel: ${fromCity} → ${toCity}. No action needed.`
+        );
+      }
+    }
+  } catch (notifErr) {
+    console.warn("[Parcel] cancelParcelRequest notification failed (non-fatal):", notifErr.message);
   }
+
+  return {
+    success: true,
+    parcel_id: parcelId,
+    parcel_ref: parcel.parcel_ref,
+    status: "CANCELLED",
+    message: "Parcel cancelled successfully",
+    cancelled_at: new Date(),
+  };
+} catch (error) {
+  throw error;
+}
 }

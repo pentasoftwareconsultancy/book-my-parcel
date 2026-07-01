@@ -626,7 +626,7 @@ export async function generateOTP(bookingId, type) {
       include: [{
         model: User,
         as: "user",
-        attributes: ["phone_number"],
+        attributes: ["phone_number", "id"],
       }],
     }],
   });
@@ -634,6 +634,7 @@ export async function generateOTP(bookingId, type) {
   if (!booking) throw new Error("Booking not found");
 
   const customerPhone = booking.parcel?.user?.phone_number;
+  const customerId = booking.parcel?.user?.id;
   if (!customerPhone) {
     throw new Error("Customer phone number not found for OTP generation");
   }
@@ -641,10 +642,37 @@ export async function generateOTP(bookingId, type) {
   // Store hashed OTP in Redis — returns raw OTP for SMS delivery
   const rawOTP = await otpService.storeOTP(customerPhone, type);
 
-  // Send OTP via SMS to the customer (best-effort, non-fatal)
+  // Fetch user name for SMS notification
+  const UserProfile = (await import("../user/userProfile.model.js")).default;
+  const senderUser = await User.findByPk(customerId, {
+    include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+  });
+  const userName = senderUser?.profile?.name || senderUser?.email?.split("@")[0] || "User";
+  const parcelRef = booking.parcel?.parcel_ref || bookingId.substring(0, 8);
 
-  if (customerPhone) {
+  // Send OTP via SMS to the customer using MSG91
+  if (customerPhone && customerId) {
     try {
+      const { sendToUser } = await import("../../services/notification.service.js");
+      
+      await sendToUser(
+        customerId,
+        type === "pickup" ? "Pickup OTP Generated" : "Delivery OTP Generated",
+        `Your OTP for ${type} is ${rawOTP}. Valid for 5 minutes. Booking ref: ${booking.booking_ref || bookingId}`,
+        {
+          type: `${type}_otp_generated`,
+          type_code: type === "pickup" ? "Pickup_OTP_Generated" : "Delivery_OTP_Generated",
+          booking_id: bookingId,
+          booking_ref: booking.booking_ref,
+          meta: {
+            var1: userName,
+            var2: parcelRef,
+            var3: rawOTP
+          }
+        }
+      );
+      
+      // Fallback to Twilio if needed
       if (type === "pickup") {
         await twilioService.sendPickupOTP(
           customerPhone,
@@ -728,6 +756,19 @@ export async function verifyOTPAndUpdateStatus(bookingId, otp, type, travellerUs
     booking.update({ status: newStatus }),
     booking.parcel.update({ status: newStatus }),
   ]);
+
+  // ── Send notifications with correct user names ────────────────────────────
+  const UserProfile = (await import("../user/userProfile.model.js")).default;
+  const senderUser = await User.findByPk(booking.parcel.user_id, {
+    include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+  });
+  const userName = senderUser?.profile?.name || senderUser?.email?.split("@")[0] || "User";
+  
+  const travellerUser = await User.findByPk(travellerUserId, {
+    include: [{ model: UserProfile, as: "profile", attributes: ["name"] }]
+  });
+  const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+  const parcelRef = booking.parcel?.parcel_ref || booking.id.substring(0, 8);
 
   console.log(`✅ ${type} OTP verified - Status updated to ${newStatus}`);
 

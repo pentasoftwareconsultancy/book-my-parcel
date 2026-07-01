@@ -1,72 +1,42 @@
 import Notification from "./notification.model.js";
-import { getPagination,getPagingData } from "../../utils/pagination.js";
+import sequelize from "../../config/database.config.js";
+import { getPagination, getPagingData } from "../../utils/pagination.js";
 import { publishRealtimeEvent } from "../../redis/services/redisRealtime.service.js";
 import { incrementNotificationCount, decrementNotificationCount, invalidateNotificationCount } from "../../redis/cache/notificationCountCache.service.js";
-import redis from "../../redis/redis.config.js";
-import { Queue } from "bullmq";
-
-// Get notification queue
-function getNotificationQueue() {
-  if (!redis) return null;
-  return new Queue("notification-queue", { connection: redis });
-}
+import { sendMsg91SMS } from "./msg91.sms.js";
 
 // ─── Create & emit ────────────────────────────────────────────────────────────
-/**
- * Creates a notification row and emits "new_notification" via Socket.io.
- * Also queues SMS sending job.
- * Call this from any service (booking, payment, matching, etc.)
- *
- * @param {object} io         - Socket.io server instance (req.app.get("io"))
- * @param {object} payload
- * @param {string} payload.user_id
- * @param {string} payload.role     - "user" | "traveller" | "admin"
- * @param {string} payload.type_code
- * @param {string} payload.title
- * @param {string} payload.message
- * @param {object} [payload.meta]
- */
 export async function createNotification(io, { user_id, role, type_code, title, message, meta = null }) {
   const notification = await Notification.create({
-    user_id,
-    role,
-    type_code,
-    title,
-    message,
-    meta,
+    user_id, role, type_code, title, message, meta,
   });
 
-  // Increment unread notification count
   await incrementNotificationCount(user_id);
 
-  // Emit to the user's personal room (user_<id>) — frontend joins this on login
   const published = await publishRealtimeEvent("notification:new", { user_id, notification });
   if (!published && io) {
     io.to(`user_${user_id}`).emit("new_notification", notification);
   }
 
-  // Queue SMS job (best-effort, non-fatal if queue fails)
+  // ── SMS via MSG91 (best-effort, non-fatal) ──────────────
   try {
-    const notificationQueue = getNotificationQueue();
-    if (notificationQueue) {
-      await notificationQueue.add(
-        "send-sms",
-        {
-          user_id,
-          role,
-          type_code,
-          title,
-          message,
-          meta,
-        },
-        { attempts: 3, backoff: { type: "exponential", delay: 2000 } }
-      );
-      console.log(`[createNotification] Queued SMS job for ${role} ${user_id}, type_code=${type_code}`);
-    } else {
-      console.warn(`[createNotification] Notification queue not available — SMS will not be sent`);
+    const [row] = await sequelize.query(
+      `SELECT phone_number FROM users WHERE id = :user_id LIMIT 1`,
+      { replacements: { user_id }, type: sequelize.QueryTypes.SELECT }
+    );
+
+    // SMS template साठी meta.type_code ला priority (नसेल तर type_code वापर)
+    const smsTypeCode = meta?.type_code || type_code;
+
+    if (row?.phone_number && meta && smsTypeCode) {
+      await sendMsg91SMS({
+        phone: row.phone_number,
+        type_code: smsTypeCode,   // ← "Parcel_Create_Template1" जाईल, "parcel_created" नाही
+        meta,                     // meta मध्ये var1, var2, var3 असावेत
+      });
     }
-  } catch (queueErr) {
-    console.error(`[createNotification] Failed to queue SMS job:`, queueErr.message);
+  } catch (smsErr) {
+    console.error(`❌ [MSG91] SMS failed for ${user_id}:`, smsErr.message);
   }
 
   return notification;
@@ -86,44 +56,40 @@ export async function getNotificationsService({ user_id, role, page = 1, limit =
   return getPagingData(result, parsedPage, parsedLimit);
 }
 
-  // ─── Mark one as read ─────────────────────────────────────────────────────────
-  export async function markOneReadService(id, user_id) {
-    const notification = await Notification.findOne({ where: { id, user_id } });
-    if (!notification) throw new Error("Notification not found");
+// ─── Mark one as read ─────────────────────────────────────────────────────────
+export async function markOneReadService(id, user_id) {
+  const notification = await Notification.findOne({ where: { id, user_id } });
+  if (!notification) throw new Error("Notification not found");
 
-    const wasUnread = !notification.is_read;
-    await notification.update({ is_read: true });
-    
-    // Decrement unread count if it was previously unread
-    if (wasUnread) {
-      await decrementNotificationCount(user_id);
-    }
-    
-    return notification;
+  const wasUnread = !notification.is_read;
+  await notification.update({ is_read: true });
+
+  if (wasUnread) {
+    await decrementNotificationCount(user_id);
   }
 
-  // ─── Mark all as read ─────────────────────────────────────────────────────────
-  export async function markAllReadService(user_id, role) {
-    await Notification.update(
-      { is_read: true },
-      { where: { user_id, role, is_read: false } }
-    );
-    
-    // Invalidate count cache (will be recalculated on next request)
-    await invalidateNotificationCount(user_id);
-  }
+  return notification;
+}
 
-  // ─── Delete one ───────────────────────────────────────────────────────────────
-  export async function deleteNotificationService(id, user_id) {
-    const notification = await Notification.findOne({ where: { id, user_id } });
-    if (!notification) throw new Error("Notification not found");
+// ─── Mark all as read ─────────────────────────────────────────────────────────
+export async function markAllReadService(user_id, role) {
+  await Notification.update(
+    { is_read: true },
+    { where: { user_id, role, is_read: false } }
+  );
 
-    const wasUnread = !notification.is_read;
-    await notification.destroy();
-    
-    // Decrement unread count if it was unread
-    if (wasUnread) {
-      await decrementNotificationCount(user_id);
-    }
+  await invalidateNotificationCount(user_id);
+}
+
+// ─── Delete one ───────────────────────────────────────────────────────────────
+export async function deleteNotificationService(id, user_id) {
+  const notification = await Notification.findOne({ where: { id, user_id } });
+  if (!notification) throw new Error("Notification not found");
+
+  const wasUnread = !notification.is_read;
+  await notification.destroy();
+
+  if (wasUnread) {
+    await decrementNotificationCount(user_id);
   }
-  
+}

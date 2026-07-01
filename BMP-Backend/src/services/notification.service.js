@@ -6,24 +6,14 @@ import { sendEmail } from "./email.service.js";
 import { sendWhatsApp } from "./whatsapp.service.js";
 import { getIO } from "../socket.js";
 
-// ─── Firebase initialization ──────────────────────────────────────────────────
-// Initialized once at module load time (called from server.js startup).
-// NOT lazily initialized per-notification — that caused silent failures when
-// the service account key was invalid.
 let firebaseInitialized = false;
 
-// FCM error codes that mean the token is permanently invalid and should be deleted
 const INVALID_TOKEN_CODES = [
   "messaging/invalid-registration-token",
   "messaging/registration-token-not-registered",
   "messaging/invalid-argument",
 ];
 
-/**
- * Initialize Firebase Admin SDK.
- * Call this once from server.js after env vars are validated.
- * Safe to call multiple times — subsequent calls are no-ops.
- */
 export function initializeFirebase() {
   if (firebaseInitialized) return;
 
@@ -35,7 +25,6 @@ export function initializeFirebase() {
 
   try {
     const serviceAccount = JSON.parse(serviceAccountKey);
-    // Only initialize if no app exists yet (handles hot-reload in dev)
     if (!admin.apps.length) {
       admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     }
@@ -43,7 +32,6 @@ export function initializeFirebase() {
     console.log("✅ [Notification] Firebase Admin initialized");
   } catch (error) {
     console.error("[Notification] Failed to initialize Firebase Admin:", error.message);
-    // Don't crash the server — push notifications will be disabled
   }
 }
 
@@ -64,10 +52,6 @@ async function getUserContacts(userId) {
   }
 }
 
-/**
- * Send a single FCM message and auto-delete the token if permanently invalid.
- * Returns the message ID on success, null on failure.
- */
 async function sendFCMWithCleanup(token, message, userId) {
   try {
     return await admin.messaging().send({ ...message, token });
@@ -89,7 +73,7 @@ async function sendFCMWithCleanup(token, message, userId) {
 
 // ─── Send Notification to Traveller ──────────────────────────────────────────
 export async function sendToTraveller(travellerId, title, body, data = {}) {
-  // 1. Persist in-app notification + socket emit
+  // 1. Persist in-app notification + socket emit + MSG91 SMS (handled inside createNotification)
   try {
     const io = getIO();
     await createNotification(io, {
@@ -148,7 +132,7 @@ export async function sendToTraveller(travellerId, title, body, data = {}) {
 
 // ─── Send Notification to User ────────────────────────────────────────────────
 export async function sendToUser(userId, title, body, data = {}) {
-  // 1. Persist in-app notification + socket emit
+  // 1. Persist in-app notification + socket emit + MSG91 SMS (handled inside createNotification)
   try {
     const io = getIO();
     await createNotification(io, {
@@ -215,14 +199,9 @@ export async function sendMulticast(userIds, title, body, data = {}) {
   if (!userIds?.length) return { success: false, message: "No user IDs provided" };
 
   try {
-    // FIX: Use named parameter binding (:userIds) — PostgreSQL does not support
-    // positional ? placeholders. The previous implementation was broken.
     const tokens = await sequelize.query(
       `SELECT token FROM user_device_tokens WHERE user_id IN (:userIds)`,
-      {
-        replacements: { userIds },
-        type: sequelize.QueryTypes.SELECT,
-      }
+      { replacements: { userIds }, type: sequelize.QueryTypes.SELECT }
     );
 
     if (tokens.length === 0) {
