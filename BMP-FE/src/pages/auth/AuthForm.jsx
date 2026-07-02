@@ -3,8 +3,10 @@ import React from "react";
 import TextInput from "../../core/common/CommonUi";
 import Button from "../../core/common/Button";
 import { FcGoogle } from "react-icons/fc";
-import { FaEye, FaEyeSlash, FaRoute } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaRoute, FaLocationArrow } from "react-icons/fa";
 import { FiUser } from "react-icons/fi";
+import ApiService from "../../core/services/api.service";
+import ServerUrl from "../../core/constants/serverUrl.constant";
 import { USER_ROLES } from "../../core/constants/app.constant";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -52,6 +54,8 @@ const AuthForm = ({
   const [termsOpen, setTermsOpen] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState("");
 
   const password = formData.password || "";
 
@@ -112,6 +116,45 @@ const AuthForm = ({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // ── DETECT LOCATION (signup only) ───────────
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser.");
+      return;
+    }
+    setDetectingLocation(true);
+    setLocationError("");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          const res = await ApiService.apiget(
+            `${ServerUrl.API_PLACES_REVERSE_GEOCODE}?lat=${lat}&lng=${lng}`
+          );
+          if (res?.data?.success && (res.data.city || res.data.state)) {
+            setFormData((prev) => ({
+              ...prev,
+              ...(res.data.city  && { city:  res.data.city  }),
+              ...(res.data.state && { state: res.data.state }),
+            }));
+            setErrors((prev) => ({ ...prev, city: "", state: "" }));
+          } else {
+            setLocationError("Could not detect city/state. Please type them manually.");
+          }
+        } catch {
+          setLocationError("Location detection failed. Please type city and state manually.");
+        } finally {
+          setDetectingLocation(false);
+        }
+      },
+      () => {
+        setLocationError("Location access denied. Please type city and state manually.");
+        setDetectingLocation(false);
+      },
+      { timeout: 8000 }
+    );
   };
 
   // ── ROLE CLICK (login only) ──────────────────
@@ -289,6 +332,24 @@ const AuthForm = ({
 
             {errors[field.name] && (
               <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>
+            )}
+
+            {/* Show detect-location button right after the city field on signup */}
+            {isSignupPage && field.name === "city" && (
+              <div className="mt-1">
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={detectingLocation}
+                  className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaLocationArrow size={11} />
+                  {detectingLocation ? "Detecting..." : "Detect My Location"}
+                </button>
+                {locationError && (
+                  <p className="text-red-500 text-xs mt-0.5">{locationError}</p>
+                )}
+              </div>
             )}
           </div>
         ))}
