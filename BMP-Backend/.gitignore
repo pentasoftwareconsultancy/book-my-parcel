@@ -34,3 +34,6 @@ uploads/**/*
 !uploads/*/.gitkeep
 backups/
 logs/pm2-*.log
+
+# Redis dump
+dump.rdb
