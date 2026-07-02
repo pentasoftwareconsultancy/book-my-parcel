@@ -5,7 +5,6 @@ import Address from "../parcel/address.model.js";
 import User from "../user/user.model.js";
 import TravellerProfile from "../traveller/travellerProfile.model.js";
 import Payment from "../payment/payment.model.js";
-import twilioService from "../../services/twilio.service.js";
 import otpConfig from "../../config/otp.config.js";
 import app from "../../app.js";
 import ParcelTracking from "../tracking/parcelTracking.model.js";
@@ -127,21 +126,6 @@ class BookingService {
     // Get sender phone from pickup address
     const senderPhone = booking.parcel.pickupAddress.phone;
     const senderName = booking.parcel.pickupAddress.name;
-
-    // Validate phone number exists
-    if (!senderPhone) {
-      console.warn(`⚠️ [OTP] Pickup address has no phone number for booking ${booking.booking_ref}`);
-    } else {
-      const smsResult = await twilioService.sendPickupOTP(
-        senderPhone,
-        otp,
-        booking.booking_ref,
-        travellerName
-      );
-      if (!smsResult.sms?.success && !smsResult.sms?.skipped) {
-        console.warn(`⚠️ [OTP] Pickup SMS failed for booking ${booking.booking_ref}`);
-      }
-    }
 
     // Emit WebSocket event to sender AND traveller
     const senderId = booking.parcel.user_id;
@@ -348,17 +332,6 @@ class BookingService {
       },
     });
 
-    // ── Send tracking link via SMS & WhatsApp ──────────────────────────────
-    try {
-      const senderUser = await User.findByPk(booking.parcel.user_id);
-      if (senderUser?.phone_number) {
-        const trackingUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/track/${booking.tracking_ref || booking.id}`;
-        await twilioService.sendTrackingLink(senderUser.phone_number, trackingUrl, booking.booking_ref);
-      }
-    } catch (smsError) {
-      console.error("[Tracking] Failed to send tracking link (non-fatal):", smsError.message);
-    }
-
     return {
       booking_id: booking.id,
       status: "IN_TRANSIT",
@@ -412,21 +385,6 @@ class BookingService {
     // Get recipient phone from delivery address
     const recipientPhone = booking.parcel.deliveryAddress.phone;
     const recipientName = booking.parcel.deliveryAddress.name;
-
-    // Validate phone number exists
-    if (!recipientPhone) {
-      console.warn(`⚠️ [OTP] Delivery address has no phone number for booking ${booking.booking_ref}`);
-    } else {
-      const smsResult = await twilioService.sendDeliveryOTP(
-        recipientPhone,
-        otp,
-        booking.booking_ref,
-        travellerName
-      );
-      if (!smsResult.sms?.success && !smsResult.sms?.skipped) {
-        console.warn(`⚠️ [OTP] Delivery SMS failed for booking ${booking.booking_ref}`);
-      }
-    }
 
     // Emit WebSocket event to sender AND traveller
     const senderId = booking.parcel.user_id;
@@ -605,20 +563,6 @@ class BookingService {
 
     // Referral bonus (fire-and-forget)
     setImmediate(() => creditReferralOnFirstDelivery(booking.parcel.user_id));
-
-    // Delivery confirmation SMS to sender
-    try {
-      const senderUser = await User.findByPk(booking.parcel.user_id);
-      if (senderUser?.phone_number) {
-        const city = booking.parcel.deliveryAddress?.city || "destination";
-        await twilioService.sendSMS(
-          senderUser.phone_number,
-          `Your parcel has been successfully delivered to ${city}! Booking Ref: ${booking.booking_ref}. Thank you for using BookMyParcel.`
-        );
-      }
-    } catch (smsError) {
-      console.error("[Delivery] SMS confirmation failed (non-fatal):", smsError.message);
-    }
 
     // WebSocket events
     const senderId = booking.parcel.user_id;

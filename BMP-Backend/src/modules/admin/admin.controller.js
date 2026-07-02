@@ -12,7 +12,6 @@ import {
   getTravelerBookingsService,
   getTravelerPaymentsService,
 } from "./admin.service.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToTraveller } from "../../services/notification.service.js";
 import User from "../user/user.model.js";
 import { getAllDisputes } from "./admin.service.js";
@@ -130,15 +129,6 @@ export const updateKYCStatus = async (req, res) => {
           kyc_status: status,
         });
 
-        if (user.phone_number) {
-          const smsMessage = isApproved
-            ? `Book My Parcel: Your KYC has been approved! You can now start accepting parcel deliveries and earn money.`
-            : isRejected
-              ? `Book My Parcel: Your KYC was rejected. Please log in and re-submit your documents with correct information.`
-              : `Book My Parcel: Your KYC status has been updated to ${status}.`;
-
-          await twilioService.sendSMS(user.phone_number, smsMessage);
-        }
       }
     } catch (notifErr) {
       console.error("[Admin] Failed to send KYC notification:", notifErr.message);

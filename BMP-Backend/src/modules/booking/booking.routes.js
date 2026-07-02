@@ -13,7 +13,6 @@ import { otpGenerationLimiter, otpVerificationLimiter, generalLimiter } from "..
 import ChatMessage from "./chatMessage.model.js";
 import DeliveryAttempt from "./deliveryAttempt.model.js";
 import { upload } from "../../utils/fileUpload.util.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToUser } from "../../services/notification.service.js";
 import User from "../user/user.model.js";
 import Parcel from "../parcel/parcel.model.js";
@@ -646,13 +645,6 @@ router.post(
         `Your traveller attempted delivery at ${city} but the recipient was unavailable. ${rescheduled_at ? `Rescheduled for ${new Date(rescheduled_at).toLocaleString("en-IN")}` : "Please ensure someone is available."}`,
         { type: "delivery_attempt_failed", booking_id: bookingId, attempt_number: attemptNumber }
       );
-
-      if (senderUser?.phone_number) {
-        await twilioService.sendSMS(
-          senderUser.phone_number,
-          `Book My Parcel: Delivery attempt ${attemptNumber} failed at ${city}. Reason: ${reason.replace(/_/g, " ")}. ${rescheduled_at ? `Next attempt: ${new Date(rescheduled_at).toLocaleString("en-IN")}` : "Please contact your traveller."}`
-        );
-      }
 
       // Auto-cancel after MAX_ATTEMPTS
       if (attemptNumber >= MAX_ATTEMPTS) {

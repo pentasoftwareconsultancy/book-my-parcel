@@ -22,7 +22,6 @@ import { getPagination, getPagingData } from "../../utils/pagination.js";
 import PendingPayment from "../booking/pendingPayment.model.js";
 import { invalidateKycCache } from "../../redis/cache/kycStatusCache.service.js";
 import otpService from "../../redis/services/otp.service.js";
-import twilioService from "../../services/twilio.service.js";
 
 
 
@@ -711,22 +710,6 @@ export async function generateOTP(bookingId, type) {
         }
       );
       
-      // Fallback to Twilio if needed
-      if (type === "pickup") {
-        await twilioService.sendPickupOTP(
-          customerPhone,
-          rawOTP,
-          booking.booking_ref || bookingId,
-          "Your traveller"
-        );
-      } else {
-        await twilioService.sendDeliveryOTP(
-          customerPhone,
-          rawOTP,
-          booking.booking_ref || bookingId,
-          "Your traveller"
-        );
-      }
     } catch (smsErr) {
       console.warn(`[generateOTP] SMS send failed (non-fatal): ${smsErr.message}`);
     }

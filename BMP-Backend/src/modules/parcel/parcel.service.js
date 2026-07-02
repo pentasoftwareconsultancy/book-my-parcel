@@ -31,7 +31,6 @@ import { calculatePrice } from "../../services/priceCalculation.service.js";
 import { calculatePriceWithSurge } from "../../services/priceCalculation.service.js";
 import { getPagination, getPagingData } from "../../utils/pagination.js";
 import { refundPaymentForParcel } from "../payment/payment.service.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
 import { matchParcelWithTravellers } from "../../services/matchingEngine.service.js";
@@ -893,14 +892,6 @@ export async function cancelParcelRequest(parcelId, userId, cancellationData = {
         }
       );
 
-      // SMS to traveller
-      const travellerUser = await User.findByPk(booking.traveller_id);
-      if (travellerUser?.phone_number) {
-        await twilioService.sendSMS(
-          travellerUser.phone_number,
-          `Book My Parcel: The sender has cancelled booking ${booking.booking_ref || ""}. Parcel: ${fromCity} → ${toCity}. No action needed.`
-        );
-      }
     }
   } catch (notifErr) {
     console.warn("[Parcel] cancelParcelRequest notification failed (non-fatal):", notifErr.message);

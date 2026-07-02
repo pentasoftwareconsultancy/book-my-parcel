@@ -5,7 +5,6 @@ import Parcel from "../parcel/parcel.model.js";
 import User from "../user/user.model.js";
 import UserProfile from "../user/userProfile.model.js";
 import Address from "../parcel/address.model.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
 import { getCashfree } from "../../config/cashfree.client.js";
@@ -102,25 +101,21 @@ export const createOrderService = async (parcel_id, requestingUserId) => {
 
   if (!user) throw new Error("User not found");
 
-  const phone = user.phone_number?.replace(/\D/g, "");
+  // Phone: strip non-digits; Firebase-auth placeholder phones (firebase:UID) won't
+  // produce a valid number, so fall back to a generic number rather than blocking payment.
+  const rawPhone = user.phone_number || "";
+  const phone = rawPhone.startsWith("firebase:")
+    ? "9999999999"
+    : rawPhone.replace(/\D/g, "").slice(-10).padStart(10, "0");
 
-  if (!phone || phone.length < 10) {
-    throw new Error("Phone number missing");
-  }
-
-  const email = user.email?.includes("firebase:")
-    ? null
-    : user.email;
-
+  // Email: Firebase login always provides a real email; regular signup also requires one.
+  const email = user.email?.includes("firebase:") ? null : user.email;
   if (!email) {
-    throw new Error("Email missing");
+    throw new Error("Email missing — please update your profile");
   }
 
-  const customerName = user.profile?.name;
-
-  if (!customerName) {
-    throw new Error("Profile incomplete");
-  }
+  // Name: fall back to email prefix rather than blocking payment entirely.
+  const customerName = user.profile?.name || email.split("@")[0] || "Customer";
 
   const orderId = `ORD_${Date.now()}_${parcel.id.slice(0, 8)}`;
 
@@ -376,14 +371,6 @@ export const verifyPaymentService = async (data, req = null) => {
             var3: ""
           }
         }
-      );
-    }
-
-    // SMS to sender
-    if (senderUser?.phone_number) {
-      await twilioService.sendSMS(
-        senderUser.phone_number,
-        `Book My Parcel: Your booking is confirmed! Ref: ${bookingRef}. Your parcel from ${fromCity} to ${toCity} will be picked up soon.`
       );
     }
 
