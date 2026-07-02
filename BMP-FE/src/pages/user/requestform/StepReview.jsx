@@ -20,8 +20,6 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
     getOrderStatus, shouldShowPaymentOptions, shouldShowConfirmButton,
     getStatusMessage, createOrderFromForm, handlePayment,
   } = useStepReview({ data, readOnly });
-  console.log("PARCEL DATA =>", parcelData);
-
 
   if (!parcelData) return <p className="text-center p-10">No parcel found.</p>;
   if (loading) return <p className="text-center p-10">Loading parcel details...</p>;
