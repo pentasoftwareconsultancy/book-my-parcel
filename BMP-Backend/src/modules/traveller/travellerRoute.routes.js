@@ -10,6 +10,7 @@ import {
   updateRoute,
   deleteRoute,
   searchRoutes,
+  previewRouteAlternatives,
 } from "./travellerRoute.controller.js";
 
 const router = express.Router();
@@ -110,6 +111,10 @@ router.use(generalLimiter);
 router.use(authMiddleware);
 
 router.get("/search", searchRoutes);
+
+// POST /api/traveller/routes/preview-alternatives - Get alternative route options
+// (called from Step 1 of the route-creation wizard before the route is saved)
+router.post("/preview-alternatives", authMiddleware, previewRouteAlternatives);
 
 // POST /api/traveller/routes - Create a new route
 router.post("/", validateRequest(createRouteSchema), createRoute);
