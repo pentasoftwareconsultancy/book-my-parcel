@@ -3,11 +3,9 @@ import axios from "axios";
 const CASHFREE_API_VERSION = "2023-08-01";
 
 function getCashfreeBaseUrl() {
-  // return process.env.CASHFREE_ENV === "PRODUCTION"
-  //   ? "https://api.cashfree.com/pg"
-  //   : "https://sandbox.cashfree.com/pg";
-
-  return "https://api.cashfree.com/pg";
+  return process.env.CASHFREE_ENV === "PRODUCTION"
+    ? "https://api.cashfree.com/pg"
+    : "https://sandbox.cashfree.com/pg";
 }
 
 function getCashfreeHeaders() {
