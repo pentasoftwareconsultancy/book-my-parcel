@@ -20,6 +20,8 @@ const buildPayload = (step1, step2, formData) => {
       pincode: step1.originPincode || "",
       country: step1.originCountry || "India",
       place_id: step1.originPlaceId || null,
+      latitude:  step1.originLatitude  || null,
+      longitude: step1.originLongitude || null,
     },
     destination: {
       address: step1.destinationAddress || "",
@@ -28,7 +30,15 @@ const buildPayload = (step1, step2, formData) => {
       pincode: step1.destinationPincode || "",
       country: step1.destinationCountry || "India",
       place_id: step1.destinationPlaceId || null,
+      latitude:  step1.destinationLatitude  || null,
+      longitude: step1.destinationLongitude || null,
     },
+    // Pass the traveller-selected route data so the backend can skip recomputing
+    ...(step1.selectedPolyline && {
+      selected_polyline:    step1.selectedPolyline,
+      selected_distance_km: step1.selectedDistanceKm,
+      selected_duration_min: step1.selectedDurationMin,
+    }),
     departure_time: step1.departureTime || "",
     arrival_date: step1.arrivalDate || null,
     arrival_time: step1.arrivalTime || null,

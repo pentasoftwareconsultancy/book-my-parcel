@@ -45,8 +45,8 @@ export default function AddressCard({ fieldName, label, icon, control, errors, o
         pincode: get("postal_code"),
         country: get("country") || "India",
         formatted: result.formatted_address,
-        lat: result.geometry.location.lat,
-        lng: result.geometry.location.lng,
+        latitude: result.geometry.location.lat,
+        longitude: result.geometry.location.lng,
       });
     } catch (_) {}
   };
