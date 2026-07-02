@@ -55,24 +55,43 @@ export async function findTravellers(req, res) {
       console.log(`[Socket] Emitted parcel_matching to user_${parcel.user_id}`);
     }
 
-    // Send notifications to travellers — fired concurrently rather than awaited
-    // one-by-one, since each call is its own DB write + lookups and this loop
-    // runs inside the HTTP request's critical path (up to MAX_CANDIDATES=20).
+    // Send notifications to all matched travellers concurrently. Dynamic imports
+    // are hoisted once outside the per-traveller work so each iteration doesn't
+    // re-execute an import() call.
     if (result.requests && result.requests.length > 0) {
       const travellersToNotify = result.requests.map((r) => r.traveller_id);
+      const [{ default: User }, { default: UserProfile }] = await Promise.all([
+        import("../user/user.model.js"),
+        import("../user/userProfile.model.js"),
+      ]);
 
       await Promise.all(
-        travellersToNotify.map((travellerId) =>
-          sendToTraveller(
+        travellersToNotify.map(async (travellerId) => {
+          const travellerUser = await User.findByPk(travellerId, {
+            attributes: ["email"],
+            include: [{ model: UserProfile, as: "profile", attributes: ["name"] }],
+          });
+          const travellerName =
+            travellerUser?.profile?.name ||
+            travellerUser?.email?.split("@")[0] ||
+            "Traveller";
+
+          return sendToTraveller(
             travellerId,
             "New Parcel Available",
-            `A new parcel is available for delivery. Check your requests!`,
+            "A new parcel is available for delivery. Check your requests!",
             {
               parcel_id: parcelId,
               type: "new_parcel_request",
+              type_code: "new_parcel_Available",
+              meta: {
+                var1: travellerName,
+                var2: parcel.parcel_ref || parcelId,
+                var3: "",
+              },
             }
-          )
-        )
+          );
+        })
       );
     }
 
@@ -199,7 +218,16 @@ export async function acceptRequest(req, res) {
       console.log(`[Socket] Emitted new_acceptance and request_accepted for request ${requestId}`);
     }
 
-    // Notify parcel owner
+    // Notify parcel owner - Traveller Interested
+    // Fetch user details
+    const User = await import("../user/user.model.js");
+    const UserProfile = await import("../user/userProfile.model.js");
+    const user = await User.default.findByPk(parcel.user_id, { 
+      attributes: ["email"],
+      include: [{ model: UserProfile.default, as: "profile", attributes: ["name"] }]
+    });
+    const userName = user?.profile?.name || user?.email?.split("@")[0] || "User";
+
     await sendToUser(
       parcel.user_id,
       "Traveller Accepted Your Parcel",
@@ -207,6 +235,12 @@ export async function acceptRequest(req, res) {
       {
         parcel_id: request.parcel_id,
         type: "acceptance_received",
+        type_code: "Traveller_Interested",
+        meta: {
+          var1: userName,
+          var2: parcel.parcel_ref || request.parcel_id,
+          var3: ""
+        }
       }
     );
 
@@ -888,6 +922,14 @@ export async function selectTraveller(req, res) {
     }
 
     // Notify selected traveller (selection only, not booking confirmation)
+    const User = await import("../user/user.model.js");
+    const UserProfile = await import("../user/userProfile.model.js");
+    const travellerUser = await User.default.findByPk(traveller_id, { 
+      attributes: ["email"],
+      include: [{ model: UserProfile.default, as: "profile", attributes: ["name"] }]
+    });
+    const travellerName = travellerUser?.profile?.name || travellerUser?.email?.split("@")[0] || "Traveller";
+
     await sendToTraveller(
       traveller_id,
       "You've Been Selected!",
@@ -895,6 +937,12 @@ export async function selectTraveller(req, res) {
       {
         parcel_id: parcelId,
         type: "parcel_selected_pending_payment",
+        type_code: "You_Have_Been_Selected",
+        meta: {
+          var1: travellerName,
+          var2: parcel.parcel_ref || parcelId,
+          var3: ""
+        }
       }
     );
 
