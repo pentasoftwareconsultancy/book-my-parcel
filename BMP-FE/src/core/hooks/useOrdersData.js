@@ -43,6 +43,7 @@ export function mapOrder(order) {
     parcel_ref: order.parcel_ref,
     booking_ref: order.booking?.booking_ref,
     tracking_ref: order.booking?.tracking_ref,
+    delivery_ref: order.booking?.delivery_ref,
     parcelId: order.id,
     bookingId: order.booking?.booking_ref,
     trackingId: order.booking?.tracking_ref,
