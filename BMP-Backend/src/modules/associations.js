@@ -115,6 +115,8 @@ TravellerTrip.belongsTo(TravellerProfile, {
    =========================== */
 User.hasMany(Parcel, { foreignKey: "user_id", onDelete: "CASCADE" });
 Parcel.belongsTo(User, { foreignKey: "user_id" });
+// selectedPartner: the traveller chosen in Step 2, before a Booking row exists
+Parcel.belongsTo(User, { foreignKey: "selected_partner_id", as: "selectedPartner" });
 
 /* ===========================
    PARCEL ↔ BOOKING (1–1)

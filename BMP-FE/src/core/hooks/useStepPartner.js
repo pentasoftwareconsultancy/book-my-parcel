@@ -246,7 +246,7 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
     if (t.isPending) { showToast("Please wait for this traveller to accept your request first", "info"); return; }
     setSelectedId(t.id);
     setSelectedRouteId(t.acceptanceId);
-    updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: `₹${t.price}` });
+    updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name, selectedPartnerVehicle: t.vehicleType, selectedPartnerDuration: t.duration, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: `₹${t.price}` });
   };
 
   const handleRouteClick = (acceptance) => {
@@ -267,7 +267,7 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
       });
 
       if (res?.data?.success) {
-        updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name || "", selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: t.price });
+        updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name || "", selectedPartnerVehicle: t.vehicleType, selectedPartnerDuration: t.duration, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: t.price });
         showToast("Traveller selected! 🎉", "success");
         onNext();
       } else {

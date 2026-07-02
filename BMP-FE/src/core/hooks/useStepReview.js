@@ -71,27 +71,20 @@ export function useStepReview({ data, readOnly }) {
         const d = res.data.data;
 
         const apiPhotos = (d.photos || []).map((p) =>
-          p?.startsWith("http")
-            ? p
-            : `${ServerUrl.BASE_URL}${p}`
+          p?.startsWith("http") ? p : `${ServerUrl.BASE_URL}${p}`
         );
 
         setParcelData((prev) => ({
           ...prev,
           parcel_ref: d.parcel_ref || prev?.parcel_ref,
           price_quote: d.price_quote || prev?.price_quote,
-
-          // ADD THIS
-          pricing_breakdown:
-            d.pricing_breakdown || prev?.pricing_breakdown,
-
+          pricing_breakdown: d.pricing_breakdown || prev?.pricing_breakdown,
           status: d.status || prev?.status,
           booking: d.booking || prev?.booking,
           booking_id: d.booking?.id,
-          photos:
-            apiPhotos.length > 0
-              ? apiPhotos
-              : prev?.photos || [],
+          selected_partner_id: d.selected_partner_id || prev?.selected_partner_id,
+          selectedPartner: d.selectedPartner || prev?.selectedPartner,
+          photos: apiPhotos.length > 0 ? apiPhotos : prev?.photos || [],
         }));
       }
     })
@@ -108,14 +101,21 @@ export function useStepReview({ data, readOnly }) {
           const res = await ApiService.apiget(ServerUrl.API_GET_PARCEL_BY_ID(data.createdParcelId));
           if (res?.data?.success) {
             const parcel = res.data.data;
+
+            // After payment: traveller comes via booking
             const traveller = parcel.booking?.traveller;
-            if (traveller) {
-              const tp = traveller.travellerProfile;
+            // Before payment: traveller comes via selectedPartner (included directly on parcel)
+            const partner = parcel.selectedPartner;
+
+            const source = traveller || partner;
+            if (source) {
+              const tp = source.travellerProfile;
+              const name = source.profile?.name || source.email?.split("@")[0] || data.selectedPartnerName || "Traveller";
               setSelectedTraveler({
-                id: traveller.id,
-                name: traveller.profile?.name || traveller.email?.split("@")[0] || "Selected Traveler",
-                email: traveller.email,
-                phone: traveller.phone_number,
+                id: source.id,
+                name,
+                email: source.email,
+                phone: source.phone_number,
                 rating: tp?.rating || 4.5,
                 vehicleType: tp?.vehicle_type || "Car",
                 vehicleNumber: tp?.vehicle_number || "N/A",
@@ -123,7 +123,7 @@ export function useStepReview({ data, readOnly }) {
                 price: normalizePrice(parcel.booking?.final_price || parcel.price_quote || data.priceQuote),
                 from: parcel.pickupAddress?.city || data.pickupCity || "Pickup",
                 to: parcel.deliveryAddress?.city || data.deliveryCity || "Delivery",
-                duration: "2-3 hours",
+                duration: tp?.avg_delivery_time || data.selectedPartnerDuration || "—",
                 avatarBg: "bg-gradient-to-br from-[#FFB347] to-[#FF6B6B]",
               });
               return;
@@ -131,14 +131,14 @@ export function useStepReview({ data, readOnly }) {
           }
         } catch { /* silent */ }
       }
-      // Fallback to form data
+      // Fallback to form data when API unavailable
       setSelectedTraveler({
         id: data.selectedPartnerId,
-        name: data.selectedPartnerName || "Selected Traveler",
-        rating: 4.5, vehicleType: "Car",
+        name: data.selectedPartnerName || "Traveller",
+        rating: 4.5, vehicleType: data.selectedPartnerVehicle || "Car",
         from: data.pickupCity || "Pickup Location",
         to: data.deliveryCity || "Delivery Location",
-        duration: "3-4 hours",
+        duration: data.selectedPartnerDuration || "—",
         price: normalizePrice(data.priceQuote) || 0,
         avatarBg: "bg-gradient-to-br from-[#FFB347] to-[#FF6B6B]",
       });

@@ -94,15 +94,14 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
                       value={`₹${breakdown.basePrice || 0}`}
                     />
 
-                   <Row
-  label={`Platform Fee (${breakdown.platformFeePercent || 12}%)`}
-  value={`₹${breakdown.platformFee || 0}`}
-/>
-
-<Row
-  label={`GST (${breakdown.gstPercent || 18}%)`}
-  value={`₹${breakdown.gstAmount || 0}`}
-/>
+                    <Row
+                      label={`Platform Fee (${breakdown.platformFeePercent || 12}%)`}
+                      value={`₹${breakdown.platformFee || 0}`}
+                    />
+                    <Row
+                      label={`GST ${breakdown.gstPercent || 18}% (on subtotal)`}
+                      value={`₹${breakdown.gstAmount || 0}`}
+                    />
 
                     <div className="border-t border-emerald-200 mt-4 pt-3 flex justify-between">
                       <span className="font-bold">Total</span>
