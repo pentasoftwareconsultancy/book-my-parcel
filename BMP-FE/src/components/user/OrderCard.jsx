@@ -272,7 +272,6 @@ const ActionButtons = ({ primaryAction, onContact, onDetails, onDispute, onCance
 const OrderCard = ({ order, navigate, onCancel, onSelectTraveller, onFeedback, onContact, otpData }) => {
   const handleDetails = () => navigate(RoutePath.USER_PARCEL_DETAILS, { state: { parcelId: order.parcelId } });
   const handleTrack = () => navigate(RoutePath.USER_TRACK_PARCEL.replace(":id", order.deliveryId));
-  console.log("ORDER FOR DISPUTE", order);
   const handleDispute = () => navigate(RoutePath.USER_DISPUTE, { state: { order } });
 
   const handleContact = () => {

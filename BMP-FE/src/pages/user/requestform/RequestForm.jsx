@@ -95,6 +95,8 @@ const RequestForm = () => {
     /* ================= PARTNER / PRICE ================= */
     selectedPartnerId: null,
     selectedPartnerName: "",
+    selectedPartnerVehicle: "",
+    selectedPartnerDuration: "",
     selectedAcceptanceId: null,
     selectedRouteId: null,
     priceQuote: "",

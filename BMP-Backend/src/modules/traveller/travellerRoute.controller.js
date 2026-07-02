@@ -4,11 +4,12 @@ import {
   getRouteById,
   updateTravellerRoute,
   deleteTravellerRoute,
+  searchTravellerRoutes,
+  getRouteAlternatives,
 } from "./travellerRoute.service.js";
 import { responseSuccess, responseError } from "../../utils/response.util.js";
 import { enqueueAsyncTask } from "../../jobs/asyncTasks.queue.js";
 import { to12h } from "../../utils/time.util.js";
-import { searchTravellerRoutes } from "./travellerRoute.service.js";
 
 
 // Create a new traveller route
@@ -121,7 +122,8 @@ export async function updateRoute(req, res) {
     return responseSuccess(res, route, "Route updated successfully");
   } catch (error) {
     console.error("[TravellerRoute] Update route error:", error);
-    const status = error.message.includes("not found") || error.message.includes("unauthorized") ? 404 : 500;
+    const status = error.statusCode
+      || (error.message.includes("not found") || error.message.includes("unauthorized") ? 404 : 500);
     return responseError(res, error.message, status);
   }
 }
@@ -179,5 +181,21 @@ export async function searchRoutes(req, res) {
   } catch (error) {
     console.error("[SearchRoutes] error:", error);
     return responseError(res, "Failed to search routes", 500);
+  }
+}
+
+// Preview alternative routes for a given origin/destination before saving.
+// Called from the FE wizard Step 1 so the traveller can pick their preferred path.
+export async function previewRouteAlternatives(req, res) {
+  try {
+    const { origin, destination } = req.body;
+    if (!origin || !destination) {
+      return responseError(res, "origin and destination are required", 400);
+    }
+    const alternatives = await getRouteAlternatives(origin, destination);
+    return responseSuccess(res, alternatives, "Route alternatives fetched");
+  } catch (error) {
+    console.error("[RoutePreview] error:", error);
+    return responseError(res, error.message || "Failed to fetch route alternatives", 500);
   }
 }

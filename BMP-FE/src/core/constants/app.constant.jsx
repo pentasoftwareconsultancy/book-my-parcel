@@ -15,18 +15,15 @@ export const APPLICATION_CONSTANTS = {
 
 
 export const DELIVERY_STATUS = {
-  CREATED: "CREATED",
-  MATCHING: "MATCHING",
+  CREATED:          "CREATED",
+  MATCHING:         "MATCHING",
   PARTNER_SELECTED: "PARTNER_SELECTED",
-  CONFIRMED: "CONFIRMED",
-  PICKUP: "PICKUP",
-  IN_TRANSIT: "IN_TRANSIT",
-  DELIVERED: "DELIVERED",
-  CANCELLED: "CANCELLED",
-  AUTO_CANCELLED: "AUTO_CANCELLED",
-  FAILED: "FAILED",
-  REJECTED: "REJECTED",
-
+  CONFIRMED:        "CONFIRMED",
+  PICKUP:           "PICKUP",
+  IN_TRANSIT:       "IN_TRANSIT",
+  DELIVERED:        "DELIVERED",
+  CANCELLED:        "CANCELLED",
+  AUTO_CANCELLED:   "AUTO_CANCELLED",
 };
 
 export const PARCEL_REQUEST_STATUS = {
@@ -40,6 +37,7 @@ export const PARCEL_REQUEST_STATUS = {
 };
 
 export const KYC_STATUS = {
+  NOT_STARTED: "NOT_STARTED",
   PENDING: "PENDING",
   APPROVED: "APPROVED",
   REJECTED: "REJECTED"
@@ -72,18 +70,6 @@ export const DELIVERY_STATUS_UI = {
     label: "Picked Up",
     badge: "bg-indigo-100 text-indigo-700",
   },
-  PENDING: {
-    label: "Pending",
-    badge: "bg-yellow-100 text-yellow-700",
-  },
-  ASSIGNED: {
-    label: "Assigned",
-    badge: "bg-blue-100 text-blue-700",
-  },
-  PICKED_UP: {
-    label: "Picked Up",
-    badge: "bg-indigo-100 text-indigo-700",
-  },
   IN_TRANSIT: {
     label: "In Transit",
     badge: "bg-purple-100 text-purple-700",
@@ -100,14 +86,6 @@ export const DELIVERY_STATUS_UI = {
     label: "Expired",
     badge: "bg-orange-100 text-orange-700",
   },
-  FAILED: {
-    label: "Failed",
-    badge: "bg-red-100 text-red-700",
-  },
-  REJECTED: {
-    label: "Rejected",
-    badge: "bg-red-100 text-red-700",
-  },
 };
 
 
@@ -121,14 +99,16 @@ export const statusColor = (status) =>
   Paused: "bg-orange-100 text-orange-500",
   Completed: "bg-blue-100 text-blue-600",
 }[status] ?? "bg-gray-100 text-gray-500");
-// FIX: OTP_CONFIG values updated to match production backend .env settings.
-// OTP_LENGTH must match OTP_LENGTH in backend .env (production: 6).
+// OTP_LENGTH must match backend's src/config/otp.config.js, which hard-caps the
+// value at 4 (the booking table's OTP columns are VARCHAR(4)) regardless of env —
+// it can never actually be 6. MAX_ATTEMPTS/EXPIRY_MINUTES mirror the backend's
+// fallback defaults (OTP_MAX_ATTEMPTS=5, OTP_EXPIRY_MINUTES=5); re-verify against
+// the real deployed OTP_* env vars if those are ever overridden in production.
 // These are used for UI only (input field length, countdown timers).
-// The backend is the authoritative source — keep these in sync.
 export const OTP_CONFIG = {
-  LENGTH: 6,   // was 4 — updated to match backend OTP_LENGTH=6
-  MAX_ATTEMPTS: 3,
-  EXPIRY_MINUTES: 10,  // was 30 — updated to match backend OTP_EXPIRY_MINUTES=10
+  LENGTH: 4,
+  MAX_ATTEMPTS: 5,
+  EXPIRY_MINUTES: 5,
   LOCKOUT_MINUTES: 15,
 };
 

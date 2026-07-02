@@ -25,14 +25,20 @@ export async function createNotification(io, { user_id, role, type_code, title, 
       { replacements: { user_id }, type: sequelize.QueryTypes.SELECT }
     );
 
-    // SMS template साठी meta.type_code ला priority (नसेल तर type_code वापर)
+    // type_code: caller passes the full data object as meta; the MSG91 key
+    // lives at meta.type_code (not the top-level type_code which is "general"/role).
     const smsTypeCode = meta?.type_code || type_code;
 
-    if (row?.phone_number && meta && smsTypeCode) {
+    // var1/var2/var3 may be nested under meta.meta (when sendToTraveller/sendToUser
+    // wraps the caller's data object as the `meta` field) or at the top level.
+    // Unwrap one level so sendMsg91SMS always sees { var1, var2, var3 } directly.
+    const smsVars = meta?.meta || meta;
+
+    if (row?.phone_number && smsVars && smsTypeCode) {
       await sendMsg91SMS({
         phone: row.phone_number,
-        type_code: smsTypeCode,   // ← "Parcel_Create_Template1" जाईल, "parcel_created" नाही
-        meta,                     // meta मध्ये var1, var2, var3 असावेत
+        type_code: smsTypeCode,
+        meta: smsVars,
       });
     }
   } catch (smsErr) {

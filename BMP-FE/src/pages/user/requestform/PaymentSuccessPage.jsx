@@ -59,7 +59,7 @@ export default function PaymentSuccessPage() {
             showToast("Payment Successful", "success");
 
             navigate(
-                `/user/request?parcelId=${result.parcel_id}&step=3`,
+                `/user/request?parcelId=${parcelId}&step=3`,
                 {
                     state: {
                         paymentSuccess: true,
@@ -73,7 +73,7 @@ export default function PaymentSuccessPage() {
 
         catch (err) {
 
-            console.log(err);
+            console.error("Payment verification failed:", err);
 
             showToast("Payment verification failed", "error");
 

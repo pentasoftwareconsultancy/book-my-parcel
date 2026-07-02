@@ -227,15 +227,26 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
       fetchTravellers();
     };
 
-    socket.on("new_acceptance", handleNewAcceptance);
-    return () => { socket.off("new_acceptance", handleNewAcceptance); socket.emit("leave-parcel", parcelId); };
+    // parcel_selected fires when the sender selects a traveller from another session/tab.
+    // Refresh the list so this session shows the up-to-date selection state.
+    const handleParcelSelected = () => {
+      fetchTravellers(false);
+    };
+
+    socket.on("new_acceptance",  handleNewAcceptance);
+    socket.on("parcel_selected", handleParcelSelected);
+    return () => {
+      socket.off("new_acceptance",  handleNewAcceptance);
+      socket.off("parcel_selected", handleParcelSelected);
+      socket.emit("leave-parcel", parcelId);
+    };
   }, [parcelId]);
 
   const handleSelect = (t) => {
     if (t.isPending) { showToast("Please wait for this traveller to accept your request first", "info"); return; }
     setSelectedId(t.id);
     setSelectedRouteId(t.acceptanceId);
-    updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: `₹${t.price}` });
+    updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name, selectedPartnerVehicle: t.vehicleType, selectedPartnerDuration: t.duration, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: `₹${t.price}` });
   };
 
   const handleRouteClick = (acceptance) => {
@@ -256,7 +267,7 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
       });
 
       if (res?.data?.success) {
-        updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name || "", selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: t.price });
+        updateFields({ selectedPartnerId: t.travellerId, selectedPartnerName: t.name || "", selectedPartnerVehicle: t.vehicleType, selectedPartnerDuration: t.duration, selectedAcceptanceId: t.acceptanceId, selectedRouteId: t.routeId, priceQuote: t.price });
         showToast("Traveller selected! 🎉", "success");
         onNext();
       } else {

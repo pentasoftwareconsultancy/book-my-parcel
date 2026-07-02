@@ -227,71 +227,83 @@ async function findCandidateTravellers(parcelData) {
       ),
       -- Method D: Spatial matching (PostGIS - routes passing between points)
       spatial_matches AS (
-        SELECT id, 4 as priority, 'spatial' as match_type
-        FROM traveller_routes
-        WHERE status = 'ACTIVE'
+        SELECT tr.id, 4 as priority, 'spatial' as match_type
+        FROM traveller_routes tr
+        WHERE tr.status = 'ACTIVE'
           AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND :includeSpatial = true
-          AND route_geom IS NOT NULL
+          AND tr.route_geom IS NOT NULL
           AND ST_DWithin(
-            route_geom::geography,
+            tr.route_geom::geography,
             ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
             :spatialPointThresholdMeters
           )
           AND ST_DWithin(
-            route_geom::geography,
+            tr.route_geom::geography,
             ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
             :spatialPointThresholdMeters
           )
           AND (
             :pickupLat = :deliveryLat AND :pickupLng = :deliveryLng
             OR ST_LineLocatePoint(
-              route_geom,
+              tr.route_geom,
               ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
             ) < ST_LineLocatePoint(
-              route_geom,
+              tr.route_geom,
               ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
             )
           )
       ),
-      -- Method E: Buffer-based spatial matching (routes near pickup point)
+      -- Method E: Buffer-based spatial matching (wider radius fallback)
       buffer_matches AS (
-        SELECT id, 5 as priority, 'buffer' as match_type
-        FROM traveller_routes
-        WHERE status = 'ACTIVE'
+        SELECT tr.id, 5 as priority, 'buffer' as match_type
+        FROM traveller_routes tr
+        WHERE tr.status = 'ACTIVE'
           AND ${ROUTE_EXPIRY_SQL_CONDITION}
           AND :includeBuffer = true
-          AND route_geom IS NOT NULL
+          AND tr.route_geom IS NOT NULL
           AND ST_DWithin(
-            route_geom::geography,
+            tr.route_geom::geography,
             ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)::geography,
             :bufferMeters
           )
           AND ST_DWithin(
-            route_geom::geography,
+            tr.route_geom::geography,
             ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)::geography,
             :bufferMeters
           )
+          AND (
+            :pickupLat = :deliveryLat AND :pickupLng = :deliveryLng
+            OR ST_LineLocatePoint(
+              tr.route_geom,
+              ST_SetSRID(ST_MakePoint(:pickupLng, :pickupLat), 4326)
+            ) < ST_LineLocatePoint(
+              tr.route_geom,
+              ST_SetSRID(ST_MakePoint(:deliveryLng, :deliveryLat), 4326)
+            )
+          )
       ),
-      -- Combine all matches with UNION ALL (faster than UNION)
+      -- Combine all matches; geometry_verified=true means the route passed a
+      -- real PostGIS spatial check (not just city/name matching).
       all_matches AS (
-        SELECT * FROM endpoint_matches
+        SELECT *, false as geometry_verified FROM endpoint_matches
         UNION ALL
-        SELECT * FROM place_matches
+        SELECT *, false as geometry_verified FROM place_matches
         UNION ALL
-        SELECT * FROM locality_matches
+        SELECT *, false as geometry_verified FROM locality_matches
         UNION ALL
-        SELECT * FROM city_matches
+        SELECT *, false as geometry_verified FROM city_matches
         UNION ALL
-        SELECT * FROM spatial_matches
+        SELECT *, true as geometry_verified FROM spatial_matches
         UNION ALL
-        SELECT * FROM buffer_matches
+        SELECT *, true as geometry_verified FROM buffer_matches
       )
-      -- Get distinct route IDs with their best (lowest) priority and match types
-      SELECT 
+      -- Get distinct route IDs with best priority, match types, and geometry flag
+      SELECT
         id,
         MIN(priority) as best_priority,
-        array_agg(DISTINCT match_type) as match_types
+        array_agg(DISTINCT match_type) as match_types,
+        bool_or(geometry_verified) as is_geometry_verified
       FROM all_matches
       GROUP BY id
       ORDER BY best_priority ASC, id
@@ -328,13 +340,33 @@ async function findCandidateTravellers(parcelData) {
       type: sequelize.QueryTypes.SELECT,
     });
 
-    const hasExactEndpoint = results.some((r) => r.best_priority === 0);
-    const hasPlaceMatch = results.some((r) => r.best_priority === 1);
-    const candidateResults = hasExactEndpoint
-      ? results.filter((r) => r.best_priority === 0)
-      : hasPlaceMatch
-        ? results.filter((r) => r.best_priority <= 1)
-        : results;
+    // Geometry-first: if we have pickup/delivery coordinates AND any route is
+    // geometry-verified (passed PostGIS ST_DWithin on actual route shape), prefer
+    // only those — they actually traverse near both pickup and delivery points.
+    // Name/city-based matches (endpoint, locality, city) are only used when no
+    // spatial data is available or no routes have stored route_geom.
+    const hasSpatialData = replacements.includeSpatial;
+    const hasGeometryVerified = hasSpatialData && results.some((r) => r.is_geometry_verified);
+
+    console.log(`[Matching:CTE] parcel=${parcelData.id} pickup=(${replacements.pickupLat},${replacements.pickupLng}) delivery=(${replacements.deliveryLat},${replacements.deliveryLng})`);
+    console.log(`[Matching:CTE] includeSpatial=${hasSpatialData} hasGeometryVerified=${hasGeometryVerified} totalResults=${results.length}`);
+    results.forEach((r) => console.log(`  route=${r.id} priority=${r.best_priority} types=${r.match_types} geo=${r.is_geometry_verified}`));
+
+    let candidateResults;
+    if (hasGeometryVerified) {
+      candidateResults = results.filter((r) => r.is_geometry_verified);
+      console.log(`[Matching:CTE] Geometry-first filter → ${candidateResults.length} geometry-verified routes kept`);
+    } else {
+      // Fallback: no geometry available — use name-based priority hierarchy.
+      const hasExactEndpoint = results.some((r) => r.best_priority === 0);
+      const hasPlaceMatch    = results.some((r) => r.best_priority === 1);
+      candidateResults = hasExactEndpoint
+        ? results.filter((r) => r.best_priority === 0)
+        : hasPlaceMatch
+          ? results.filter((r) => r.best_priority <= 1)
+          : results;
+      console.log(`[Matching:CTE] Name-based fallback → ${candidateResults.length} routes (hasExact=${hasExactEndpoint} hasPlace=${hasPlaceMatch})`);
+    }
 
     const candidateIds = candidateResults.map((r) => r.id);
 
@@ -450,11 +482,11 @@ async function findCandidateTravellersLegacy(parcelData) {
     if (candidates.size < 5 && parcelData.pickup.locality && parcelData.delivery.locality) {
       const arrayMatches = await sequelize.query(
         `
-        SELECT id FROM traveller_routes
-        WHERE status = 'ACTIVE'
+        SELECT tr.id FROM traveller_routes tr
+        WHERE tr.status = 'ACTIVE'
           AND ${ROUTE_EXPIRY_SQL_CONDITION}
-          AND localities_passed @> :pickupLocality
-          AND localities_passed @> :deliveryLocality
+          AND tr.localities_passed @> :pickupLocality
+          AND tr.localities_passed @> :deliveryLocality
         `,
         {
           replacements: {
@@ -474,8 +506,8 @@ async function findCandidateTravellersLegacy(parcelData) {
     // For different-city parcels: check if route passes through both cities
     if (candidates.size < 10 && parcelData.pickup.city) {
       const query = isSameCity
-        ? `SELECT id FROM traveller_routes WHERE status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND cities_passed @> :pickupCity`
-        : `SELECT id FROM traveller_routes WHERE status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND cities_passed @> :pickupCity AND cities_passed @> :deliveryCity`;
+        ? `SELECT tr.id FROM traveller_routes tr WHERE tr.status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND tr.cities_passed @> :pickupCity`
+        : `SELECT tr.id FROM traveller_routes tr WHERE tr.status = 'ACTIVE' AND ${ROUTE_EXPIRY_SQL_CONDITION} AND tr.cities_passed @> :pickupCity AND tr.cities_passed @> :deliveryCity`;
 
       const cityMatches = await sequelize.query(query, {
         replacements: {
@@ -674,6 +706,33 @@ function applyCapacityAndPreferenceFilters(routes, parcelData) {
 
     return true;
   });
+}
+
+// ─── Multi-factor Match Score ─────────────────────────────────────────────────
+// Weights: detour (65%) + traveller rating (20%) + departure time proximity (15%)
+// Returns a score in the range [10, 100].
+function calculateMatchScore({ detourPercentage = 100, rating = null, departureDate = null, departureTime = null }) {
+  // Detour component: lower detour = higher score (max 65 pts)
+  const detourComponent = Math.max(0, 65 - detourPercentage * 0.65);
+
+  // Rating component: 0–5 star rating mapped to 0–20 pts (default 3 stars when unknown)
+  const effectiveRating = rating != null ? Math.min(5, Math.max(0, Number(rating))) : 3;
+  const ratingComponent = (effectiveRating / 5) * 20;
+
+  // Departure time proximity: travellers departing sooner earn more points.
+  // Window: 0 pts if >7 days away, up to 15 pts if departing within 12h.
+  let timeComponent = 0;
+  if (departureDate) {
+    try {
+      const deptDt = new Date(`${departureDate}T${departureTime || "00:00"}:00`);
+      const hoursUntilDept = (deptDt - Date.now()) / 36e5; // ms → hours
+      if (hoursUntilDept >= 0 && hoursUntilDept <= 168) { // within 7 days
+        timeComponent = Math.max(0, 15 * (1 - hoursUntilDept / 168));
+      }
+    } catch { /* non-critical — leave as 0 */ }
+  }
+
+  return Math.max(10, Math.round(detourComponent + ratingComponent + timeComponent));
 }
 
 // ─── Step 6: Sort and Select Top Candidates ────────────────────────────────
@@ -962,7 +1021,7 @@ export async function matchParcelWithTravellers(parcelId) {
 
     // Step 1: Fetch parcel data
     const parcelData = await fetchParcelData(parcelId);
-    console.log(`[Matching] Parcel data fetched: ${parcelData.pickup.city} → ${parcelData.delivery.city}`);
+    console.log(`[Matching] Parcel: ${parcelData.pickup.city}→${parcelData.delivery.city} | pickup=(${parcelData.pickup.lat},${parcelData.pickup.lng}) delivery=(${parcelData.delivery.lat},${parcelData.delivery.lng}) | weight=${parcelData.weight}kg type=${parcelData.parcel_type}`);
 
     // Step 2: Find candidate travellers
     const candidateRouteIds = await findCandidateTravellers(parcelData);
@@ -987,10 +1046,10 @@ export async function matchParcelWithTravellers(parcelId) {
       include: [
         { model: Address, as: "originAddress" },
         { model: Address, as: "destAddress" },
-        { 
-          model: TravellerProfile, 
+        {
+          model: TravellerProfile,
           as: "travellerProfile",
-          attributes: ["id", "user_id"]
+          attributes: ["id", "user_id", "rating", "total_deliveries"]
         },
       ],
     });
@@ -1045,7 +1104,6 @@ export async function matchParcelWithTravellers(parcelId) {
 
     for (const candidate of topCandidates) {
       const detourInfo = await calculateExactDetour(candidate, parcelData);
-      const transportMode = candidate.transportMode || candidate.transport_mode || 'private';
       const routeLabel = `${candidate.id} (${getRouteName(candidate)})`;
 
       if (detourInfo.isTransitWalkingDistance) {
@@ -1054,7 +1112,12 @@ export async function matchParcelWithTravellers(parcelId) {
             ...candidate,
             detourKm: detourInfo.detourKm,
             detourPercentage: 0,
-            matchScore: Math.max(50, 100 - (detourInfo.detourKm / MAX_TRANSIT_WALKING_KM) * 50),
+            matchScore: calculateMatchScore({
+              detourPercentage: (detourInfo.detourKm / MAX_TRANSIT_WALKING_KM) * 100,
+              rating: candidate.travellerProfile?.rating,
+              departureDate: candidate.departure_date,
+              departureTime: candidate.departure_time,
+            }),
           });
         } else {
           console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${routeLabel} — walking distance ${detourInfo.detourKm}km exceeds threshold ${MAX_TRANSIT_WALKING_KM}km`);
@@ -1065,7 +1128,12 @@ export async function matchParcelWithTravellers(parcelId) {
             ...candidate,
             detourKm: detourInfo.detourKm,
             detourPercentage: detourInfo.detourPercentage,
-            matchScore: Math.max(10, 100 - detourInfo.detourPercentage),
+            matchScore: calculateMatchScore({
+              detourPercentage: detourInfo.detourPercentage,
+              rating: candidate.travellerProfile?.rating,
+              departureDate: candidate.departure_date,
+              departureTime: candidate.departure_time,
+            }),
           });
         } else {
           console.log(`[Rejected] Parcel ${parcelData.parcel_ref || parcelData.id} (id:${parcelData.id}): route ${routeLabel} — detour ${detourInfo.detourPercentage.toFixed(1)}% / ${detourInfo.detourKm}km exceeds thresholds`);

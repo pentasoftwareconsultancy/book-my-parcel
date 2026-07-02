@@ -277,7 +277,9 @@ router.get("/kyc/bank-status", authMiddleware, generalLimiter, async (req, res) 
 });
 
 // ─── TESTING ONLY: Bypass KYC for Development ────────────────────────────
-router.post("/kyc/bypass", authMiddleware, sensitiveLimiter, async (req, res) => {
+// Requires ADMIN role on top of the NODE_ENV check below — a misconfigured/missing
+// NODE_ENV must not be the only thing standing between this and self-approved payouts.
+router.post("/kyc/bypass", authMiddleware, requireAdmin, sensitiveLimiter, async (req, res) => {
   try {
     // Only allow in development
     if (process.env.NODE_ENV === "production") {

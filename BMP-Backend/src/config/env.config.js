@@ -22,10 +22,11 @@ const RECOMMENDED = [
   "CASHFREE_ENV",
   "CASHFREE_P_SECRET_ID",
   "CASHFREE_P_SECRET_KEY",
-  "TWILIO_AUTH_TOKEN",
   "BASE_URL",
   "FRONTEND_URL",
   "ALLOWED_ORIGINS",
+  "MSG91_API_KEY",
+  "MSG91_SENDER_ID",
 ];
 
 // Known insecure placeholder values that must never reach production

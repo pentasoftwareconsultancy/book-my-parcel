@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from "lucide-react";
+import useModalDismiss from "../../core/hooks/useModalDismiss";
 
 export default function TravellerSelectionErrorModal({
   open,
@@ -8,10 +9,12 @@ export default function TravellerSelectionErrorModal({
   onAction,
   actionLabel = "OK",
 }) {
+  const { handleBackdropClick } = useModalDismiss(onClose, { enabled: open });
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={handleBackdropClick}>
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl animate-in fade-in">
 
         {/* Header */}

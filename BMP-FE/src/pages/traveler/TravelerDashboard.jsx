@@ -48,12 +48,6 @@ export default function TravelerDashboard() {
     error,
   } = useTravelerDashboard();
 
-  // Debug stats loading
-  useEffect(() => {
-    if (stats && Object.keys(stats).length > 0) {
-      console.log('✅ [TravelerDashboard] Stats updated:', stats);
-    }
-  }, [stats]);
 
   // ✅ Determine view type from current route
   const getViewType = () => {
@@ -100,9 +94,10 @@ export default function TravelerDashboard() {
     ALL: {
       title: 'All Deliveries',
       description: 'All your deliveries',
-      data: [...parcelRequests, ...allDeliveries],    
+      data: [...parcelRequests, ...allDeliveries],
+      emptyMessage: 'No deliveries yet',
       emptyDetails: 'Your deliveries will appear here',
-  },
+    },
 };
 
 const currentView = viewConfig[viewType];
@@ -124,8 +119,6 @@ useLocationTracking(activeBookingId);
 
 // Handle delivery actions (express interest, decline, pickup, delivery, etc.)
 const handleDeliveryAction = useCallback(async (action, delivery) => {
-  console.log(`📋 Action: ${action}`, delivery);
-
   try {
     switch (action) {
       case 'start_pickup':
@@ -275,20 +268,14 @@ const handleDeliveryAction = useCallback(async (action, delivery) => {
       case 'receive_payment':
         try {
           setReceivingPaymentId(delivery.id);
-          console.log("💰 [Dashboard] Receiving payment for booking:", delivery.id);
           const response = await paymentService.receivePayment(delivery.id);
-          console.log("💰 [Dashboard] Payment response:", response);
-          
           const amount = response.data?.amount || response.amount;
           toast.success(`✅ ₹${amount} payment received. Amount will be transferred via cash/UPI.`);
-          
-          // ✅ Update delivery status to DELIVERED
           setDeliveries(prev => prev.map(del =>
-            del.id === delivery.id 
+            del.id === delivery.id
               ? { ...del, status: DELIVERY_STATUS.DELIVERED }
               : del
           ));
-          console.log("✅ [Dashboard] Delivery marked as DELIVERED");
         } catch (err) {
           console.error("❌ [Dashboard] Error receiving payment:", err);
           toast.error(err.response?.data?.message || err.message || 'Failed to receive payment');
@@ -306,7 +293,7 @@ const handleDeliveryAction = useCallback(async (action, delivery) => {
         break;
 
       default:
-        console.log('Unknown action:', action);
+        console.warn('Unknown action:', action);
     }
   } catch (error) {
     console.error('Action error:', error);
@@ -316,7 +303,6 @@ const handleDeliveryAction = useCallback(async (action, delivery) => {
 
 // Handle OTP success callback
 const handleOTPSuccess = useCallback((response) => {
-  console.log('✅ OTP verified:', response);
   setOtpModal({ open: false, booking: null, type: null });
 
   const result = response?.data?.data || response?.data || response;

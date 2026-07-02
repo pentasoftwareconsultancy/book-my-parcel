@@ -13,6 +13,8 @@ import { BsChatSquareText } from "react-icons/bs";
 
 import withMaterialTable from "../../core/common/withMaterialTable";
 import ApiService from "../../core/services/api.service";
+import useModalDismiss from "../../core/hooks/useModalDismiss";
+import { showError } from "../../core/utils/toast.util";
 
 /* ================== BADGE STYLES ================== */
 
@@ -83,6 +85,8 @@ const DisputeModal = ({ dispute, onClose, onStatusChange }) => {
     { sender: dispute.user, time: dispute.date + ", 10:30:00 AM", text: dispute.subject },
   ]);
 
+  const { handleBackdropClick } = useModalDismiss(onClose);
+
   const handleSend = () => {
     if (!reply.trim()) return;
     setMessages(prev => [...prev, { sender: "Admin", time: new Date().toLocaleString(), text: reply }]);
@@ -90,7 +94,7 @@ const DisputeModal = ({ dispute, onClose, onStatusChange }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={handleBackdropClick}>
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* Header — pink/red gradient */}
@@ -159,6 +163,7 @@ const DisputeModal = ({ dispute, onClose, onStatusChange }) => {
               onChange={e => setReply(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleSend()}
               placeholder="Type your response..."
+              aria-label="Reply to dispute"
               className="flex-1 bg-transparent text-sm outline-none text-gray-700 placeholder-gray-400"
             />
             <button
@@ -375,6 +380,7 @@ const DisputeManagement = () => {
       setFilteredDisputes(formatted);
     } catch (err) {
       console.error("Error fetching disputes:", err);
+      showError("Failed to load disputes. Please refresh and try again.");
     } finally {
       setLoading(false);
     }
@@ -398,6 +404,7 @@ const DisputeManagement = () => {
       }
     } catch (err) {
       console.error("Failed to update dispute status:", err);
+      showError("Failed to update dispute status. Please try again.");
     }
   };
 

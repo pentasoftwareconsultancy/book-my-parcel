@@ -108,7 +108,6 @@ const startServer = async () => {
             console.log(`🚀 Server running on port ${currentPort}`);
             console.log(`🔌 WebSocket server ready`);
             const smsEnabled = process.env.TWILIO_SMS_ENABLED !== "false";
-            console.log(`📱 SMS: ${smsEnabled ? "ENABLED — OTPs sent via Twilio" : "DISABLED — OTPs logged to console"}`);
             console.log(`${"=".repeat(60)}\n`);
             resolve(currentPort);
           });

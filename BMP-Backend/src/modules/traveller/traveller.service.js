@@ -22,7 +22,6 @@ import { getPagination, getPagingData } from "../../utils/pagination.js";
 import PendingPayment from "../booking/pendingPayment.model.js";
 import { invalidateKycCache } from "../../redis/cache/kycStatusCache.service.js";
 import otpService from "../../redis/services/otp.service.js";
-import twilioService from "../../services/twilio.service.js";
 
 
 
@@ -64,6 +63,45 @@ export const updateKYCStatus = async (kycId, status) => {
     await invalidateKycCache(travellerProfile.id);
   }
 
+  return kyc;
+};
+
+
+/* ─────────────────────────────
+   SUBMIT KYC (TRAVELLER SELF-SERVICE)
+───────────────────────────── */
+export const submitKYC = async (userId, body, files = {}) => {
+  let kyc = await TravellerKYC.findOne({ where: { user_id: userId } });
+
+  const fileFields = {};
+  for (const [field, fileArr] of Object.entries(files)) {
+    if (Array.isArray(fileArr) && fileArr.length > 0) {
+      fileFields[field] = `/uploads/kyc/${fileArr[0].filename}`;
+    }
+  }
+
+  const updateData = {
+    ...body,
+    ...fileFields,
+    status: "PENDING",
+  };
+
+  if (kyc) {
+    await kyc.update(updateData);
+  } else {
+    kyc = await TravellerKYC.create({ user_id: userId, ...updateData });
+  }
+
+  return kyc;
+};
+
+
+/* ─────────────────────────────
+   GET MY KYC (TRAVELLER SELF-SERVICE)
+───────────────────────────── */
+export const getMyKYC = async (userId) => {
+  const kyc = await TravellerKYC.findOne({ where: { user_id: userId } });
+  if (!kyc) throw Object.assign(new Error("KYC record not found"), { statusCode: 404 });
   return kyc;
 };
 
@@ -672,22 +710,6 @@ export async function generateOTP(bookingId, type) {
         }
       );
       
-      // Fallback to Twilio if needed
-      if (type === "pickup") {
-        await twilioService.sendPickupOTP(
-          customerPhone,
-          rawOTP,
-          booking.booking_ref || bookingId,
-          "Your traveller"
-        );
-      } else {
-        await twilioService.sendDeliveryOTP(
-          customerPhone,
-          rawOTP,
-          booking.booking_ref || bookingId,
-          "Your traveller"
-        );
-      }
     } catch (smsErr) {
       console.warn(`[generateOTP] SMS send failed (non-fatal): ${smsErr.message}`);
     }

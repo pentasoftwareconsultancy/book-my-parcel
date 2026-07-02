@@ -96,7 +96,18 @@ export async function updateTravellerLocation(booking_id, { lat, lng, speed = 0,
    Called once on mount by individual's frontend to get
    the route + current traveller position.
 ───────────────────────────────────────────────────────────── */
-export async function getTrackingByBookingId(booking_id) {
+export async function getTrackingByBookingId(bookingIdOrRef) {
+  // Accept either a UUID booking.id or a human-readable tracking_ref (e.g. "UBG-001").
+  // If the caller passes a tracking_ref we resolve it to the UUID first.
+  let booking_id = bookingIdOrRef;
+  if (bookingIdOrRef && /^UBG-/i.test(bookingIdOrRef)) {
+    const { default: Booking } = await import("../booking/booking.model.js");
+    const booking = await Booking.findOne({
+      where: { tracking_ref: bookingIdOrRef },
+      attributes: ["id"],
+    });
+    if (booking) booking_id = booking.id;
+  }
 
   const tracking = await ParcelTracking.findOne({
     where: { booking_id }

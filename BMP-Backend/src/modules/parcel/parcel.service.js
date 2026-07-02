@@ -31,10 +31,10 @@ import { calculatePrice } from "../../services/priceCalculation.service.js";
 import { calculatePriceWithSurge } from "../../services/priceCalculation.service.js";
 import { getPagination, getPagingData } from "../../utils/pagination.js";
 import { refundPaymentForParcel } from "../payment/payment.service.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToUser, sendToTraveller } from "../../services/notification.service.js";
 import { auditLog } from "../../utils/auditLog.util.js";
 import { matchParcelWithTravellers } from "../../services/matchingEngine.service.js";
+import { validateVehicleDistance } from "../../utils/vehicleDistanceLimits.js";
 
 const weightMap = { small: 1, medium: 5, large: 10, extra_large: 20 };
 
@@ -281,6 +281,14 @@ export async function createParcelRequest(data, files) {
         intermediateCities = extractIntermediateCities(steps);
         // route_distance_km is the source of truth for short/long classification in Phase 2
 
+        // ── Vehicle-distance compatibility check ─────────────────────────────
+        if (data.vehicle_type) {
+          const vehicleErr = validateVehicleDistance(data.vehicle_type, routeDistance);
+          if (vehicleErr) {
+            throw Object.assign(new Error(vehicleErr), { statusCode: 400 });
+          }
+        }
+
         // ── Calculate estimated price with surge multiplier ──────────────────
         try {
           const priceResult = await calculatePriceWithSurge(
@@ -293,6 +301,7 @@ export async function createParcelRequest(data, files) {
           data._distanceCharge = priceResult.distanceCharge;
           data._weightCharge = priceResult.weightCharge;
           data._basePrice = priceResult.basePrice;
+          data._platformFeePercent = priceResult.platformFeePercent;
           data._platformFee = priceResult.platformFee;
           data._gstAmount = priceResult.gstAmount;
         } catch (priceError) {
@@ -332,6 +341,7 @@ export async function createParcelRequest(data, files) {
       data._distanceCharge = priceResult.distanceCharge;
       data._weightCharge = priceResult.weightCharge;
       data._basePrice = priceResult.basePrice;
+      data._platformFeePercent = priceResult.platformFeePercent;
       data._platformFee = priceResult.platformFee;
       data._gstAmount = priceResult.gstAmount;
     } catch (priceErr) {
@@ -390,7 +400,9 @@ export async function createParcelRequest(data, files) {
             distanceCharge: data._distanceCharge || 0,
             weightCharge: data._weightCharge || 0,
             basePrice: data._basePrice || 0,
+            platformFeePercent: data._platformFeePercent || 12,
             platformFee: data._platformFee || 0,
+            gstPercent: 18,
             gstAmount: data._gstAmount || 0,
             finalPrice: suggestedPrice || data.price_quote || 0,
           },
@@ -546,80 +558,49 @@ export async function getUserParcelRequests(userId, query = {}) {
 }
 
 export async function getParcelById(parcelId) {
-  try {
-    // Accept both database ID and parcel reference (e.g., BMP-002)
-    // First try parcel_ref (most common case when navigating from UI)
-    let parcel = await Parcel.findOne({
-      where: { parcel_ref: parcelId },
+  // Shared includes used for both lookups
+  const PARCEL_INCLUDES = [
+    { model: Address, as: "pickupAddress" },
+    { model: Address, as: "deliveryAddress" },
+    {
+      model: Booking,
+      as: "booking",
+      required: false,
       include: [
-        { model: Address, as: "pickupAddress" },
-        { model: Address, as: "deliveryAddress" },
         {
-          model: Booking,
-          as: "booking",
-          required: false, // Make booking optional
+          model: User,
+          as: "traveller",
+          required: false,
+          attributes: ["id", "email", "phone_number"],
           include: [
-            {
-              model: User,
-              as: "traveller",
-              required: false, // Make traveller optional
-              attributes: ["id", "email", "phone_number"],
-              include: [
-                {
-                  model: UserProfile,
-                  as: "profile",
-                  required: false,
-                  attributes: ["name"]
-                },
-                {
-                  model: TravellerProfile,
-                  as: "travellerProfile",
-                  required: false, // Make profile optional
-                  attributes: ["rating", "total_deliveries", "vehicle_type", "vehicle_number"]
-                }
-              ]
-            }
+            { model: UserProfile, as: "profile", required: false, attributes: ["name"] },
+            { model: TravellerProfile, as: "travellerProfile", required: false,
+              attributes: ["rating", "total_deliveries", "vehicle_type", "vehicle_number"] }
           ]
-        },
-      ],
-    });
+        }
+      ]
+    },
+    // Include the selected partner's profile directly on the parcel so the frontend
+    // can show the traveller's name on the Review page BEFORE payment creates a booking.
+    {
+      model: User,
+      as: "selectedPartner",
+      required: false,
+      attributes: ["id", "email", "phone_number"],
+      include: [
+        { model: UserProfile, as: "profile", required: false, attributes: ["name"] },
+        { model: TravellerProfile, as: "travellerProfile", required: false,
+          attributes: ["rating", "vehicle_type", "vehicle_number"] }
+      ]
+    },
+  ];
+
+  try {
+    let parcel = await Parcel.findOne({ where: { parcel_ref: parcelId }, include: PARCEL_INCLUDES });
 
     // Fallback to database ID if parcel_ref didn't match
     if (!parcel) {
-      parcel = await Parcel.findOne({
-        where: { id: parcelId },
-        include: [
-          { model: Address, as: "pickupAddress" },
-          { model: Address, as: "deliveryAddress" },
-          {
-            model: Booking,
-            as: "booking",
-            required: false, // Make booking optional
-            include: [
-              {
-                model: User,
-                as: "traveller",
-                required: false, // Make traveller optional
-                attributes: ["id", "email", "phone_number"],
-                include: [
-                  {
-                    model: UserProfile,
-                    as: "profile",
-                    required: false,
-                    attributes: ["name"]
-                  },
-                  {
-                    model: TravellerProfile,
-                    as: "travellerProfile",
-                    required: false, // Make profile optional
-                    attributes: ["rating", "total_deliveries", "vehicle_type", "vehicle_number"]
-                  }
-                ]
-              }
-            ]
-          },
-        ],
-      });
+      parcel = await Parcel.findOne({ where: { id: parcelId }, include: PARCEL_INCLUDES });
     }
 
     return parcel;
@@ -884,14 +865,6 @@ export async function cancelParcelRequest(parcelId, userId, cancellationData = {
         }
       );
 
-      // SMS to traveller
-      const travellerUser = await User.findByPk(booking.traveller_id);
-      if (travellerUser?.phone_number) {
-        await twilioService.sendSMS(
-          travellerUser.phone_number,
-          `Book My Parcel: The sender has cancelled booking ${booking.booking_ref || ""}. Parcel: ${fromCity} → ${toCity}. No action needed.`
-        );
-      }
     }
   } catch (notifErr) {
     console.warn("[Parcel] cancelParcelRequest notification failed (non-fatal):", notifErr.message);

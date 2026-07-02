@@ -13,7 +13,6 @@ import { otpGenerationLimiter, otpVerificationLimiter, generalLimiter } from "..
 import ChatMessage from "./chatMessage.model.js";
 import DeliveryAttempt from "./deliveryAttempt.model.js";
 import { upload } from "../../utils/fileUpload.util.js";
-import twilioService from "../../services/twilio.service.js";
 import { sendToUser } from "../../services/notification.service.js";
 import User from "../user/user.model.js";
 import Parcel from "../parcel/parcel.model.js";
@@ -647,13 +646,6 @@ router.post(
         { type: "delivery_attempt_failed", booking_id: bookingId, attempt_number: attemptNumber }
       );
 
-      if (senderUser?.phone_number) {
-        await twilioService.sendSMS(
-          senderUser.phone_number,
-          `Book My Parcel: Delivery attempt ${attemptNumber} failed at ${city}. Reason: ${reason.replace(/_/g, " ")}. ${rescheduled_at ? `Next attempt: ${new Date(rescheduled_at).toLocaleString("en-IN")}` : "Please contact your traveller."}`
-        );
-      }
-
       // Auto-cancel after MAX_ATTEMPTS
       if (attemptNumber >= MAX_ATTEMPTS) {
         assertValidTransition(booking.status, "CANCELLED", BOOKING_TRANSITIONS, "Booking");
@@ -697,6 +689,25 @@ router.post(
 router.get("/:bookingId/delivery-attempts", authMiddleware, generalLimiter, async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    // Ownership check (same pattern as the chat route above): only the sender
+    // or the assigned traveller may view a booking's delivery-attempt history.
+    const booking = await Booking.findByPk(bookingId, {
+      include: [{ model: Parcel, as: "parcel", attributes: ["user_id"] }],
+    });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    const callerId = req.user.id;
+    const isSender    = booking.parcel?.user_id === callerId;
+    const isTraveller = booking.traveller_id    === callerId;
+
+    if (!isSender && !isTraveller) {
+      return res.status(403).json({ success: false, message: "Forbidden: you are not a participant in this booking" });
+    }
+
     const attempts = await DeliveryAttempt.findAll({
       where: { booking_id: bookingId },
       order: [["attempted_at", "ASC"]],

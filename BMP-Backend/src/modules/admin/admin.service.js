@@ -396,10 +396,11 @@ export const getTravelersForKYC = async ({ page = 1, limit = 10, status = null }
  * Update traveler KYC status
  * @param {string} kycId
  * @param {string} status
+ * @param {string} [adminId] - id of the admin performing the update, for audit attribution
  */
-export const updateTravelerKYCStatus = async (kycId, status) => {
+export const updateTravelerKYCStatus = async (kycId, status, adminId = null) => {
   const kyc = await TravellerKYC.findByPk(kycId);
-  
+
   if (!kyc) {
     throw new Error("KYC record not found");
   }
@@ -413,7 +414,7 @@ export const updateTravelerKYCStatus = async (kycId, status) => {
 
   auditLog({
     action:       `KYC_${status}`,
-    actorId:      null,
+    actorId:      adminId,
     actorRole:    "admin",
     resourceType: "traveller_kyc",
     resourceId:   kycId,

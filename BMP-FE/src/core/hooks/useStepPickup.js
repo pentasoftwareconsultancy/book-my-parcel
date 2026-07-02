@@ -17,6 +17,21 @@ const VEHICLE_MULTIPLIERS = {
   bus: 0.85, train: 0.75, plane: 3.5,
 };
 
+// Maximum distance (km) each vehicle type can service.
+// null = no limit (public transport / long-haul vehicles).
+// Keep in sync with BMP-Backend/src/utils/vehicleDistanceLimits.js.
+export const VEHICLE_DISTANCE_LIMITS = {
+  bike:   150,   // intra-city / short inter-district
+  car:    500,   // inter-city, state-to-state
+  suv:    700,   // extended inter-city
+  van:    600,   // mid-range cargo
+  tempo:  1000,  // regional cargo
+  truck:  null,  // unlimited — long-haul
+  bus:    null,  // unlimited — public transport
+  train:  null,  // unlimited — rail
+  plane:  null,  // unlimited — air
+};
+
 // Backend-aligned slab-based pricing functions
 function getWeightCharge(weight) {
   if (weight <= 1) return 20;
@@ -252,6 +267,20 @@ export function useStepPickup({ data, updateFields, onNext, createdParcelId, set
         return false;
       }
     }
+
+    // Vehicle-distance compatibility check
+    if (data.vehicleType && data.pickupLat && data.pickupLng && data.deliveryLat && data.deliveryLng) {
+      const km = haversineDistance(data.pickupLat, data.pickupLng, data.deliveryLat, data.deliveryLng);
+      const maxKm = VEHICLE_DISTANCE_LIMITS[data.vehicleType];
+      if (maxKm !== null && maxKm !== undefined && km > maxKm) {
+        showError(
+          `${data.vehicleType.charAt(0).toUpperCase() + data.vehicleType.slice(1)} is only suitable for routes up to ${maxKm} km. ` +
+          `Your estimated distance is ${Math.round(km)} km. Please choose a different vehicle type (e.g. Tempo or Truck).`
+        );
+        return false;
+      }
+    }
+
     return true;
   };
 

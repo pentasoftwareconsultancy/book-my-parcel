@@ -20,8 +20,6 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
     getOrderStatus, shouldShowPaymentOptions, shouldShowConfirmButton,
     getStatusMessage, createOrderFromForm, handlePayment,
   } = useStepReview({ data, readOnly });
-  console.log("PARCEL DATA =>", parcelData);
-
 
   if (!parcelData) return <p className="text-center p-10">No parcel found.</p>;
   if (loading) return <p className="text-center p-10">Loading parcel details...</p>;
@@ -96,15 +94,14 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
                       value={`₹${breakdown.basePrice || 0}`}
                     />
 
-                   <Row
-  label={`Platform Fee (${breakdown.platformFeePercent || 12}%)`}
-  value={`₹${breakdown.platformFee || 0}`}
-/>
-
-<Row
-  label={`GST (${breakdown.gstPercent || 18}%)`}
-  value={`₹${breakdown.gstAmount || 0}`}
-/>
+                    <Row
+                      label={`Platform Fee (${breakdown.platformFeePercent || 12}%)`}
+                      value={`₹${breakdown.platformFee || 0}`}
+                    />
+                    <Row
+                      label={`GST ${breakdown.gstPercent || 18}% (on subtotal)`}
+                      value={`₹${breakdown.gstAmount || 0}`}
+                    />
 
                     <div className="border-t border-emerald-200 mt-4 pt-3 flex justify-between">
                       <span className="font-bold">Total</span>
@@ -127,7 +124,7 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
             </svg>
             <div>
               <h5 className="font-medium text-blue-900">Secure Online Payment</h5>
-              <p className="text-sm text-blue-700 mt-1">Your payment will be processed securely via Razorpay. You&apos;ll receive instant booking confirmation.</p>
+              <p className="text-sm text-blue-700 mt-1">Your payment will be processed securely via Cashfree. You&apos;ll receive instant booking confirmation.</p>
             </div>
           </div>
         )}

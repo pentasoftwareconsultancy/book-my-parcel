@@ -95,16 +95,18 @@ export async function cashfreeWebhook(req, res) {
   try {
     if (eventType === "PAYMENT_SUCCESS_WEBHOOK") {
       const orderId = orderData?.order_id;
-      const parcelId = extractParcelIdFromOrderId(orderId);
 
-      if (!orderId || !parcelId) {
-        console.error("[Webhook] PAYMENT_SUCCESS: missing order_id or parcel_id", { orderId });
+      if (!orderId) {
+        console.error("[Webhook] PAYMENT_SUCCESS: missing order_id");
         return;
       }
 
-      console.log(`[Webhook] PAYMENT_SUCCESS — order: ${orderId}, parcel: ${parcelId}`);
+      console.log(`[Webhook] PAYMENT_SUCCESS — order: ${orderId}`);
 
-      await verifyPaymentService({ order_id: orderId, parcel_id: parcelId });
+      // Do NOT pass parcel_id here — the order ID only contains an 8-char prefix of
+      // the parcel UUID. verifyPaymentService recovers the full parcel_id from the
+      // Payment row via cashfree_order_id, which is the reliable path.
+      const result = await verifyPaymentService({ order_id: orderId });
 
       auditLog({
         action: "PAYMENT_WEBHOOK_SUCCESS",
@@ -113,7 +115,7 @@ export async function cashfreeWebhook(req, res) {
         resourceType: "payment",
         resourceId: orderId,
         meta: {
-          parcel_id: parcelId,
+          parcel_id: result?.parcel_id,
           cf_payment_id: paymentData?.cf_payment_id,
           amount: paymentData?.payment_amount,
         },
@@ -160,15 +162,15 @@ export async function cashfreeWebhook(req, res) {
 }
 
 /**
- * Extract parcel ID from the order_id we created.
- * Format: ORDER_{timestamp}_{parcelId}
+ * Extract the parcel ID prefix from the order_id we created.
+ * Real format: ORD_{timestamp}_{first8charsOfParcelId}
+ * Note: only 8 chars of the parcel UUID are stored here, so this returns
+ * a partial match prefix only. The webhook handler uses this as a hint but
+ * always falls back to recovering parcel_id from the Payment row.
  */
 function extractParcelIdFromOrderId(orderId) {
   if (!orderId) return null;
-  const parts = orderId.split("_");
-  // ORDER_1234567890_<uuid>  → parts[2] is the parcel UUID
-  // UUID contains hyphens so it may span multiple parts if split on _
-  // Safer: remove the "ORDER_<timestamp>_" prefix
-  const match = orderId.match(/^ORDER_\d+_(.+)$/);
+  // ORD_1234567890_<8-char-parcel-prefix>
+  const match = orderId.match(/^ORD_\d+_(.+)$/);
   return match ? match[1] : null;
 }

@@ -1,15 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  Bike,
-  Car,
-  Truck,
-  Bus,
-  Train,
-  Plane,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import Button from "../../../core/common/Button";
 import Confetti from "../../../components/common/Confetti";
@@ -18,21 +8,7 @@ import TravellerCard from "../../../components/user/TravellerCard";
 import TravellerSelectionErrorModal from "../../../components/modals/TravellerSelectionErrorModal";
 import { useStepPartner } from "../../../core/hooks/useStepPartner";
 
-const VEHICLE_OPTIONS = [
-  { type: "bike", label: "Bike", icon: <Bike size={16} /> },
-  { type: "car", label: "Car", icon: <Car size={16} /> },
-  { type: "suv", label: "SUV", icon: <Truck size={16} /> },
-  { type: "van", label: "Van", icon: <Truck size={16} /> },
-  { type: "truck", label: "Truck", icon: <Truck size={16} /> },
-  { type: "tempo", label: "Tempo", icon: <Truck size={16} /> },
-  { type: "bus", label: "Bus", icon: <Bus size={16} /> },
-  { type: "train", label: "Train", icon: <Train size={16} /> },
-  { type: "plane", label: "Plane", icon: <Plane size={16} /> },
-];
-
 const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {
-  const [showVehicleMenu, setShowVehicleMenu] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
   // ✅ ERROR MODAL STATE
@@ -71,11 +47,7 @@ const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {
     }
   }, [selectionError]);
 
-  const filteredTravelers = selectedVehicle
-    ? travellers.filter((t) => t.vehicleType === selectedVehicle)
-    : travellers;
-
-  const acceptancesForMap = filteredTravelers.map((t) => ({
+  const acceptancesForMap = travellers.map((t) => ({
     acceptance_id: t.acceptanceId,
     traveller: {
       id: t.id,
@@ -164,10 +136,10 @@ const StepPartner = ({ data, updateFields, onNext, onBack, parcelId }) => {
           <div className="space-y-3">
             {loading ? (
               <p>Loading...</p>
-            ) : filteredTravelers.length === 0 ? (
+            ) : travellers.length === 0 ? (
               <p>No travellers found</p>
             ) : (
-              filteredTravelers.map((t) => (
+              travellers.map((t) => (
                 <TravellerCard
                   key={t.id}
                   t={t}

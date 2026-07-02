@@ -5,7 +5,6 @@ import Address from "../parcel/address.model.js";
 import User from "../user/user.model.js";
 import TravellerProfile from "../traveller/travellerProfile.model.js";
 import Payment from "../payment/payment.model.js";
-import twilioService from "../../services/twilio.service.js";
 import otpConfig from "../../config/otp.config.js";
 import app from "../../app.js";
 import ParcelTracking from "../tracking/parcelTracking.model.js";
@@ -127,21 +126,6 @@ class BookingService {
     // Get sender phone from pickup address
     const senderPhone = booking.parcel.pickupAddress.phone;
     const senderName = booking.parcel.pickupAddress.name;
-
-    // Validate phone number exists
-    if (!senderPhone) {
-      console.warn(`⚠️ [OTP] Pickup address has no phone number for booking ${booking.booking_ref}`);
-    } else {
-      const smsResult = await twilioService.sendPickupOTP(
-        senderPhone,
-        otp,
-        booking.booking_ref,
-        travellerName
-      );
-      if (!smsResult.sms?.success && !smsResult.sms?.skipped) {
-        console.warn(`⚠️ [OTP] Pickup SMS failed for booking ${booking.booking_ref}`);
-      }
-    }
 
     // Emit WebSocket event to sender AND traveller
     const senderId = booking.parcel.user_id;
@@ -324,12 +308,12 @@ class BookingService {
       type_code: "Parcel_Picked_Up",
       title: "Parcel Picked Up",
       message: `Your parcel has been picked up by the traveller. Booking ref: ${booking.booking_ref}`,
-      meta: { 
-        booking_id: booking.id, 
+      meta: {
+        booking_id: booking.id,
         booking_ref: booking.booking_ref,
         var1: userName,
         var2: parcelRef,
-        var3: booking.tracking_ref || booking.id
+        var3: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/track/${booking.tracking_ref || booking.id}`,
       },
     });
     // Notify traveller: delivery started
@@ -339,25 +323,14 @@ class BookingService {
       type_code: "Pickup_Verified",
       title: "Pickup Verified",
       message: `Pickup verified for booking ${booking.booking_ref}. Head to the delivery address.`,
-      meta: { 
-        booking_id: booking.id, 
+      meta: {
+        booking_id: booking.id,
         booking_ref: booking.booking_ref,
         var1: travellerName,
         var2: parcelRef,
         var3: ""
       },
     });
-
-    // ── Send tracking link via SMS & WhatsApp ──────────────────────────────
-    try {
-      const senderUser = await User.findByPk(booking.parcel.user_id);
-      if (senderUser?.phone_number) {
-        const trackingUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/track/${booking.id}`;
-        await twilioService.sendTrackingLink(senderUser.phone_number, trackingUrl, booking.booking_ref);
-      }
-    } catch (smsError) {
-      console.error("[Tracking] Failed to send tracking link (non-fatal):", smsError.message);
-    }
 
     return {
       booking_id: booking.id,
@@ -412,21 +385,6 @@ class BookingService {
     // Get recipient phone from delivery address
     const recipientPhone = booking.parcel.deliveryAddress.phone;
     const recipientName = booking.parcel.deliveryAddress.name;
-
-    // Validate phone number exists
-    if (!recipientPhone) {
-      console.warn(`⚠️ [OTP] Delivery address has no phone number for booking ${booking.booking_ref}`);
-    } else {
-      const smsResult = await twilioService.sendDeliveryOTP(
-        recipientPhone,
-        otp,
-        booking.booking_ref,
-        travellerName
-      );
-      if (!smsResult.sms?.success && !smsResult.sms?.skipped) {
-        console.warn(`⚠️ [OTP] Delivery SMS failed for booking ${booking.booking_ref}`);
-      }
-    }
 
     // Emit WebSocket event to sender AND traveller
     const senderId = booking.parcel.user_id;
@@ -521,6 +479,14 @@ class BookingService {
 
     let partnerAmount = 0;
 
+    // Generate Delivery ID before the transaction to avoid holding the
+    // transaction open during the sequential DB scan inside generateDeliveryId.
+    let deliveryRef = booking.delivery_ref;
+    if (!deliveryRef) {
+      const { generateDeliveryId } = await import("../../utils/idGenerator.js");
+      deliveryRef = await generateDeliveryId();
+    }
+
     await sequelize.transaction(async (t) => {
 
       await booking.update(
@@ -529,16 +495,21 @@ class BookingService {
           delivery_otp: null,
           delivered_at: deliveredAt,
           delivery_otp_attempts: 0,
+          delivery_ref: deliveryRef,
         },
         { transaction: t }
       );
 
+      // Row-locked: the 10-min paymentRelease safety-net job reads/credits this
+      // same payment row independently — without the lock both paths can read
+      // wallet_credit_released=false and double-credit the wallet.
       const payment = await Payment.findOne({
         where: {
           booking_id: booking.id,
           status: PAYMENT_STATUS.SUCCESS,
         },
         transaction: t,
+        lock: t.LOCK.UPDATE,
       });
 
       if (!payment) {
@@ -564,7 +535,7 @@ class BookingService {
           fullAmount * (platformFeePercent / 100)
         );
 
-        const partnerAmount = fullAmount - platformFee;
+        partnerAmount = fullAmount - platformFee;
 
         await creditWalletService(
           travellerId,
@@ -592,20 +563,6 @@ class BookingService {
 
     // Referral bonus (fire-and-forget)
     setImmediate(() => creditReferralOnFirstDelivery(booking.parcel.user_id));
-
-    // Delivery confirmation SMS to sender
-    try {
-      const senderUser = await User.findByPk(booking.parcel.user_id);
-      if (senderUser?.phone_number) {
-        const city = booking.parcel.deliveryAddress?.city || "destination";
-        await twilioService.sendSMS(
-          senderUser.phone_number,
-          `Your parcel has been successfully delivered to ${city}! Booking Ref: ${booking.booking_ref}. Thank you for using BookMyParcel.`
-        );
-      }
-    } catch (smsError) {
-      console.error("[Delivery] SMS confirmation failed (non-fatal):", smsError.message);
-    }
 
     // WebSocket events
     const senderId = booking.parcel.user_id;

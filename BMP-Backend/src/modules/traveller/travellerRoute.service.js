@@ -9,6 +9,7 @@ import {
   getPlaceDetails,
   getAddressDescriptors,
   computeRoute,
+  computeRouteWithAlternatives,
   extractHierarchy,
   extractIntermediateCities,
 } from "../../services/googleMaps.service.js";
@@ -455,10 +456,13 @@ export async function createTravellerRoute(data, userId) {
     travelMode = "TRANSIT";
   }
 
-  // Step 2: Compute route if coordinates are available
+  // Step 2: Compute route if coordinates are available.
+  // If the caller passes `selected_polyline` (from the FE route-selection step),
+  // use it directly so we avoid a redundant Google API call and honour the
+  // traveller's explicit path choice.
   let routeDistance = null;
   let routeDuration = null;
-  let routeGeometry = null;
+  let routeGeometry = data.selected_polyline || null;
   let citiesFromSteps = [];
   let stopsPassed = null;
   let intermediateData = {
@@ -469,7 +473,11 @@ export async function createTravellerRoute(data, userId) {
     landmarks: [],
   };
 
+  if (data.selected_distance_km)  routeDistance = Number(data.selected_distance_km);
+  if (data.selected_duration_min) routeDuration = Number(data.selected_duration_min);
+
   if (
+    !routeGeometry &&
     originEnriched.latitude && originEnriched.longitude &&
     destEnriched.latitude && destEnriched.longitude &&
     process.env.GOOGLE_API_KEY &&
@@ -718,6 +726,28 @@ export async function updateTravellerRoute(routeId, userId, data) {
   });
   if (!route) throw new Error("Route not found or unauthorized");
 
+  // Block route changes if there are active parcel requests tied to this route.
+  // Changing origin/destination/schedule after a traveller has been accepted would
+  // silently leave senders with a booking to a route that no longer matches.
+  const isGeographicChange = !!(data.origin_address || data.dest_address);
+  if (isGeographicChange) {
+    const { default: ParcelRequest } = await import("../parcel/parcelRequest.model.js");
+    const { Op } = await import("sequelize");
+    const activeRequests = await ParcelRequest.count({
+      where: {
+        route_id: routeId,
+        status: { [Op.in]: ["SENT", "INTERESTED", "ACCEPTED", "SELECTED"] },
+      },
+    });
+    if (activeRequests > 0) {
+      const err = new Error(
+        `Cannot change route origin or destination: ${activeRequests} active parcel request(s) are linked to this route. Please wait for them to complete or cancel them first.`
+      );
+      err.statusCode = 409;
+      throw err;
+    }
+  }
+
   const t = await sequelize.transaction();
   try {
     // ── Update existing origin address in-place ──────────────────────────────
@@ -940,4 +970,50 @@ export async function searchTravellerRoutes(
     throw err;
   }
 });
+}
+
+// ─── Get Alternative Routes for a given origin/destination ────────────────────
+// Called by the route-preview endpoint; returns an array of route options so the
+// traveller can choose their preferred path before the route is permanently saved.
+export async function getRouteAlternatives(originData, destData) {
+  const [originEnriched, destEnriched] = await Promise.all([
+    enrichAddressWithGoogleData(originData),
+    enrichAddressWithGoogleData(destData),
+  ]);
+
+  if (!originEnriched.latitude || !originEnriched.longitude ||
+      !destEnriched.latitude  || !destEnriched.longitude) {
+    throw new Error("Could not geocode origin or destination — ensure addresses are valid");
+  }
+
+  const rawRoutes = await computeRouteWithAlternatives(
+    { lat: Number(originEnriched.latitude), lng: Number(originEnriched.longitude) },
+    { lat: Number(destEnriched.latitude),   lng: Number(destEnriched.longitude) },
+    "DRIVE"
+  );
+
+  return rawRoutes.map((r, index) => ({
+    index,
+    encodedPolyline: r.polyline?.encodedPolyline || null,
+    decodedPath: decodePolyline(r.polyline?.encodedPolyline || ""),
+    distanceKm: Math.round((r.distanceMeters || 0) / 100) / 10,
+    durationMinutes: Math.round(parseFloat((r.duration || "0s").replace("s", "")) / 60),
+    description: r.description || (index === 0 ? "Recommended route" : `Alternative ${index}`),
+  }));
+}
+
+// Standard Google polyline decoder — avoids needing the Maps JS API on the client.
+function decodePolyline(encoded) {
+  const path = [];
+  let index = 0, lat = 0, lng = 0;
+  while (index < encoded.length) {
+    let b, shift = 0, result = 0;
+    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    shift = 0; result = 0;
+    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    path.push([lat / 1e5, lng / 1e5]);
+  }
+  return path;
 }

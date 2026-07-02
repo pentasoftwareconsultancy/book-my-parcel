@@ -169,16 +169,16 @@ export const TravelerCard = ({ traveler }) => (
           </svg>
         </span>
       </div>
-      <p className="text-sm font-bold text-gray-900">Traveler details</p>
+      <p className="text-sm font-bold text-gray-900">{traveler.name || "Selected Traveller"}</p>
     </div>
     <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-      <Info label="Name"    value={traveler.name} />
-      <Info label="Vehicle" value={traveler.vehicleType || traveler.vehicle_type} />
-      <Info label="Time"    value={traveler.duration || traveler.time} />
+      <Info label="Vehicle" value={traveler.vehicleType || traveler.vehicle_type || "—"} />
+      <Info label="Travel Time" value={traveler.duration || traveler.time || "—"} />
+      <Info label="Rating" value={traveler.rating ? `${traveler.rating} ★` : "—"} />
     </div>
     <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-xs">
-      <Info label="Route"        value={traveler.from && traveler.to ? `${traveler.from} To ${traveler.to}` : traveler.route || "—"} />
-      <Info label="Est. Delivery" value={traveler.estDelivery || traveler.est_delivery || traveler.duration || "3–5 Days"} />
+      <Info label="Route"        value={traveler.from && traveler.to ? `${traveler.from} → ${traveler.to}` : traveler.route || "—"} />
+      <Info label="Est. Delivery" value={traveler.estDelivery || traveler.est_delivery || "3–5 Days"} />
       <Info label="Price"        value={traveler.price ? `₹${traveler.price}` : "—"} />
     </div>
   </div>

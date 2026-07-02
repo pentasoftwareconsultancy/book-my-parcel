@@ -133,6 +133,39 @@ export async function computeRoute(originLatLng, destLatLng, travelMode = "DRIVE
   return fetchRoute();
 }
 
+// ─── Routes API: compute multiple alternative routes ─────────────────────────
+// Returns raw Google response array (not cached — alternatives include traffic).
+export async function computeRouteWithAlternatives(originLatLng, destLatLng, travelMode = "DRIVE") {
+  const fieldMask = [
+    "routes.distanceMeters",
+    "routes.duration",
+    "routes.polyline.encodedPolyline",
+    "routes.description",
+  ].join(",");
+
+  const payload = {
+    origin:      { location: { latLng: { latitude: originLatLng.lat, longitude: originLatLng.lng } } },
+    destination: { location: { latLng: { latitude: destLatLng.lat,   longitude: destLatLng.lng   } } },
+    travelMode,
+    computeAlternativeRoutes: true,
+    languageCode: "en-IN",
+    units: "METRIC",
+  };
+
+  if (travelMode === "DRIVE") {
+    payload.routingPreference = "TRAFFIC_UNAWARE";
+    payload.routeModifiers = { avoidTolls: false, avoidHighways: false, avoidFerries: false };
+  }
+
+  const url = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${GOOGLE_API_KEY}`;
+  const response = await axios.post(url, payload, {
+    headers: { "X-Goog-FieldMask": fieldMask },
+    timeout: 10000,
+  });
+
+  return response.data.routes || [];
+}
+
 // ─── Routes API (Pro) - Compute Route Matrix with Traffic ──────────────────
 export async function computeRouteMatrix(origins, destinations) {
   const url = `https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix?key=${GOOGLE_API_KEY}`;

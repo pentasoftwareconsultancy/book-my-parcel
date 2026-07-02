@@ -4,7 +4,7 @@ import fs from "fs";
 import { verifyPan } from "./pan.controller.js";
 import { verifyBankAccount, addBankRecipient } from "./bank.controller.js";
 import { authMiddleware } from "../../middlewares/auth.middleware.js";
-import { requireAdmin } from "../../middlewares/role.middleware.js";
+import { requireAdmin, isUserAdmin } from "../../middlewares/role.middleware.js";
 import { sensitiveLimiter } from "../../middlewares/rateLimit.middleware.js";
 import TravellerKYC from "./travellerKyc.model.js";
 
@@ -135,11 +135,7 @@ router.get("/document/:filename", authMiddleware, async (req, res) => {
 
     // Authorization: admin can access any document.
     // Regular users can only access their own KYC documents.
-    const isAdmin = req.userRoles?.includes("ADMIN") ||
-      (await import("../../modules/user/role.model.js")).default
-        .findOne({ where: { name: "ADMIN" } })
-        .then(() => false)
-        .catch(() => false);
+    const isAdmin = await isUserAdmin(req.user.id);
 
     if (!isAdmin) {
       // Verify the requesting user owns a KYC record that references this file

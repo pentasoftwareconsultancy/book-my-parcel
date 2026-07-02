@@ -16,11 +16,13 @@ import {
   Box,
   Typography,
   Stack,
+  Alert,
   useMediaQuery,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
+import { showError } from "../utils/toast.util";
 
 // Unified mobile breakpoint — matches Tailwind sm: and DashboardLayout
 const MOBILE_BREAKPOINT = "(max-width: 639px)";
@@ -28,6 +30,7 @@ const MOBILE_BREAKPOINT = "(max-width: 639px)";
 const withMaterialTable = (WrappedComponent, tableConfig) => {
   return () => {
     const [data, setData] = useState([]);
+    const [fetchError, setFetchError] = useState(null);
     const [selectedRow, setSelectedRow] = useState({});
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -52,11 +55,15 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
     // Fetch data on load
     useEffect(() => {
       const fetchData = async () => {
+        setFetchError(null);
         try {
           const result = await tableConfig.getData();
           setData(result);
         } catch (error) {
           console.error("Error fetching data:", error);
+          const msg = "Failed to load data. Please refresh the page.";
+          setFetchError(msg);
+          showError(msg);
         }
       };
       fetchData();
@@ -184,6 +191,7 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
           Cell: ({ row }) => (
             <>
               <IconButton
+                aria-label="Row actions"
                 onClick={(e) => {
                   setAnchorEl(e.currentTarget);
                   setCurrentRow(row.original);
@@ -247,6 +255,13 @@ const withMaterialTable = (WrappedComponent, tableConfig) => {
             {tableConfig.title}
           </Typography>
         </Stack>
+
+        {/* Inline error state — shown in addition to the toast */}
+        {fetchError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setFetchError(null)}>
+            {fetchError}
+          </Alert>
+        )}
 
         {/* Material React Table */}
         <MaterialReactTable

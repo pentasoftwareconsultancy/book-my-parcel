@@ -100,13 +100,6 @@ const DisputePage = () => {
 
   const bookingId = order?.deliveryId || order?.id || order?.booking_id || order?.bookingId;
 
-  console.log("FULL ORDER OBJECT:", order);
-  console.log("booking_id:", order?.booking_id);
-  console.log("bookingId:", order?.bookingId);
-  console.log("deliveryId:", order?.deliveryId);
-  console.log("id:", order?.id);
-
-
   const DISPUTE_REASONS =
     role === "TRAVELLER"
       ? TRAVELLER_REASONS[order?.status] || ["Other"]

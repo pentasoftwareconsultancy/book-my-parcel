@@ -8,9 +8,12 @@ const addressSchema = Joi.object({
   state: Joi.string().required(),
   pincode: Joi.string().pattern(/^\d{6}$/).required(),
   country: Joi.string().default("India"),
-  phone: Joi.string().pattern(/^\d{10}$/).optional(), // Made optional - will fetch from profile
+  phone: Joi.string().pattern(/^\d{10}$/).optional(),
   alt_phone: Joi.string().pattern(/^\d{10}$/).optional(),
-  place_id: Joi.string().allow(null).optional(),
+  place_id: Joi.string().allow(null, "").optional(),
+  locality: Joi.string().allow(null, "").optional(),
+  latitude: Joi.number().min(-90).max(90).allow(null).optional(),
+  longitude: Joi.number().min(-180).max(180).allow(null).optional(),
   aadhar_no: Joi.string().pattern(/^\d{12}$/).optional(),
 });
 
@@ -81,4 +84,9 @@ export const createRouteSchema = Joi.object({
     ))
     .optional(),
   min_earning_per_delivery: Joi.number().min(0).optional(),
+
+  // Pre-selected route from the alternatives preview step
+  selected_polyline: Joi.string().allow(null, "").optional(),
+  selected_distance_km: Joi.number().min(0).allow(null).optional(),
+  selected_duration_min: Joi.number().min(0).allow(null).optional(),
 });

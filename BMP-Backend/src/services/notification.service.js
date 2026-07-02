@@ -3,7 +3,6 @@ import { Op } from "sequelize";
 import sequelize from "../config/database.config.js";
 import { createNotification } from "../modules/notification/notification.service.js";
 import { sendEmail } from "./email.service.js";
-import { sendWhatsApp } from "./whatsapp.service.js";
 import { getIO } from "../socket.js";
 
 let firebaseInitialized = false;
@@ -92,14 +91,7 @@ export async function sendToTraveller(travellerId, title, body, data = {}) {
   const { email, phone_number, name } = await getUserContacts(travellerId);
   const displayName = name ? `${name} (Traveller)` : "Traveller";
 
-  // 3. WhatsApp (best-effort)
-  if (phone_number) {
-    sendWhatsApp(phone_number, `Hi ${displayName},\n\n*${title}*\n${body}`).catch((err) =>
-      console.error("[Notification] WhatsApp error for traveller:", err.message)
-    );
-  }
-
-  // 4. Email (best-effort)
+  // 3. Email (best-effort)
   if (email) {
     sendEmail(email, title, body, data.emailSlug || null, { ...data, name: displayName }).catch((err) =>
       console.error("[Notification] Email error for traveller:", err.message)
@@ -151,14 +143,7 @@ export async function sendToUser(userId, title, body, data = {}) {
   const { email, phone_number, name } = await getUserContacts(userId);
   const displayName = name ? `${name} (User)` : "User";
 
-  // 3. WhatsApp (best-effort)
-  if (phone_number) {
-    sendWhatsApp(phone_number, `Hi ${displayName},\n\n*${title}*\n${body}`).catch((err) =>
-      console.error("[Notification] WhatsApp error for user:", err.message)
-    );
-  }
-
-  // 4. Email (best-effort)
+  // 3. Email (best-effort)
   if (email) {
     sendEmail(email, title, body, data.emailSlug || null, { ...data, name: displayName }).catch((err) =>
       console.error("[Notification] Email error for user:", err.message)

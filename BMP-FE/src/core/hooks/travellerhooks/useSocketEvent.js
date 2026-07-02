@@ -18,7 +18,6 @@ export const useSocketEvents = ({
 
     // Handle new parcel request
     const handleNewRequest = (data) => {
-      console.log('🔔 New request:', data);
       setParcelRequests((prev) => {
         const exists = prev.some((r) => r.id === data.id);
         if (exists) return prev;
@@ -29,14 +28,12 @@ export const useSocketEvents = ({
 
     // Handle parcel selected by another traveller
     const handleParcelSelected = (data) => {
-      console.log('🔔 Parcel selected:', data);
       setParcelRequests(prev => prev.filter(req => req.id !== data.request_id));
       toast.info('This parcel has been assigned to another traveller.');
     };
 
     // Handle traveller selected (Phase 1)
     const handleTravellerSelected = (data) => {
-      console.log('🎯 Traveller selected:', data);
       // Remove the request from available requests since it's now SELECTED
       // It will appear in deliveries once booking is confirmed
       setParcelRequests(prev => prev.filter(req => req.id !== data.request_id));
@@ -45,7 +42,6 @@ export const useSocketEvents = ({
 
     // Handle booking confirmed (Phase 2) - Show celebration modal
     const handleBookingConfirmed = (data) => {
-      console.log('🎉 Booking confirmed:', data);
       
       // Show celebration modal
       if (setCelebrationModal) {
@@ -82,7 +78,6 @@ export const useSocketEvents = ({
 
     // Handle parcel not selected (handles both event names BE may emit)
     const handleParcelNotSelected = (data) => {
-      console.log('🔔 Parcel not selected:', data);
       // Remove the request from available requests since it's NOT_SELECTED
       setParcelRequests(prev => prev.filter(req => req.id !== data.request_id));
       toast.info('The parcel has been assigned to another traveller.');
@@ -90,20 +85,17 @@ export const useSocketEvents = ({
 
     // Handle proof uploaded (sender sees traveller's proof photo in real-time)
     const handleProofUploaded = (data) => {
-      console.log('📸 Proof uploaded:', data);
       const label = data.type === 'PICKUP' ? 'pickup' : 'delivery';
       toast.info(`📸 Traveller uploaded ${label} proof photo.`);
     };
 
     // Handle delivery attempt failed (traveller couldn't deliver)
     const handleDeliveryAttemptFailed = (data) => {
-      console.log('⚠️ Delivery attempt failed:', data);
       toast.warning(`Delivery attempt ${data.attempt_number} failed. ${data.rescheduled_at ? 'Rescheduled.' : 'Please ensure someone is available.'}`);
     };
 
     // Handle pickup verified
     const handlePickupVerified = (data) => {
-      console.log('🔔 Pickup verified:', data);
       setDeliveries((prev) =>
         prev.map((d) =>
           d.id === data.booking_id ? { ...d, status: DELIVERY_STATUS.IN_TRANSIT } : d
@@ -113,7 +105,6 @@ export const useSocketEvents = ({
 
     // Handle delivery verified
     const handleDeliveryVerified = (data) => {
-      console.log('🔔 Delivery verified:', data);
       setDeliveries((prev) =>
         prev.map((d) =>
           d.id === data.booking_id ? { ...d, status: DELIVERY_STATUS.DELIVERED } : d
@@ -126,7 +117,6 @@ export const useSocketEvents = ({
 
     // Handle booking cancelled
     const handleBookingCancelled = (data) => {
-      console.log('🚫 Booking cancelled:', data);
       setDeliveries(prev => prev.filter(d => d.id !== data.booking_id));
       toast.info('A booking has been cancelled by the customer');
     };

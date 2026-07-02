@@ -547,15 +547,11 @@ export async function requestPasswordResetOtp(email) {
     password_reset_otp_expires: expiresAt,
   });
 
-  // Send SMS
-  const twilioService = (await import("../../services/twilio.service.js")).default;
-  await twilioService.sendSMS(
-    user.phone_number,
-    `Book My Parcel: Your password reset OTP is ${otp}. Valid for ${otpConfig.EXPIRY_MINUTES} minutes. Do not share this with anyone.`
-  );
-
-  // OTP is intentionally never logged — even dev logs can leak to hosting
-  // dashboards and log aggregation services. Use Twilio console to verify delivery.
+  // In development, log the OTP to console so testing doesn't need SMS delivery.
+  // In production, wire up MSG91 with an approved OTP template.
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[DEV] Password-reset OTP for ${user.phone_number}: ${otp}`);
+  }
 
   return {
     message: "OTP sent to your registered phone number",
