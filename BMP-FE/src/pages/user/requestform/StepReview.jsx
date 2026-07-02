@@ -125,7 +125,7 @@ const StepReview = ({ data, onBack, readOnly = false }) => {
             </svg>
             <div>
               <h5 className="font-medium text-blue-900">Secure Online Payment</h5>
-              <p className="text-sm text-blue-700 mt-1">Your payment will be processed securely via Razorpay. You&apos;ll receive instant booking confirmation.</p>
+              <p className="text-sm text-blue-700 mt-1">Your payment will be processed securely via Cashfree. You&apos;ll receive instant booking confirmation.</p>
             </div>
           </div>
         )}

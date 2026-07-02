@@ -139,7 +139,7 @@ const formatPayments = (data) => {
 
     return {
       id: p.id,
-      transactionId: p.razorpay_payment_id || p.razorpay_order_id || p.id?.slice(0, 8) || "—",
+      transactionId: p.cashfree_payment_id || p.cashfree_order_id || p.id?.slice(0, 8) || "—",
       referenceId:   booking.booking_ref   || p.booking_id?.slice(0, 8) || "—",
       type: "Booking",
       user:    sender.profile?.name    || sender.email    || sender.phone_number    || "—",
