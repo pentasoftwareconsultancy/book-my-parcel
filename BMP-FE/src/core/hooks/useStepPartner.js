@@ -227,8 +227,19 @@ export function useStepPartner({ data, updateFields, onNext, parcelId }) {
       fetchTravellers();
     };
 
-    socket.on("new_acceptance", handleNewAcceptance);
-    return () => { socket.off("new_acceptance", handleNewAcceptance); socket.emit("leave-parcel", parcelId); };
+    // parcel_selected fires when the sender selects a traveller from another session/tab.
+    // Refresh the list so this session shows the up-to-date selection state.
+    const handleParcelSelected = () => {
+      fetchTravellers(false);
+    };
+
+    socket.on("new_acceptance",  handleNewAcceptance);
+    socket.on("parcel_selected", handleParcelSelected);
+    return () => {
+      socket.off("new_acceptance",  handleNewAcceptance);
+      socket.off("parcel_selected", handleParcelSelected);
+      socket.emit("leave-parcel", parcelId);
+    };
   }, [parcelId]);
 
   const handleSelect = (t) => {

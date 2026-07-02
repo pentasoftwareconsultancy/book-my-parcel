@@ -5,6 +5,7 @@ import { CheckCircle } from "lucide-react";
 import RoutePath from "../../core/constants/routes.constant";
 import { showSuccess } from "../../core/utils/toast.util";
 import BookingCancel from "./BookingCancle";
+import useModalDismiss from "../../core/hooks/useModalDismiss";
 
 /**
  * UserBookingConfirmationModal Component
@@ -38,19 +39,6 @@ const UserBookingConfirmationModal = ({
   const finalParcelId = parcelId || order?.parcelId || stateData.parcelId;
   const finalTravellerName = travellerName || stateData.travellerName;
 
-  // Debug logging
-  console.log('� UserBookingConfirmationModal props:', {
-    trackingId,
-    bookingId,
-    parcelId,
-    finalBookingId,
-    finalParcelId,
-    isParcelOnly,
-    order,
-    orderBookingId: order?.bookingId,
-    orderParcelId: order?.parcelId
-  });
-
   // Show success toast only once
   useEffect(() => {
     if (!toastShown.current) {
@@ -68,6 +56,8 @@ const UserBookingConfirmationModal = ({
     navigate(RoutePath.USER_ALL_ORDERS, { state: { newOrder: order } });
   };
 
+  const { handleBackdropClick } = useModalDismiss(onClose || goToDashboard);
+
   const goToTracking = () => {
     if (onClose) onClose();
     navigate(RoutePath.USER_TRACK_PARCEL, { state: { parcelId: finalParcelId } });
@@ -76,7 +66,7 @@ const UserBookingConfirmationModal = ({
   return (
     <>
       {/* ================== CONFIRMATION MODAL ================== */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
         <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg px-8 py-10 text-center relative">
 
           {/* Close Button */}

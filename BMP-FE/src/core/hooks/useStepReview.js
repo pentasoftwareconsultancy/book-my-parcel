@@ -70,9 +70,6 @@ export function useStepReview({ data, readOnly }) {
       if (res?.data?.success) {
         const d = res.data.data;
 
-        console.log("API PARCEL =>", d);
-        console.log("PRICING BREAKDOWN =>", d.pricing_breakdown);
-
         const apiPhotos = (d.photos || []).map((p) =>
           p?.startsWith("http")
             ? p
