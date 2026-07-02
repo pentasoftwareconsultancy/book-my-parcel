@@ -15,18 +15,15 @@ export const APPLICATION_CONSTANTS = {
 
 
 export const DELIVERY_STATUS = {
-  CREATED: "CREATED",
-  MATCHING: "MATCHING",
+  CREATED:          "CREATED",
+  MATCHING:         "MATCHING",
   PARTNER_SELECTED: "PARTNER_SELECTED",
-  CONFIRMED: "CONFIRMED",
-  PICKUP: "PICKUP",
-  IN_TRANSIT: "IN_TRANSIT",
-  DELIVERED: "DELIVERED",
-  CANCELLED: "CANCELLED",
-  AUTO_CANCELLED: "AUTO_CANCELLED",
-  FAILED: "FAILED",
-  REJECTED: "REJECTED",
-
+  CONFIRMED:        "CONFIRMED",
+  PICKUP:           "PICKUP",
+  IN_TRANSIT:       "IN_TRANSIT",
+  DELIVERED:        "DELIVERED",
+  CANCELLED:        "CANCELLED",
+  AUTO_CANCELLED:   "AUTO_CANCELLED",
 };
 
 export const PARCEL_REQUEST_STATUS = {
@@ -40,6 +37,7 @@ export const PARCEL_REQUEST_STATUS = {
 };
 
 export const KYC_STATUS = {
+  NOT_STARTED: "NOT_STARTED",
   PENDING: "PENDING",
   APPROVED: "APPROVED",
   REJECTED: "REJECTED"
@@ -72,18 +70,6 @@ export const DELIVERY_STATUS_UI = {
     label: "Picked Up",
     badge: "bg-indigo-100 text-indigo-700",
   },
-  PENDING: {
-    label: "Pending",
-    badge: "bg-yellow-100 text-yellow-700",
-  },
-  ASSIGNED: {
-    label: "Assigned",
-    badge: "bg-blue-100 text-blue-700",
-  },
-  PICKED_UP: {
-    label: "Picked Up",
-    badge: "bg-indigo-100 text-indigo-700",
-  },
   IN_TRANSIT: {
     label: "In Transit",
     badge: "bg-purple-100 text-purple-700",
@@ -99,14 +85,6 @@ export const DELIVERY_STATUS_UI = {
   AUTO_CANCELLED: {
     label: "Expired",
     badge: "bg-orange-100 text-orange-700",
-  },
-  FAILED: {
-    label: "Failed",
-    badge: "bg-red-100 text-red-700",
-  },
-  REJECTED: {
-    label: "Rejected",
-    badge: "bg-red-100 text-red-700",
   },
 };
 

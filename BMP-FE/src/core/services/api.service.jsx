@@ -310,6 +310,10 @@ static verifyAadhaar(data) {
   }
 
   // Traveler Route APIs
+  static previewRouteAlternatives(origin, destination) {
+    return this.axiosInstance.post(ServerUrl.API_TRAVELER_ROUTE_PREVIEW_ALTERNATIVES, { origin, destination });
+  }
+
   static createRoute(routeData) {
     return this.axiosInstance.post(ServerUrl.API_TRAVELER_ROUTES, routeData);
   }

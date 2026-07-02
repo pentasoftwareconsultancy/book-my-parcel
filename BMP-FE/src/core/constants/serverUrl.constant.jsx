@@ -98,7 +98,8 @@ class ServerUrl {
   static API_TRAVELER_DASHBOARD_REQUESTS = ServerUrl.API_MODULE_TRAVELER + "/dashboard/requests";
   static API_TRAVELER_DASHBOARD_PENDING_PAYMENTS = ServerUrl.API_MODULE_TRAVELER + "/dashboard/pending-payments";
   static API_TRAVELER_ROUTES = ServerUrl.API_MODULE_TRAVELER + "/routes";
-  static API_TRAVELER_ROUTE_SEARCH =ServerUrl.API_MODULE_TRAVELER + "/routes/search";
+  static API_TRAVELER_ROUTE_SEARCH = ServerUrl.API_MODULE_TRAVELER + "/routes/search";
+  static API_TRAVELER_ROUTE_PREVIEW_ALTERNATIVES = ServerUrl.API_MODULE_TRAVELER + "/routes/preview-alternatives";
   static API_TRAVELER_ROUTE_BY_ID = (id) => `${ServerUrl.API_MODULE_TRAVELER}/routes/${id}`;
 
   static API_TRAVELER_KYC = ServerUrl.API_MODULE_TRAVELER + "/kyc";
@@ -164,10 +165,11 @@ class ServerUrl {
 
   // places endpoints
   static API_MODULE_PLACES = "places";
-  static API_PLACES_AUTOCOMPLETE = ServerUrl.API_MODULE_PLACES + "/autocomplete";
-  static API_PLACES_GEOCODE = ServerUrl.API_MODULE_PLACES + "/geocode";
-  static API_PLACES_MAPS_KEY = ServerUrl.API_MODULE_PLACES + "/maps-key";
-  static API_PLACES_DIRECTIONS = ServerUrl.API_MODULE_PLACES + "/directions";
+  static API_PLACES_AUTOCOMPLETE    = ServerUrl.API_MODULE_PLACES + "/autocomplete";
+  static API_PLACES_GEOCODE         = ServerUrl.API_MODULE_PLACES + "/geocode";
+  static API_PLACES_REVERSE_GEOCODE = ServerUrl.API_MODULE_PLACES + "/reverse-geocode";
+  static API_PLACES_MAPS_KEY        = ServerUrl.API_MODULE_PLACES + "/maps-key";
+  static API_PLACES_DIRECTIONS      = ServerUrl.API_MODULE_PLACES + "/directions";
 
   // Dispute endpoints
   static API_MODULE_DISPUTE = "dispute";
