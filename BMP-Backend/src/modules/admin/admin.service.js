@@ -322,6 +322,10 @@ export const getTravelersForKYC = async ({ page = 1, limit = 10, status = null }
             THEN CONCAT(kyc.first_name, ' ', kyc.last_name)
             WHEN kyc.first_name IS NOT NULL 
             THEN kyc.first_name
+            WHEN up.first_name IS NOT NULL AND up.last_name IS NOT NULL
+            THEN CONCAT(up.first_name, ' ', up.last_name)
+            WHEN up.first_name IS NOT NULL
+            THEN up.first_name
             ELSE NULL
           END,
           up.name,
@@ -859,6 +863,10 @@ export const getTravelerDetailsService = async (userId) => {
           THEN CONCAT(tk.first_name, ' ', tk.last_name)
           WHEN tk.first_name IS NOT NULL 
           THEN tk.first_name
+          WHEN up.first_name IS NOT NULL AND up.last_name IS NOT NULL
+          THEN CONCAT(up.first_name, ' ', up.last_name)
+          WHEN up.first_name IS NOT NULL
+          THEN up.first_name
           ELSE NULL
         END,
         up.name,
