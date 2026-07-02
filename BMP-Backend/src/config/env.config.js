@@ -26,6 +26,8 @@ const RECOMMENDED = [
   "BASE_URL",
   "FRONTEND_URL",
   "ALLOWED_ORIGINS",
+  "MSG91_API_KEY",
+  "MSG91_SENDER_ID",
 ];
 
 // Known insecure placeholder values that must never reach production

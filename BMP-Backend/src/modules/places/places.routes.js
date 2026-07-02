@@ -284,6 +284,46 @@ router.get("/geocode", async (req, res) => {
   }
 });
 
+// GET /api/places/reverse-geocode?lat=<lat>&lng=<lng>
+// Converts lat/lng to city + state using Google Geocoding API (server-side, no key exposure)
+router.get("/reverse-geocode", generalLimiter, async (req, res) => {
+  const { lat, lng } = req.query;
+
+  if (!lat || !lng || isNaN(Number(lat)) || isNaN(Number(lng))) {
+    return res.status(400).json({ success: false, error: "lat and lng are required" });
+  }
+
+  const key = process.env.GOOGLE_API_KEY;
+  if (!key || key === "your_google_api_key_here") {
+    return res.status(503).json({ success: false, error: "Maps API key not configured" });
+  }
+
+  try {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&result_type=locality|administrative_area_level_1&key=${key}&language=en`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status !== "OK" || !data.results?.length) {
+      return res.json({ success: false, error: data.error_message || data.status });
+    }
+
+    // Extract city and state from address_components
+    const components = data.results[0]?.address_components || [];
+    let city  = "";
+    let state = "";
+
+    for (const comp of components) {
+      if (comp.types.includes("locality"))                    city  = comp.long_name;
+      if (comp.types.includes("administrative_area_level_1")) state = comp.long_name;
+    }
+
+    return res.json({ success: true, city, state });
+  } catch (err) {
+    console.error("[Reverse geocode] Error:", err.message);
+    return res.status(500).json({ success: false, error: "Reverse geocoding failed" });
+  }
+});
+
 // GET /api/places/maps-key
 // Returns the Maps JS API key for frontend map rendering (server-controlled)
 router.get("/maps-key", (req, res) => {
